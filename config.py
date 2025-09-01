@@ -7,7 +7,8 @@ class FilePaths:
     ITEM_LINESPEED_SEQUENCE: str = "품목별 분리 라인스피드 및 공정 순서.xlsx"
     OPERATION_RECLASSIFICATION: str = "공정 재분류 내역 및 교체 시간 정리(250820).xlsx"
     IMPOSSIBLE_OPERATION: str = "불가능한 공정 입력값.xlsx"
-    ORDER_PO: str = "25년 5월 PO 내역(송부건).xlsx"
+    ORDER_DATA: str = "preprocessed_order.xlsx"  # 전처리된 주문 데이터
+    ORDER_PO_RAW: str = "25년 5월 PO 내역(송부건).xlsx"  # 원본 주문 데이터 (전처리용)
     RESULT_INTERMEDIATE: str = "0821결과.xlsx"
     RESULT_FINAL: str = "0821스케줄링결과.xlsx"
     GANTT_CHART: str = "gantt_chart.png"
@@ -42,8 +43,6 @@ class ColumnNames:
     ID: str = "ID"
     
     # Product specifications
-    SPEC: str = "SPEC"
-    THICKNESS: str = "두께"
     WIDTH: str = "너비"                      # Product width from SPEC
     FABRIC_WIDTH: str = "원단너비"           # Different: process-specific fabric width
     LENGTH: str = "길이"                     # Single unit length from SPEC  
@@ -110,8 +109,6 @@ class BusinessConstants:
     BASE_MONTH: int = 5
     BASE_DAY: int = 15
     WINDOW_DAYS: int = 5
-    STANDARD_WIDTH: float = 914.4
-    ADJUSTED_WIDTH: float = 914.0
     TIME_MULTIPLIER: int = 30
     GANTT_DPI: int = 300
     FAKE_OPERATION_DEPTH: int = -1

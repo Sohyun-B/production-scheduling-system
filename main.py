@@ -39,13 +39,7 @@ def run_level4_scheduling():
     machine_allocate = excel_data_3[config.sheets.MACHINE_ALLOCATE]
     machine_limit = excel_data_3[config.sheets.MACHINE_LIMIT]
 
-    order = pd.read_excel(config.files.ORDER_PO, sheet_name=config.sheets.ORDER_CONFIRMED)
-    order[[config.columns.THICKNESS, config.columns.WIDTH, config.columns.LENGTH]] = order[config.columns.SPEC].str.split("*", expand=True).astype(float)
-    order.loc[order[config.columns.WIDTH] == config.constants.STANDARD_WIDTH, config.columns.WIDTH] = config.constants.ADJUSTED_WIDTH
-    order[config.columns.FABRIC_LENGTH] = order[config.columns.LENGTH] * order[config.columns.REQUEST_AMOUNT]
-    order = order[[config.columns.PO_NO, config.columns.GITEM, config.columns.GITEM_NAME, 
-                  config.columns.WIDTH, config.columns.LENGTH, config.columns.REQUEST_AMOUNT, 
-                  config.columns.FABRIC_LENGTH, config.columns.DUE_DATE]]
+    order = pd.read_excel(config.files.ORDER_DATA)
 
     # 전처리
     sequence_seperated_order, linespeed = preprocessing(order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed)
@@ -142,9 +136,8 @@ def run_level4_scheduling():
         print(f"   원본 최대 node_end: {result_cleaned['node_end'].max()}")
         print(f"   처리된 최대 종료시각: {results['new_output_final_result']['종료시각'].max()}")
         
-        # 원본 주문 데이터에서 GITEM명 정보 가져오기
-        order_with_names = pd.read_excel(config.files.ORDER_PO, sheet_name=config.sheets.ORDER_CONFIRMED)
-        order_with_names = order_with_names[['GITEM', 'GITEM명']].drop_duplicates()
+        # GITEM명 정보는 이미 전처리된 order 데이터에 있음
+        order_with_names = order[['GITEM', 'GITEM명']].drop_duplicates()
         
         # main.ipynb와 동일한 후처리 과정
         order_summary = results['new_output_final_result'].copy()
