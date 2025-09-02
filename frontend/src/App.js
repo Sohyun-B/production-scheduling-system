@@ -55,10 +55,11 @@ function App() {
         if (!mockSchedulingService.isSchedulingRunning() && !mockSchedulingService.isWaitingForConfirmation()) {
           if (currentStep && currentStep.isComplete) {
             setRunResults({
-              makespan: 1047.0,
-              totalOrders: 174,
-              totalTasks: 474,
+              makespan: 523.5,
+              totalOrders: 172,  // 생산 가능한 주문 수
+              totalTasks: 470,
               totalLateDays: 0,
+              unproducedOrders: 2,  // 생산하지 못한 주문 수
               results: mockSchedulingService.generateMockResults()
             });
             setIsScheduling(false);
@@ -84,8 +85,8 @@ function App() {
       <div className="stats-container">
         <div className="stat-card">
           <h3>📦 주문 현황</h3>
-          <p className="stat-number">{orders.length}</p>
-          <p className="stat-label">개 주문 대기</p>
+          <p className="stat-number">{orders.filter(order => order.status === '생산 가능').length}</p>
+          <p className="stat-label">개 주문 생산 가능 (총 {orders.length}개)</p>
         </div>
         
         {runResults ? (
@@ -93,7 +94,7 @@ function App() {
             <div className="stat-card success">
               <h3>⏱️ Makespan</h3>
               <p className="stat-number">{runResults.makespan}h</p>
-              <p className="stat-label">총 소요 시간</p>
+              <p className="stat-label">총 소요 시간 ({Math.round(runResults.makespan * 2)} 슬롯)</p>
             </div>
             
             <div className="stat-card success">
@@ -189,23 +190,23 @@ function App() {
           {currentStep && (
             <div className="progress-visual">
               <div className="progress-steps">
-                <div className={`step-indicator ${currentStep.percent >= 25 ? 'completed' : currentStep.percent > 0 ? 'active' : ''}`}>
+                <div className={`step-indicator ${currentStep.percent > 25 ? 'completed' : currentStep.percent > 0 ? 'active' : ''}`}>
                   <div className="step-circle">1</div>
                   <div className="step-label">데이터 준비</div>
                 </div>
-                <div className={`step-indicator ${currentStep.percent >= 50 ? 'completed' : currentStep.percent >= 25 ? 'active' : ''}`}>
+                <div className={`step-indicator ${currentStep.percent > 30 ? 'completed' : currentStep.percent > 25 ? 'active' : ''}`}>
                   <div className="step-circle">2</div>
                   <div className="step-label">전처리</div>
                 </div>
-                <div className={`step-indicator ${currentStep.percent >= 70 ? 'completed' : currentStep.percent >= 50 ? 'active' : ''}`}>
+                <div className={`step-indicator ${currentStep.percent > 40 ? 'completed' : currentStep.percent > 30 ? 'active' : ''}`}>
                   <div className="step-circle">3</div>
                   <div className="step-label">수율 예측</div>
                 </div>
-                <div className={`step-indicator ${currentStep.percent >= 90 ? 'completed' : currentStep.percent >= 70 ? 'active' : ''}`}>
+                <div className={`step-indicator ${currentStep.percent > 60 ? 'completed' : currentStep.percent > 40 ? 'active' : ''}`}>
                   <div className="step-circle">4</div>
                   <div className="step-label">DAG 생성</div>
                 </div>
-                <div className={`step-indicator ${currentStep.percent >= 100 ? 'completed' : currentStep.percent >= 90 ? 'active' : ''}`}>
+                <div className={`step-indicator ${currentStep.percent >= 100 ? 'completed' : currentStep.percent > 60 ? 'active' : ''}`}>
                   <div className="step-circle">5</div>
                   <div className="step-label">스케줄링</div>
                 </div>
@@ -234,13 +235,13 @@ function App() {
                     <h5>📋 1. 기계 휴무 (machine_rest)</h5>
                     <div className="machine-issues">
                       <div className="issue-item">
-                        <strong>기계:</strong> 1호기 | <strong>기간:</strong> 2025-05-20 09:00 ~ 17:00
+                        <strong>1호기:</strong> 2025-05-20 09:00 ~ 17:00 정기점검
                       </div>
                       <div className="issue-item">
-                        <strong>기계:</strong> 2호기 | <strong>기간:</strong> 2025-05-22 전일
+                        <strong>2호기:</strong> 2025-05-22 전일 설비보수
                       </div>
                       <div className="issue-item">
-                        <strong>기계:</strong> 3호기 | <strong>기간:</strong> 2025-05-25 08:00 ~ 18:00
+                        <strong>3호기:</strong> 2025-05-25 08:00 ~ 18:00 예방정비
                       </div>
                     </div>
                   </div>
@@ -249,31 +250,31 @@ function App() {
                     <h5>⚠️ 2. 기계 할당 제한 (machine_allocate)</h5>
                     <div className="machine-issues">
                       <div className="issue-item">
-                        <strong>공정 A:</strong> 2호기, 3호기에서 수행 불가
+                        <strong>GITEM 31704:</strong> 2호기, 3호기에서 생산 불가 (기계 규격 불일치)
                       </div>
                       <div className="issue-item">
-                        <strong>공정 B:</strong> 1호기에서 수행 불가
+                        <strong>GITEM 32023:</strong> 1호기에서 생산 불가 (공정 특성 불일치)
                       </div>
                       <div className="issue-item">
-                        <strong>공정 C:</strong> 3호기에서 수행 불가
+                        <strong>GITEM 30151:</strong> 3호기에서 생산 불가 (재료 호환성 문제)
                       </div>
                     </div>
                     
                     <h6>⚠️ 영향받는 GITEM:</h6>
-                    <p className="unable-gitems">기계 할당 제한으로 생산하지 못하는 GITEM들: 31704, 32023</p>
+                    <p className="unable-gitems">기계 할당 제한으로 생산하지 못하는 GITEM들: 31705, 32024</p>
                   </div>
 
                   <div className="detail-box">
                     <h5>🔧 3. 기계 제한 사항 (machine_limit)</h5>
                     <div className="machine-issues">
                       <div className="issue-item">
-                        <strong>공정 D:</strong> 1호기에서만 수행 가능
+                        <strong>1호기:</strong> 최대 폭 1500mm 제한
                       </div>
                       <div className="issue-item">
-                        <strong>공정 E:</strong> 2호기에서만 수행 가능
+                        <strong>2호기:</strong> 최대 길이 3000mm 제한
                       </div>
                       <div className="issue-item">
-                        <strong>공정 F:</strong> 3호기에서만 수행 가능
+                        <strong>3호기:</strong> 최소 두께 0.5mm 제한
                       </div>
                     </div>
                   </div>
@@ -376,7 +377,7 @@ function App() {
                 <div className="stat-row">
                   <span className="stat-icon">⏱️</span>
                   <span className="stat-label">Makespan</span>
-                  <span className="stat-value">1047 시간</span>
+                  <span className="stat-value">{runResults.makespan} 시간</span>
                 </div>
                 <div className="stat-row">
                   <span className="stat-icon">📅</span>
@@ -385,13 +386,18 @@ function App() {
                 </div>
                 <div className="stat-row">
                   <span className="stat-icon">📦</span>
-                  <span className="stat-label">처리 주문</span>
-                  <span className="stat-value">174 개</span>
+                  <span className="stat-label">생산 주문</span>
+                  <span className="stat-value">{runResults.totalOrders} 개</span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-icon">⚠️</span>
+                  <span className="stat-label">생산 불가</span>
+                  <span className="stat-value">{runResults.unproducedOrders} 개</span>
                 </div>
                 <div className="stat-row">
                   <span className="stat-icon">🎯</span>
                   <span className="stat-label">지연 일수</span>
-                  <span className="stat-value">0 일</span>
+                  <span className="stat-value">{runResults.totalLateDays} 일</span>
                 </div>
               </div>
             </div>
@@ -479,6 +485,35 @@ function App() {
               </tbody>
             </table>
           </div>
+
+          <div className="unproduced-table">
+            <div className="table-header">
+              <h4>⚠️ 생산하지 못한 주문</h4>
+              <span className="table-count">{runResults.results.unproducedOrders.length}개 주문</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>P/O NO</th>
+                  <th>GITEM</th>
+                  <th>품목명</th>
+                  <th>납기일</th>
+                  <th>생산 불가 사유</th>
+                </tr>
+              </thead>
+              <tbody>
+                {runResults.results.unproducedOrders.map((order, index) => (
+                  <tr key={index} className="unproduced-row">
+                    <td>{order.poNo}</td>
+                    <td>{order.gitem}</td>
+                    <td>{order.gitemName}</td>
+                    <td>{order.dueDate}</td>
+                    <td className="reason-cell">{order.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
@@ -499,11 +534,12 @@ function App() {
               <th>길이(mm)</th>
               <th>의뢰량</th>
               <th>납기일</th>
+              <th>상태</th>
             </tr>
           </thead>
           <tbody>
             {orders.map(order => (
-              <tr key={order.id}>
+              <tr key={order.id} className={order.status === '생산 불가' ? 'unproducible' : ''}>
                 <td>{order.poNo}</td>
                 <td>{order.gitem}</td>
                 <td>{order.gitemName}</td>
@@ -511,6 +547,9 @@ function App() {
                 <td>{order.length}</td>
                 <td>{order.requestAmount}</td>
                 <td>{order.dueDate}</td>
+                <td className={order.status === '생산 불가' ? 'status-unproducible' : 'status-producible'}>
+                  {order.status}
+                </td>
               </tr>
             ))}
           </tbody>

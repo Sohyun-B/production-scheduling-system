@@ -67,31 +67,31 @@ export class MockSchedulingService {
     const constraints = {
       // 1. 기계 휴무 (machine_rest)
       machineRest: [
-        { machine: 'T0915', date: '2025-05-20', reason: '정기점검' },
-        { machine: 'T02149', date: '2025-05-22', reason: '설비보수' },
-        { machine: 'T02299', date: '2025-05-25', reason: '예방정비' }
+        { machine: '1호기', date: '2025-05-20', reason: '정기점검' },
+        { machine: '2호기', date: '2025-05-22', reason: '설비보수' },
+        { machine: '3호기', date: '2025-05-25', reason: '예방정비' }
       ],
       
       // 2. 기계 할당 제한 (machine_allocate)  
       machineAllocate: [
-        { gitem: '31704', impossibleMachines: ['T02149', 'T02299'], reason: '기계 규격 불일치' },
-        { gitem: '32023', impossibleMachines: ['T0915'], reason: '공정 특성 불일치' },
-        { gitem: '30151', impossibleMachines: ['T02299'], reason: '재료 호환성 문제' }
+        { gitem: '31704', impossibleMachines: ['2호기', '3호기'], reason: '기계 규격 불일치' },
+        { gitem: '32023', impossibleMachines: ['1호기'], reason: '공정 특성 불일치' },
+        { gitem: '30151', impossibleMachines: ['3호기'], reason: '재료 호환성 문제' }
       ],
       
       // 3. 기계 제한 사항 (machine_limit)
       machineLimit: [
-        { machine: 'T0915', maxWidth: 1500, reason: '최대 폭 제한' },
-        { machine: 'T02149', maxLength: 3000, reason: '최대 길이 제한' },
-        { machine: 'T02299', minThickness: 0.5, reason: '최소 두께 제한' }
+        { machine: '1호기', maxWidth: 1500, reason: '최대 폭 제한' },
+        { machine: '2호기', maxLength: 3000, reason: '최대 길이 제한' },
+        { machine: '3호기', minThickness: 0.5, reason: '최소 두께 제한' }
       ]
     };
 
     // 영향받는 주문 분석
     const affectedOrders = [
-      { poNo: 'SW1250407101', gitem: '31704', issue: 'T02149, T02299 사용 불가', type: '기계 할당 제한' },
-      { poNo: 'SW1250503301', gitem: '32023', issue: 'T0915 사용 불가', type: '기계 할당 제한' },
-      { poNo: 'SW1250502301', gitem: '30151', issue: 'T02299 사용 불가', type: '기계 할당 제한' }
+      { poNo: 'SW1250407101', gitem: '31704', issue: '2호기, 3호기 사용 불가', type: '기계 할당 제한' },
+      { poNo: 'SW1250503301', gitem: '32023', issue: '1호기 사용 불가', type: '기계 할당 제한' },
+      { poNo: 'SW1250502301', gitem: '30151', issue: '3호기 사용 불가', type: '기계 할당 제한' }
     ];
     
     this.stepResults.preprocessing = {
@@ -184,7 +184,7 @@ export class MockSchedulingService {
     
     // 스케줄링 결과 생성
     this.stepResults.scheduling = {
-      makespan: 1047.0,
+      makespan: 523.5,  // 1047 슬롯 × 0.5시간 = 523.5시간
       totalDays: 21.8,
       ganttChart: this.generateGanttChart(),
       excelFile: '스케줄링결과.xlsx'
@@ -196,7 +196,7 @@ export class MockSchedulingService {
       percent: 100,
       message: '스케줄링 완료!',
       details: [
-        `총 걸리는 시간: 1047시간`,
+        `총 걸리는 시간: 523.5시간 (1047 슬롯)`,
         `총 소요일: 21.8일`,
         `간트 차트: 생성 완료`,
         `엑셀 파일: 저장 가능`
@@ -214,10 +214,11 @@ export class MockSchedulingService {
     return {
       runId: `mock-${Date.now()}`,
       status: 'completed',
-      makespan: 1047.0,
-      totalOrders: 174,
-      totalTasks: 474,
+      makespan: 523.5,  // 1047 슬롯 × 0.5시간 = 523.5시간
+      totalOrders: 172,  // 174개 중 2개는 제약조건으로 생산 불가
+      totalTasks: 470,   // 474개 중 4개는 제약조건으로 생산 불가
       totalLateDays: 0,
+      unproducedOrders: 2,  // 생산하지 못한 주문 수
       results: mockResults
     };
   }
@@ -225,8 +226,8 @@ export class MockSchedulingService {
   getAffectedOrders(unableGitems) {
     // Mock affected orders
     return [
-      { poNo: 'SW1250407101', gitem: '31704', gitemName: 'PPF필름', reason: 'T0915 정기점검' },
-      { poNo: 'SW1250503301', gitem: '32023', gitemName: '윈드실드', reason: 'T02149 기계고장' }
+      { poNo: 'SW1250407101', gitem: '31704', gitemName: 'PPF필름', reason: '1호기 정기점검' },
+      { poNo: 'SW1250503301', gitem: '32023', gitemName: '윈드실드', reason: '2호기 기계고장' }
     ];
   }
 
@@ -262,17 +263,24 @@ export class MockSchedulingService {
     ];
 
     const mockMachineInfo = [
-      { poNo: 'SW1250407101', gitem: '31704', machineCode: 'T0915', machineName: '코팅기1호', startTime: 0, endTime: 48, workTime: 48 },
-      { poNo: 'SW1250503301', gitem: '32023', machineCode: 'T0915', machineName: '코팅기1호', startTime: 48, endTime: 96, workTime: 48 },
-      { poNo: 'SW1250503601', gitem: '32528', machineCode: 'T02149', machineName: '슬리터2호', startTime: 0, endTime: 72, workTime: 72 },
-      { poNo: 'SW1250502301', gitem: '30151', machineCode: 'T02159', machineName: '슬리터3호', startTime: 0, endTime: 60, workTime: 60 },
-      { poNo: 'SW1250506104', gitem: '31539', machineCode: 'T02299', machineName: '검사기1호', startTime: 96, endTime: 120, workTime: 24 }
+      { poNo: 'SW1250407101', gitem: '31704', machineCode: 'M001', machineName: '1호기', startTime: 0, endTime: 48, workTime: 48 },
+      { poNo: 'SW1250503301', gitem: '32023', machineCode: 'M001', machineName: '1호기', startTime: 48, endTime: 96, workTime: 48 },
+      { poNo: 'SW1250503601', gitem: '32528', machineCode: 'M002', machineName: '2호기', startTime: 0, endTime: 72, workTime: 72 },
+      { poNo: 'SW1250502301', gitem: '30151', machineCode: 'M003', machineName: '3호기', startTime: 0, endTime: 60, workTime: 60 },
+      { poNo: 'SW1250506104', gitem: '31539', machineCode: 'M004', machineName: '4호기', startTime: 96, endTime: 120, workTime: 24 }
+    ];
+
+    // 생산하지 못한 주문들 (제약조건으로 인해)
+    const unproducedOrders = [
+      { poNo: 'SW1250408102', gitem: '31705', gitemName: 'PPF-SPECIAL', reason: '기계 할당 제한 (2호기, 3호기 사용 불가)', dueDate: '2025-05-23' },
+      { poNo: 'SW1250509201', gitem: '32024', gitemName: '윈드실드-PREMIUM', reason: '기계 제한 사항 (1호기 공정 특성 불일치)', dueDate: '2025-05-26' }
     ];
 
     return {
       orderSummary: mockOrders,
       machineInfo: mockMachineInfo,
-      totalMakespan: 1047.0,
+      unproducedOrders: unproducedOrders,
+      totalMakespan: 523.5,  // 1047 슬롯 × 0.5시간
       totalDays: 21.8,
       efficiency: 95.2
     };
@@ -328,7 +336,7 @@ export class MockSchedulingService {
     }
     
     // Machine labels and bars
-    const machines = ['T0915 (코팅기)', 'T02149 (슬리터)', 'T02159 (슬리터)', 'T02299 (검사기)'];
+    const machines = ['1호기', '2호기', '3호기', '4호기'];
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'];
     
     machines.forEach((machine, i) => {
@@ -395,11 +403,13 @@ export class MockSchedulingService {
   // Mock data for orders (replaces database)
   getMockOrders() {
     return [
-      { id: 1, poNo: 'SW1250407101', gitem: '31704', gitemName: 'PPF필름', width: 1524, length: 15, requestAmount: 20, dueDate: '2025-05-21' },
-      { id: 2, poNo: 'SW1250503301', gitem: '32023', gitemName: '윈드실드', width: 1220, length: 143, requestAmount: 15, dueDate: '2025-05-22' },
-      { id: 3, poNo: 'SW1250503601', gitem: '32528', gitemName: '팬텀 S/R', width: 914, length: 84, requestAmount: 25, dueDate: '2025-05-25' },
-      { id: 4, poNo: 'SW1250502301', gitem: '30151', gitemName: '방충필름', width: 609, length: 30, requestAmount: 18, dueDate: '2025-05-20' },
-      { id: 5, poNo: 'SW1250506104', gitem: '31539', gitemName: '보호필름', width: 1524, length: 50, requestAmount: 12, dueDate: '2025-05-28' }
+      { id: 1, poNo: 'SW1250407101', gitem: '31704', gitemName: 'PPF필름', width: 1524, length: 15, requestAmount: 20, dueDate: '2025-05-21', status: '생산 가능' },
+      { id: 2, poNo: 'SW1250503301', gitem: '32023', gitemName: '윈드실드', width: 1220, length: 143, requestAmount: 15, dueDate: '2025-05-22', status: '생산 가능' },
+      { id: 3, poNo: 'SW1250503601', gitem: '32528', gitemName: '팬텀 S/R', width: 914, length: 84, requestAmount: 25, dueDate: '2025-05-25', status: '생산 가능' },
+      { id: 4, poNo: 'SW1250502301', gitem: '30151', gitemName: '방충필름', width: 609, length: 30, requestAmount: 18, dueDate: '2025-05-20', status: '생산 가능' },
+      { id: 5, poNo: 'SW1250506104', gitem: '31539', gitemName: '보호필름', width: 1524, length: 50, requestAmount: 12, dueDate: '2025-05-28', status: '생산 가능' },
+      { id: 6, poNo: 'SW1250408102', gitem: '31705', gitemName: 'PPF-SPECIAL', width: 1650, length: 20, requestAmount: 8, dueDate: '2025-05-23', status: '생산 불가' },
+      { id: 7, poNo: 'SW1250509201', gitem: '32024', gitemName: '윈드실드-PREMIUM', width: 1320, length: 160, requestAmount: 10, dueDate: '2025-05-26', status: '생산 불가' }
     ];
   }
 }
