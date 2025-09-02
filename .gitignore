@@ -23,3 +23,33 @@ Thumbs.db
 # Excel temporary files
 ~$*.xlsx
 ~$*.xls
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+
+# React build
+/build
+
+# Log files
+*.log
+
+# Environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Result files (exclude large data files)
+*결과*.xlsx
+*내역*.xlsx
+result.xlsx
+level4_*.xlsx
