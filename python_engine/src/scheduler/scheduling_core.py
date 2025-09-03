@@ -307,7 +307,7 @@ class DispatchPriorityStrategy(HighLevelSchedulingStrategy):
         
         # 디스패치 룰 생성 (priority_order가 없으면 생성)
         if priority_order is None:
-            from scheduler.dispatch_rules import create_dispatch_rule
+            from .dispatch_rules import create_dispatch_rule
             if sequence_seperated_order is None:
                 raise ValueError("priority_order가 None인 경우 sequence_seperated_order가 필요합니다")
             priority_order, dag_df = create_dispatch_rule(dag_df, sequence_seperated_order)

@@ -4,14 +4,17 @@ from typing import Dict, List
 
 @dataclass
 class FilePaths:
-    ITEM_LINESPEED_SEQUENCE: str = "품목별 분리 라인스피드 및 공정 순서.xlsx"
-    OPERATION_RECLASSIFICATION: str = "공정 재분류 내역 및 교체 시간 정리(250820).xlsx"
-    IMPOSSIBLE_OPERATION: str = "불가능한 공정 입력값.xlsx"
-    ORDER_DATA: str = "preprocessed_order.xlsx"  # 전처리된 주문 데이터
+    # Input files
+    ITEM_LINESPEED_SEQUENCE: str = "data/input/품목별 분리 라인스피드 및 공정 순서.xlsx"
+    OPERATION_RECLASSIFICATION: str = "data/input/공정 재분류 내역 및 교체 시간 정리(250820).xlsx"
+    IMPOSSIBLE_OPERATION: str = "data/input/불가능한 공정 입력값.xlsx"
+    ORDER_DATA: str = "data/input/preprocessed_order.xlsx"  # 전처리된 주문 데이터
     ORDER_PO_RAW: str = "25년 5월 PO 내역(송부건).xlsx"  # 원본 주문 데이터 (전처리용)
-    RESULT_INTERMEDIATE: str = "0821결과.xlsx"
-    RESULT_FINAL: str = "0821스케줄링결과.xlsx"
-    GANTT_CHART: str = "gantt_chart.png"
+    
+    # Output files
+    RESULT_INTERMEDIATE: str = "data/output/result.xlsx"
+    RESULT_FINAL: str = "data/output/0829 스케줄링결과.xlsx"
+    GANTT_CHART: str = "data/output/level4_gantt.png"
     GANTT_INPUT: str = "gantt_input.xlsx"
 
 

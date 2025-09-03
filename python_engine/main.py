@@ -11,11 +11,11 @@ import sys
 import os
 
 from config import config
-from preprocessing import preprocessing
-from yield_management import yield_prediction
-from dag_management import run_dag_pipeline, make_process_table
-from scheduler.scheduling_core import DispatchPriorityStrategy
-from results import create_results
+from src.preprocessing import preprocessing
+from src.yield_management import yield_prediction
+from src.dag_management import run_dag_pipeline, make_process_table
+from src.scheduler.scheduling_core import DispatchPriorityStrategy
+from src.results import create_results
 
 def run_level4_scheduling():
 
@@ -70,9 +70,9 @@ def run_level4_scheduling():
         }
     }
     
-    with open("stage1_loading.json", "w", encoding="utf-8") as f:
-        json.dump(stage1_data, f, ensure_ascii=False)
-    print("[단계1] JSON 저장 완료: stage1_loading.json")
+    with open("data/output/stage1_loading.json", "w", encoding="utf-8") as f:
+        json.dump(stage1_data, f, ensure_ascii=False, default=str)
+    print("[단계1] JSON 저장 완료: data/output/stage1_loading.json")
 
     # === 2단계: 전처리 ===
     print("[30%] 주문 데이터 전처리 중...")
@@ -93,9 +93,9 @@ def run_level4_scheduling():
         }
     }
     
-    with open("stage2_preprocessing.json", "w", encoding="utf-8") as f:
-        json.dump(stage2_data, f, ensure_ascii=False)
-    print("[단계2] JSON 저장 완료: stage2_preprocessing.json")
+    with open("data/output/stage2_preprocessing.json", "w", encoding="utf-8") as f:
+        json.dump(stage2_data, f, ensure_ascii=False, default=str)
+    print("[단계2] JSON 저장 완료: data/output/stage2_preprocessing.json")
     
     # === 3단계: 수율 예측 (3단계, 4단계 건너뛰기) ===
     print("[35%] 수율 예측 처리 중...")
@@ -132,9 +132,9 @@ def run_level4_scheduling():
     print("[60%] 스케줄링 알고리즘 초기화 중...")
     try:
         # 스케줄링 준비
-        from scheduler.delay_dict import DelayProcessor
-        from scheduler.scheduler import Scheduler
-        from scheduler.dispatch_rules import create_dispatch_rule
+        from src.scheduler.delay_dict import DelayProcessor
+        from src.scheduler.scheduler import Scheduler
+        from src.scheduler.dispatch_rules import create_dispatch_rule
         
         # 디스패치 룰 생성
         print("[65%] 디스패치 규칙 생성 중...")
@@ -165,22 +165,27 @@ def run_level4_scheduling():
         actual_makespan = result[~(result['depth'] == -1)]['node_end'].max()
         total_makespan = result['node_end'].max()
         
-        # === 5단계 완료: JSON 저장 ===
+        # 기계 스케줄 정보 생성 (stage5용)
+        machine_schedule_df_stage5 = scheduler.create_machine_schedule_dataframe()
+        # 할당 작업이 -1 공정인 경우 삭제
+        machine_schedule_df_stage5 = machine_schedule_df_stage5[~machine_schedule_df_stage5['할당 작업'].astype(str).str.startswith('[-1', na=False)]
+        
+        # === 5단계 완료: JSON 저장 (machine_info 포함) ===
         stage5_data = {
             "stage": "scheduling",
             "data": {
                 "window_days_used": window_days,
-                "actual_makespan_slots": int(actual_makespan),
-                "total_makespan_slots": int(total_makespan),
-                "actual_makespan_hours": actual_makespan * 0.5,
+                "makespan_slots": int(actual_makespan),
+                "makespan_hours": actual_makespan * 0.5,
                 "total_days": (actual_makespan * 0.5) / 24,
-                "processed_jobs_count": len(result[~(result['depth'] == -1)])
+                "processed_jobs_count": len(result[~(result['depth'] == -1)]),
+                "machine_info": machine_schedule_df_stage5.to_dict('records')
             }
         }
         
-        with open("stage5_scheduling.json", "w", encoding="utf-8") as f:
-            json.dump(stage5_data, f, ensure_ascii=False)
-        print("[단계5] JSON 저장 완료: stage5_scheduling.json")
+        with open("data/output/stage5_scheduling.json", "w", encoding="utf-8") as f:
+            json.dump(stage5_data, f, ensure_ascii=False, default=str)
+        print("[단계5] JSON 저장 완료 (machine_info 포함): data/output/stage5_scheduling.json")
         
         # === 6단계: 결과 후처리 ===
         print(f"[90%] 스케줄링 완료! Makespan: {actual_makespan:.1f} (총 {actual_makespan/48:.1f}일)")
@@ -190,7 +195,7 @@ def run_level4_scheduling():
         
         # 원본 결과 저장
         print("[92%] 원본 결과 파일 저장 중...")
-        excel_filename = "result.xlsx"
+        excel_filename = "data/output/result.xlsx"
         result.to_excel(excel_filename, index=False)
         print(f"[저장] 원본 결과를 '{excel_filename}'에 저장 완료")
         
@@ -202,6 +207,7 @@ def run_level4_scheduling():
         machine_schedule_df = scheduler.create_machine_schedule_dataframe()
         # 할당 작업이 -1 공정인 경우 삭제
         machine_schedule_df = machine_schedule_df[~machine_schedule_df['할당 작업'].astype(str).str.startswith('[-1', na=False)]
+        
         
         # create_results 함수 호출
         results = create_results(
@@ -232,6 +238,7 @@ def run_level4_scheduling():
         # main.ipynb와 동일한 후처리 과정
         order_summary = results['new_output_final_result'].copy()
         machine_info = results['machine_info'].copy()
+        machine_info.to_csv("이걸로 간트만들어야함.csv", encoding='utf-8-sig')
         order_info = results['merged_result'].copy()
         
         # 1. order_info에서 조합분류로 시작하는 컬럼 전부 삭제
@@ -258,7 +265,7 @@ def run_level4_scheduling():
         
         # 최종 엑셀 파일 저장 (main.ipynb와 동일한 형태)
         print("[95%] 최종 Excel 파일 저장 중...")
-        processed_filename = "0829 스케줄링결과.xlsx"
+        processed_filename = "data/output/0829 스케줄링결과.xlsx"
         with pd.ExcelWriter(processed_filename, engine="openpyxl") as writer:
             order_summary.to_excel(writer, sheet_name="주문_생산_요약본", index=False)
             order_info.to_excel(writer, sheet_name="주문_생산_정보", index=False)
@@ -268,9 +275,9 @@ def run_level4_scheduling():
         
         # 간트 차트 생성 및 저장
         print("[97%] 간트 차트 생성 중...")
-        gantt_filename = "level4_gantt.png"
+        gantt_filename = "data/output/level4_gantt.png"
         try:
-            from scheduler.chart import DrawChart
+            from src.scheduler.chart import DrawChart
             gantt = DrawChart(scheduler.Machines)
             gantt_plot = gantt.plot()
             
@@ -298,29 +305,23 @@ def run_level4_scheduling():
         except Exception as chart_error:
             print(f"[ERROR] 간트 차트 생성 중 오류: {chart_error}")
         
-        # === 6단계 완료: JSON 저장 ===
+        # 지각한 제품 정보 추출
+        late_products = results['new_output_final_result'][results['new_output_final_result']['지각일수'] > 0]
+        late_po_numbers = late_products['P/O NO'].tolist() if len(late_products) > 0 else []
+        
+        # === 6단계 완료: JSON 저장 (지각 정보만) ===
         stage6_data = {
             "stage": "results",
             "data": {
                 "late_days_sum": results['late_days_sum'],
-                "final_makespan": float(results['new_output_final_result']['종료시각'].max()),
-                "order_summary": results['new_output_final_result'].to_dict('records'),
-                "machine_info": machine_info.to_dict('records'),
-                "merged_result": order_info.to_dict('records'),
-                "files": {
-                    "excel_filename": processed_filename,
-                    "gantt_filename": gantt_filename,
-                    "excel_exists": os.path.exists(processed_filename),
-                    "gantt_exists": os.path.exists(gantt_filename),
-                    "excel_size": os.path.getsize(processed_filename) if os.path.exists(processed_filename) else 0,
-                    "gantt_size": os.path.getsize(gantt_filename) if os.path.exists(gantt_filename) else 0
-                }
+                "late_products_count": len(late_products),
+                "late_po_numbers": late_po_numbers
             }
         }
         
-        with open("stage6_results.json", "w", encoding="utf-8") as f:
+        with open("data/output/stage6_results.json", "w", encoding="utf-8") as f:
             json.dump(stage6_data, f, ensure_ascii=False, default=str)
-        print("[단계6] JSON 저장 완료: stage6_results.json")
+        print("[단계6] JSON 저장 완료: data/output/stage6_results.json")
         
         # 최종 완료
         print("[100%] 스케줄링 완료! 모든 결과 파일 저장 완료")

@@ -1,0 +1,1 @@
+{"stage": "preprocessing", "data": {"input_orders": 174, "processed_jobs": 474, "machine_constraints": {"machine_rest": [{"기계코드": "C2010", "기계인덱스": 0, "기계이름": "1호기", "시작시간": "2025-05-15 00:00:00", "종료시간": "2025-05-16 00:00:00"}], "machine_allocate": [{"공정명": "안료점착", "기계코드": "C2260"}, {"공정명": "유광 S/R", "기계코드": "C2270"}], "machine_limit": [{"공정명": "IR접착", "기계코드": "C2010"}]}}}

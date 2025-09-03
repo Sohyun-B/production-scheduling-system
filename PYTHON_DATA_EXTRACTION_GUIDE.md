@@ -20,7 +20,7 @@ Python 스케줄링 엔진에서 FastAPI를 통해 프론트엔드로 전달해�
 
 ### JSON 저장 코드
 ```python
-# main.py 58줄 이후 추가
+# main.py에서 이미 구현됨 - 참조용
 stage1_data = {
     "stage": "loading",
     "data": {
@@ -39,7 +39,7 @@ stage1_data = {
 }
 
 import json
-with open("stage1_loading.json", "w", encoding="utf-8") as f:
+with open("data/output/stage1_loading.json", "w", encoding="utf-8") as f:
     json.dump(stage1_data, f, ensure_ascii=False)
 ```
 
@@ -71,7 +71,7 @@ stage2_data = {
     }
 }
 
-with open("stage2_preprocessing.json", "w", encoding="utf-8") as f:
+with open("data/output/stage2_preprocessing.json", "w", encoding="utf-8") as f:
     json.dump(stage2_data, f, ensure_ascii=False)
 ```
 
@@ -108,7 +108,7 @@ stage5_data = {
     }
 }
 
-with open("stage5_scheduling.json", "w", encoding="utf-8") as f:
+with open("data/output/stage5_scheduling.json", "w", encoding="utf-8") as f:
     json.dump(stage5_data, f, ensure_ascii=False)
 ```
 
@@ -154,12 +154,12 @@ stage6_data = {
     }
 }
 
-with open("stage6_results.json", "w", encoding="utf-8") as f:
+with open("data/output/stage6_results.json", "w", encoding="utf-8") as f:
     json.dump(stage6_data, f, ensure_ascii=False, default=str)  # datetime 처리를 위해 default=str 추가
 ```
 
 ### 생성되는 파일들
-- **단계별 JSON 파일**: `stage1_loading.json`, `stage2_preprocessing.json`, `stage5_scheduling.json`, `stage6_results.json`
+- **단계별 JSON 파일**: `data/output/stage1_loading.json`, `data/output/stage2_preprocessing.json`, `data/output/stage5_scheduling.json`, `data/output/stage6_results.json`
 - **Excel 파일**: `0829 스케줄링결과.xlsx` (3개 시트 포함)
 - **간트 차트**: `level4_gantt.png`
 
@@ -176,7 +176,7 @@ import json
 import os
 
 def read_stage_data(stage_name):
-    file_path = f"python_engine/stage{stage_name}.json"
+    file_path = f"python_engine/data/output/stage{stage_name}.json"
     if os.path.exists(file_path):
         with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)

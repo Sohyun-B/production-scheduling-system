@@ -12,7 +12,10 @@
       "Bash(npm start)",
       "Bash(tree:*)",
       "Bash(taskkill:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(git remote remove:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
