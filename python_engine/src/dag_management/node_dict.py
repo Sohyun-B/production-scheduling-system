@@ -3,9 +3,6 @@ import numpy as np
 from config import config
 
 def create_opnode_dict(sequence_seperated_order):
-
-    print("sequence seperated order head")
-    print(sequence_seperated_order.head(2))
     return {
         row[config.columns.ID]: [
             row[config.columns.OPERATION_ORDER],

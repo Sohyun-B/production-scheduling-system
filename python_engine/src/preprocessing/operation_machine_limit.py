@@ -22,12 +22,12 @@ def operation_machine_limit(linespeed, machine_limit):
     
     target_mask = linespeed[config.columns.OPERATION].isin(sub_ml[config.columns.OPERATION])
     if machine_codes: 
-        print(linespeed.loc[target_mask])
+        # print(linespeed.loc[target_mask])
         linespeed.loc[target_mask, machine_codes] = np.nan
-        print(linespeed.loc[target_mask])
+        # print(linespeed.loc[target_mask])
         unable_gitems = _check_unable_order(linespeed, list(machine_code_set))  # set을 list로 변환
     else:
-        print("주문 데이터 중 해당 기계에서 해당 공정을 수행하는 경우가 없음")
+        # print("주문 데이터 중 해당 기계에서 해당 공정을 수행하는 경우가 없음")
         unable_gitems = []  # 빈 리스트 반환
     return linespeed, unable_gitems
 
@@ -36,9 +36,9 @@ def _check_unable_order(linespeed, all_machine_columns):
     mask_all_nan = linespeed[all_machine_columns].isna().all(axis=1)
 
     if mask_all_nan.any():
-        print(f"전체 기계 컬럼: {all_machine_columns}")
-        print("모든 기계에서 수행 불가능한 공정:")
-        print(linespeed.loc[mask_all_nan])
+        # print(f"전체 기계 컬럼: {all_machine_columns}")
+        # print("모든 기계에서 수행 불가능한 공정:")
+        # print(linespeed.loc[mask_all_nan])
         
         unable_gitems = (
             linespeed.loc[mask_all_nan, 'GITEM']

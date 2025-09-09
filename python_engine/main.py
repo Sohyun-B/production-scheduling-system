@@ -5,15 +5,19 @@ Level 4 DispatchPriorityStrategy를 사용하여 스케줄링 결과를 생성�
 main.ipynb와 동일한 형태로 결과를 저장합니다.
 """
 
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning)
+
 import pandas as pd
 from datetime import datetime
 import sys
 import os
+import json
 
 from config import config
 from src.preprocessing import preprocessing
 from src.yield_management import yield_prediction
-from src.dag_management import run_dag_pipeline, make_process_table
+from src.dag_management import create_complete_dag_system
 from src.scheduler.scheduling_core import DispatchPriorityStrategy
 from src.results import create_results
 
@@ -22,57 +26,79 @@ def run_level4_scheduling():
     base_date = datetime(config.constants.BASE_YEAR, config.constants.BASE_MONTH, config.constants.BASE_DAY)
     window_days = config.constants.WINDOW_DAYS
 
-    # === 1단계: 데이터 로딩 ===
-    print("[10%] 설정 데이터 로딩 중...")
+    # === 1단계: JSON 데이터 로딩 ===
+    print("[10%] JSON 데이터 로딩 중...")
     
-    excel_data_1 = pd.read_excel(config.files.ITEM_LINESPEED_SEQUENCE, sheet_name=None)
-    linespeed = excel_data_1[config.sheets.ITEM_LINESPEED]
-    operation_seperated_sequence = excel_data_1[config.sheets.OPERATION_SEQUENCE]
-    machine_master_info = excel_data_1[config.sheets.MACHINE_MASTER_INFO]
-    yield_data = excel_data_1[config.sheets.YIELD_DATA]
-    operation_sequence = excel_data_1[config.sheets.GITEM_OPERATION]
-    print(f"[데이터] 라인스피드 {len(linespeed)}개, 기계정보 {len(machine_master_info)}개")
+    # JSON 파일들에서 데이터 로딩
+    try:
+        print("JSON 파일에서 데이터 로딩 중...")
+        
+        # 1. 품목별 라인스피드 및 공정 순서 관련
+        linespeed = pd.read_json(config.files.JSON_LINESPEED)
+        operation_seperated_sequence = pd.read_json(config.files.JSON_OPERATION_SEQUENCE)
+        machine_master_info = pd.read_json(config.files.JSON_MACHINE_INFO)
+        yield_data = pd.read_json(config.files.JSON_YIELD_DATA)
+        gitem_operation = pd.read_json(config.files.JSON_GITEM_OPERATION)
+        
+        print(f"[데이터] 라인스피드 {len(linespeed)}개, 기계정보 {len(machine_master_info)}개")
+        
+        # 2. 공정 재분류 내역 및 교체 시간 관련
+        operation_types = pd.read_json(config.files.JSON_OPERATION_TYPES)
+        operation_delay_df = pd.read_json(config.files.JSON_OPERATION_DELAY)
+        width_change_df = pd.read_json(config.files.JSON_WIDTH_CHANGE)
+        
+        print(f"[데이터] 공정분류 {len(operation_types)}개, 지연정보 {len(operation_delay_df)}개")
+        
+        # 3. 불가능한 공정 입력값 관련 (날짜 컬럼 변환 필요)
+        machine_rest = pd.read_json(config.files.JSON_MACHINE_REST)
+        # machine_rest의 날짜 컬럼들을 datetime으로 변환
+        if '시작시간' in machine_rest.columns:
+            machine_rest['시작시간'] = pd.to_datetime(machine_rest['시작시간'])
+        if '종료시간' in machine_rest.columns:
+            machine_rest['종료시간'] = pd.to_datetime(machine_rest['종료시간'])
+        
+        machine_allocate = pd.read_json(config.files.JSON_MACHINE_ALLOCATE)
+        machine_limit = pd.read_json(config.files.JSON_MACHINE_LIMIT)
+        
+        print(f"[데이터] 기계할당 {len(machine_allocate)}개, 기계제한 {len(machine_limit)}개")
+        
+        # 4. 주문 데이터 (날짜 컬럼 변환 필요)
+        order = pd.read_json(config.files.JSON_ORDER_DATA)
+        # 날짜 컬럼을 datetime으로 변환
+        if config.columns.DUE_DATE in order.columns:
+            order[config.columns.DUE_DATE] = pd.to_datetime(order[config.columns.DUE_DATE])
+        
+        print(f"[주문] 총 {len(order)}개 주문 로딩 완료")
+        
+    except FileNotFoundError as e:
+        print(f"오류: {e}")
 
-    print("[15%] 공정 분류 데이터 로딩 중...")
-    excel_data_2 = pd.read_excel(config.files.OPERATION_RECLASSIFICATION, sheet_name=None)
-    operation_types = excel_data_2[config.sheets.OPERATION_TYPES]
-    operation_delay_df = excel_data_2[config.sheets.OPERATION_DELAY]
-    width_change_df = excel_data_2[config.sheets.WIDTH_CHANGE]
-    print(f"[데이터] 공정분류 {len(operation_types)}개, 지연정보 {len(operation_delay_df)}개")
-
-    print("[20%] 기계 제약 데이터 로딩 중...")
-    excel_data_3 = pd.read_excel(config.files.IMPOSSIBLE_OPERATION, sheet_name=None)
-    machine_rest = excel_data_3[config.sheets.MACHINE_REST]
-    machine_allocate = excel_data_3[config.sheets.MACHINE_ALLOCATE]
-    machine_limit = excel_data_3[config.sheets.MACHINE_LIMIT]
-    print(f"[데이터] 기계할당 {len(machine_allocate)}개, 기계제한 {len(machine_limit)}개")
-
-    print("[25%] 주문 데이터 로딩 중...")
-    order = pd.read_excel(config.files.ORDER_DATA)
-    print(f"[주문] 총 {len(order)}개 주문 로딩 완료")
-
-    # === 1단계 완료: JSON 저장 ===
-    import json
-    stage1_data = {
-        "stage": "loading",
-        "data": {
-            "linespeed_count": len(linespeed),
-            "machine_count": len(machine_master_info),
-            "operation_types_count": len(operation_types),
-            "operation_delay_count": len(operation_delay_df),
-            "total_orders": len(order),
-            "base_config": {
-                "base_year": config.constants.BASE_YEAR,
-                "base_month": config.constants.BASE_MONTH,
-                "base_day": config.constants.BASE_DAY,
-                "window_days": window_days
-            }
-        }
-    }
+    # # === 1단계 완료: JSON 저장 ===
+    # DB-백엔드에서 바로 전달하는 방식으로 변경 
+    # import json
+    # stage1_data = {
+    #     "stage": "loading",
+    #     "data": {
+    #         "linespeed_count": len(linespeed),
+    #         "machine_count": len(machine_master_info),
+    #         "operation_types_count": len(operation_types),
+    #         "operation_delay_count": len(operation_delay_df),
+    #         "total_orders": len(order),
+    #         "base_config": {
+    #             "base_year": config.constants.BASE_YEAR,
+    #             "base_month": config.constants.BASE_MONTH,
+    #             "base_day": config.constants.BASE_DAY,
+    #             "window_days": window_days
+    #         }
+    #     }
+    # }
     
-    with open("data/output/stage1_loading.json", "w", encoding="utf-8") as f:
-        json.dump(stage1_data, f, ensure_ascii=False, default=str)
-    print("[단계1] JSON 저장 완료: data/output/stage1_loading.json")
+    # with open("data/output/stage1_loading.json", "w", encoding="utf-8") as f:
+    #     json.dump(stage1_data, f, ensure_ascii=False, default=str)
+    # print("[단계1] JSON 저장 완료: data/output/stage1_loading.json")
+
+
+    # 1단계: VALIDATION
 
     # === 2단계: 전처리 ===
     print("[30%] 주문 데이터 전처리 중...")
@@ -100,33 +126,15 @@ def run_level4_scheduling():
     # === 3단계: 수율 예측 (3단계, 4단계 건너뛰기) ===
     print("[35%] 수율 예측 처리 중...")
     yield_predictor, sequence_yield_df, sequence_seperated_order = yield_prediction(
-        yield_data, operation_sequence, sequence_seperated_order
-    )
-    if sequence_yield_df is not None:
-        print(f"[수율] 수율 예측 완료: {len(sequence_yield_df)}개 데이터 처리")
-    else:
-        print("[수율] 수율 예측 완료: 기본 수율 사용")
-    
-    # === 4단계: DAG 생성 (3,4단계 건너뛰지만 필수 로직) ===
-    print("[40%] 작업 공정 테이블 생성 중...")
-    merged_df = make_process_table(sequence_seperated_order)
-    print(f"[공정테이블] 공정 테이블 생성 완료: {len(merged_df)}개 행")
-    
-    print("[45%] 공정 계층구조 분석 중...")
-    hierarchy = sorted(
-        [col for col in merged_df.columns if col.endswith(config.columns.ID)],
-        key=lambda x: int(x.split('공정')[0])
-    )
-    print(f"[계층구조] 공정 단계: {len(hierarchy)}개 레벨")
-    
-    print("[50%] DAG 의존성 그래프 생성 중...")
-    dag_df, opnode_dict, manager, machine_dict = run_dag_pipeline(
-        merged_df, hierarchy, sequence_seperated_order, linespeed,
-        machine_columns=machine_master_info[config.columns.MACHINE_CODE].values.tolist()
+        yield_data, gitem_operation, sequence_seperated_order
     )
     
-    print(f"[55%] DAG 생성 완료 (총 {len(dag_df)}개 노드)")
-    print(f"[DAG] 노드: {len(dag_df)}개, 기계: {len(machine_dict)}개")
+    # === 4단계: DAG 생성 ===
+    print("[40%] DAG 시스템 생성 중...")
+    dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
+        sequence_seperated_order, linespeed, machine_master_info, config
+    )
+    print(f"[50%] DAG 시스템 생성 완료 - 노드: {len(dag_df)}개, 기계: {len(machine_dict)}개")
     
     # === 5단계: 스케줄링 실행 ===
     print("[60%] 스케줄링 알고리즘 초기화 중...")
@@ -273,13 +281,50 @@ def run_level4_scheduling():
         
         print(f"[저장] 가공된 결과를 '{processed_filename}'에 저장 완료")
         
-        # 간트 차트 생성 및 저장
+        # === 간격 분석 추가 ===
+        print("[96%] 스케줄 간격 분석 중...")
+        try:
+            from src.results.gap_analyzer import ScheduleGapAnalyzer
+            
+            # 간격 분석기 생성
+            gap_analyzer = ScheduleGapAnalyzer(scheduler, delay_processor)
+            
+            # 기계별 스케줄 결과 처리기에 간격 분석기 전달
+            from src.results.machine_schedule import MachineScheduleProcessor
+            processor = MachineScheduleProcessor(
+                machine_master_info.set_index('기계인덱스')['기계코드'].to_dict(),
+                machine_schedule_df,
+                result_cleaned,
+                base_date,
+                gap_analyzer
+            )
+            
+            # 간격 분석 요약 출력
+            processor.print_gap_summary()
+            
+            # 상세 간격 분석 결과 저장
+            detailed_gaps, machine_summary = processor.create_gap_analysis_report()
+            if detailed_gaps is not None:
+                detailed_gaps.to_excel("data/output/schedule_gaps_detailed.xlsx", index=False)
+                print("[간격분석] 상세 간격 분석 결과 저장: schedule_gaps_detailed.xlsx")
+            
+            if machine_summary is not None:
+                machine_summary.to_excel("data/output/machine_gap_summary.xlsx", index=False)
+                print("[간격분석] 기계별 간격 요약 저장: machine_gap_summary.xlsx")
+            
+        except Exception as gap_error:
+            print(f"[WARNING] 간격 분석 중 오류 (계속 진행): {gap_error}")
+            gap_analyzer = None
+
+        # 간트 차트 생성 및 저장 (간격 정보 포함)
         print("[97%] 간트 차트 생성 중...")
         gantt_filename = "data/output/level4_gantt.png"
         try:
             from src.scheduler.chart import DrawChart
-            gantt = DrawChart(scheduler.Machines)
-            gantt_plot = gantt.plot()
+            
+            # 간격 분석기가 있으면 포함하여 차트 생성
+            gantt = DrawChart(scheduler.Machines, gap_analyzer)
+            gantt_plot = gantt.plot(show_gaps=True if gap_analyzer else False)
             
             # matplotlib 백엔드를 Agg로 설정하여 창이 뜨지 않도록 함
             import matplotlib
@@ -302,6 +347,9 @@ def run_level4_scheduling():
             if os.path.exists(gantt_filename):
                 file_size = os.path.getsize(gantt_filename)
                 print(f"[차트] 간트 차트 파일: {gantt_filename} ({file_size} bytes)")
+                if gap_analyzer:
+                    print("[차트] 📍 빨간색: 셋업시간, 회색: 대기시간으로 표시됨")
+                    
         except Exception as chart_error:
             print(f"[ERROR] 간트 차트 생성 중 오류: {chart_error}")
         

@@ -27,10 +27,27 @@ def run_dag_pipeline(merged_df, hierarchy, sequence_seperated_order, linespeed, 
     return dag_df, opnode_dict, manager, machine_dict
 
 
-# from dag_management import run_dag_pipeline
-
-# def main():
-#     dag_df, opnode_dict, manager, machine_dict = run_dag_pipeline(
-#         merged_df, hierarchy, sequence_seperated_order, linespeed, machine_columns
-#     )
-#     # 이후 manager 등으로 후속 스케줄링 작업 수행
+def create_complete_dag_system(sequence_seperated_order, linespeed, machine_master_info, config):
+    """
+    DAG 생성을 위한 전체 파이프라인을 한번에 처리하는 통합 함수
+    
+    Args:
+        sequence_seperated_order: 전처리된 주문 데이터
+        linespeed: 라인스피드 데이터
+        machine_master_info: 기계 마스터 정보
+        config: 설정 객체
+        
+    Returns:
+        tuple: (dag_df, opnode_dict, manager, machine_dict, merged_df)
+    """
+    merged_df = make_process_table(sequence_seperated_order)
+    hierarchy = sorted(
+        [col for col in merged_df.columns if col.endswith(config.columns.PROCESS_ID_SUFFIX)],
+        key=lambda x: int(x.replace(config.columns.PROCESS_ID_SUFFIX, ''))
+    )
+    dag_df, opnode_dict, manager, machine_dict = run_dag_pipeline(
+        merged_df, hierarchy, sequence_seperated_order, linespeed,
+        machine_columns=machine_master_info[config.columns.MACHINE_CODE].values.tolist()
+    )
+    
+    return dag_df, opnode_dict, manager, machine_dict, merged_df
