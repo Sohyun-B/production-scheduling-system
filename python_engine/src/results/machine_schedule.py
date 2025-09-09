@@ -3,17 +3,19 @@ import numpy as np
 from config import config
 
 class MachineScheduleProcessor:
-    def __init__(self, machine_mapping, machine_schedule_df, output_final_result, base_time):
+    def __init__(self, machine_mapping, machine_schedule_df, output_final_result, base_time, gap_analyzer=None):
         """
         :param machine_mapping: 머신 인덱스 -> 머신 이름 매핑 딕셔너리
         :param machine_schedule_df: 기계별 스케줄 데이터프레임
         :param output_final_result: 전체 스케줄 출력 결과 데이터프레임
         :param base_time: 기준 시작 시간(datetime.datetime 또는 pd.Timestamp)
+        :param gap_analyzer: 간격 분석기 (옵션)
         """
         self.machine_mapping = machine_mapping
         self.machine_schedule_df = machine_schedule_df.copy()
         self.output_final_result = output_final_result
         self.base_time = base_time
+        self.gap_analyzer = gap_analyzer
         self.machine_info = None
 
     def make_readable_result_file(self):
@@ -92,3 +94,57 @@ class MachineScheduleProcessor:
         machine_info[config.columns.DUE_DATE] = duedate_list
 
         return machine_info
+    
+    def create_gap_analysis_report(self):
+        """간격 분석 리포트 생성"""
+        if not self.gap_analyzer:
+            print("간격 분석기가 제공되지 않았습니다.")
+            return None, None
+        
+        # 상세 간격 분석
+        detailed_gaps = self.gap_analyzer.export_detailed_gaps()
+        
+        # 기계별 요약
+        machine_summary = self.gap_analyzer.get_machine_summary()
+        
+        return detailed_gaps, machine_summary
+    
+    def print_gap_summary(self):
+        """간격 분석 요약을 콘솔에 출력"""
+        if not self.gap_analyzer:
+            print("간격 분석기가 제공되지 않았습니다.")
+            return
+        
+        detailed_gaps, machine_summary = self.create_gap_analysis_report()
+        
+        if machine_summary is not None and not machine_summary.empty:
+            print("\n" + "="*60)
+            print("기계별 셋업시간/대기시간 분석 결과")
+            print("="*60)
+            
+            for _, row in machine_summary.iterrows():
+                machine_idx = row['machine_index']
+                gap_count = row['gap_count']
+                total_gap = row['total_gap_time'] * 30  # 분 단위
+                setup_time = row['total_setup_time'] * 30
+                idle_time = row['total_idle_time'] * 30
+                efficiency = row['setup_efficiency']
+                
+                print(f"\n🔧 기계 {machine_idx}:")
+                print(f"   간격 수: {gap_count}개")
+                print(f"   전체 간격시간: {total_gap:.0f}분")
+                print(f"   └─ 셋업시간: {setup_time:.0f}분")
+                print(f"   └─ 대기시간: {idle_time:.0f}분")
+                print(f"   셋업 효율성: {efficiency:.1f}%")
+        
+        if detailed_gaps is not None and not detailed_gaps.empty:
+            print(f"\n📊 총 {len(detailed_gaps)}개의 간격 발견")
+            
+            # 셋업 이유별 통계
+            setup_reasons = detailed_gaps['setup_reason'].value_counts()
+            print("\n셋업 발생 원인:")
+            for reason, count in setup_reasons.items():
+                if reason != 'no_change_detected':
+                    print(f"   {reason}: {count}회")
+        
+        print("\n" + "="*60)

@@ -405,9 +405,9 @@ class UserRescheduleStrategy(HighLevelSchedulingStrategy):
             else:
                 queue_front_info[mid] = None
         
-        print("남은 큐 길이:", queue_lengths)
-        print("전체 남은 노드 수:", total_remaining)
-        print("각 큐의 맨 앞 노드 정보:", queue_front_info)
+        # print("남은 큐 길이:", queue_lengths)
+        # print("전체 남은 노드 수:", total_remaining)
+        # print("각 큐의 맨 앞 노드 정보:", queue_front_info)
         
         return dag_manager.to_dataframe()
 
