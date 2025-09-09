@@ -74,7 +74,6 @@ class YieldPredictor:
     
         yield_cols = [col for col in operation_sequence.columns if col.startswith(f'{config.columns.PREDICTED_YIELD}.')]
     
-        print(f"예측수율 컬럼 리스트: {yield_cols}")
     
         # 전체 예측 수율 계산 (곱)
         operation_sequence[config.columns.TOTAL_PREDICTED_YIELD] = operation_sequence[yield_cols].apply(lambda row: np.nanprod(row), axis=1)

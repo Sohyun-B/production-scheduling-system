@@ -40,7 +40,6 @@ def create_results(
     new_output_final_result, late_days_sum = late_calc.calc_late_days(new_output_final_result, base_date)
     new_output_final_result = new_output_final_result.sort_values(by=config.columns.END_TIME)
 
-    print(new_output_final_result.head())
 
     # 2. 주문-공정 병합 처리
     merger = ResultMerger(merged_df, original_order.copy(), sequence_seperated_order)
