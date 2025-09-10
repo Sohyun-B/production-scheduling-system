@@ -102,20 +102,21 @@ def run_level4_scheduling():
 
     # === 2단계: 전처리 ===
     print("[30%] 주문 데이터 전처리 중...")
-    sequence_seperated_order, linespeed = preprocessing(order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed)
+    sequence_seperated_order, linespeed, unable_gitems, unable_order= preprocessing(order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed)
     print(f"[전처리] 전처리 완료: {len(sequence_seperated_order)}개 작업 생성")
+    
+
+    sequence_seperated_order.to_csv("0910_확인용_sequence_sepereated_order.csv", encoding='utf-8-sig')
+    order.to_csv("0910_확인용_order.csv", encoding='utf-8-sig')
     
     # === 2단계 완료: JSON 저장 ===
     stage2_data = {
         "stage": "preprocessing", 
         "data": {
-            "input_orders": len(order),
-            "processed_jobs": len(sequence_seperated_order),
-            "machine_constraints": {
-                "machine_rest": machine_rest.to_dict('records'),
-                "machine_allocate": machine_allocate.to_dict('records'),
-                "machine_limit": machine_limit.to_dict('records')
-            }
+            "input_orders": len(order), # 총 주문 양
+            "used_orders": sequence_seperated_order['P/O NO'].unique().tolist(), # 실제로 제외되지 않고 사용된 양
+            "excluded_gitems_count": len(unable_gitems), # 제외된 gitem 개수
+            "excluded_orders": unable_order.to_dict(orient='records'), # gitem이 제외되면서 사용할 수 없었던 주문 개수
         }
     }
     
@@ -128,6 +129,16 @@ def run_level4_scheduling():
     yield_predictor, sequence_yield_df, sequence_seperated_order = yield_prediction(
         yield_data, gitem_operation, sequence_seperated_order
     )
+
+    # === 3단계 완료: JSON 저장 === (현재 수율 정보부분은 다르게 구성되어 잇어서 json부분 패스)
+    # stage3_data = {
+    #     "stage": "yield_prediction", 
+    #     "data": {
+    #         "gitem_counts": gitem_counts, # 사용된 gitem 개수
+    #         "no_yield_gitem_counts": no_yield_gitem_counts, # 수율이 없는 gitem의 개수 
+    #         "mean_yield": se
+    #     }
+    # }
     
     # === 4단계: DAG 생성 ===
     print("[40%] DAG 시스템 생성 중...")
@@ -136,6 +147,7 @@ def run_level4_scheduling():
     )
     print(f"[50%] DAG 시스템 생성 완료 - 노드: {len(dag_df)}개, 기계: {len(machine_dict)}개")
     
+
     # === 5단계: 스케줄링 실행 ===
     print("[60%] 스케줄링 알고리즘 초기화 중...")
     try:

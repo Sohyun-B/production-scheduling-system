@@ -28,14 +28,24 @@ def preprocessing(order, operation_seperated_sequence, operation_types, machine_
     sequence_order[config.columns.GITEM] = sequence_order[config.columns.GITEM].astype(str)
 
     # 2. 기계 정보 수정
+    
+
     # unable_gitems: 기계의 특정 공정 휴기 때문에 생산하지 못하는 공정 리스트
     linespeed, unable_gitems = operation_machine_limit(linespeed, machine_limit)
     linespeed = operation_machine_exclusive(linespeed, machine_allocate)
-    
-    sequence_order = sequence_order[~ (sequence_order[config.columns.GITEM].isin(unable_gitems))]
-    
+
+    print(f"unable order 여부 {unable_gitems}")
+
     if unable_gitems:
-        print("preprocessing 단계에서 특정 기계의 특정 공정 휴기로 인해 해당 공정 포함된 아이템 생산 불가")
-        print(f"생산 불가능한 아이템들: {unable_gitems}")
-    
-    return sequence_order, linespeed
+        """
+        사용하지 않는 gitem과 p/o 데이터가 존재할 때
+        sequence_order에서 제외 후 제외된 데이터를 unable_gitems, unable_order에 저장
+        """
+        unable_order = sequence_order[(sequence_order[config.columns.GITEM].isin(unable_gitems))]
+        sequence_order = sequence_order[~ (sequence_order[config.columns.GITEM].isin(unable_gitems))]
+
+        unable_order = unable_order[['P/O NO', 'GITEM']] # 생산 불가능한 GITEM과 P/O 정보
+
+        return sequence_order, linespeed, unable_gitems, unable_order
+    else:
+        return sequence_order, linespeed, _, _
