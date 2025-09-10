@@ -10,8 +10,17 @@ fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
 
+# HTTP client for external API calls
+httpx>=0.25.0
+
+# Redis for session management
+redis>=4.5.0
+
 # Data validation and serialization
 pydantic>=2.0.0
+
+# CORS middleware
+python-cors>=1.7.0
 
 # Visualization (삭제예정)
 matplotlib>=3.3.4

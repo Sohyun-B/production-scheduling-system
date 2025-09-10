@@ -325,6 +325,9 @@ class DispatchPriorityStrategy(HighLevelSchedulingStrategy):
             for node_id in priority_order:
                 due_date = due_date_mapping.get(node_id)
                 if due_date is not None:  # None이 아닌 경우에만 추가
+                    # datetime64 타입으로 변환
+                    if isinstance(due_date, str):
+                        due_date = pd.to_datetime(due_date)
                     result.append((node_id, due_date))
                 else:
                     print(f"Warning: node_id {node_id}의 납기일을 찾을 수 없습니다")
@@ -332,28 +335,54 @@ class DispatchPriorityStrategy(HighLevelSchedulingStrategy):
             result = []
             for node_id in priority_order:
                 due_date = dag_df.loc[dag_df['ID'] == node_id, config.columns.DUE_DATE].values[0]
+                # datetime64 타입으로 변환
+                if isinstance(due_date, str):
+                    due_date = pd.to_datetime(due_date)
                 result.append((node_id, due_date))
         
         
         # 윈도우별로 셋업 최소화 스케줄링 실행
         setup_strategy = SetupMinimizedStrategy()
         
+        print(f"🔄 윈도우별 스케줄링 시작 - 총 {len(result)}개 노드")
+        iteration = 0
         while result:
+            iteration += 1
+            print(f"🔄 반복 {iteration}: 남은 노드 {len(result)}개")
+            
             base_date = result[0][1]
+            print(f"📅 기준 날짜: {base_date}")
+            
             # 윈도우 내 노드들 추출 (첫 번째 노드 기준 ±window_days 이내)
             window_result = [
                 item[0] for item in result 
                 if np.abs((item[1] - base_date) / np.timedelta64(1, 'D')) <= window_days
             ]
+            print(f"🪟 윈도우 내 노드: {len(window_result)}개 - {window_result}")
             
+            if not window_result:
+                print("❌ 윈도우 내 노드가 없음 - 루프 종료")
+                break
+                
             # 셋업 최소화 전략으로 윈도우 내 노드들 스케줄링
+            print(f"🚀 셋업 최소화 전략 실행 - 시작 노드: {window_result[0]}")
             used_ids = setup_strategy.execute(
                 dag_manager, scheduler, window_result[0], window_result[1:]
             )
+            print(f"✅ 셋업 최소화 완료 - 사용된 노드: {used_ids}")
             
             # 사용된 노드들을 제거
             if used_ids:
                 result = [item for item in result if item[0] not in used_ids]
+                print(f"🗑️ 사용된 노드 제거 - 남은 노드: {len(result)}개")
+            else:
+                print("❌ 사용된 노드가 없음 - 무한 루프 방지를 위해 종료")
+                break
+                
+            # 무한 루프 방지
+            if iteration > 10:  # 10회로 줄임
+                print("❌ 최대 반복 횟수 초과 - 루프 종료")
+                break
         
         return dag_manager.to_dataframe()
 

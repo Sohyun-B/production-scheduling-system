@@ -1,100 +1,338 @@
 # Production Scheduling System
 
-Python 기반 생산계획 스케줄링 시스템
+제조업 공정 스케줄링을 위한 전체 스택 웹 애플리케이션입니다.
+
+## 🏗️ 시스템 아키텍처
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   React         │    │   Node.js       │    │   Python        │
+│   Frontend      │◄──►│   Backend       │◄──►│   API Server    │
+│   (Port 3000)   │    │   (Port 3001)   │    │   (Port 8000)   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                        │
+                                ▼                        ▼
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │     Redis       │    │   Data Files    │
+                       │   (Port 6379)   │    │   (JSON/Excel)  │
+                       └─────────────────┘    └─────────────────┘
+```
+
+## 🚀 주요 기능
+
+### 1. 단계별 스케줄링 실행
+- **1단계**: 데이터 로딩 (직접 업로드 또는 외부 API)
+- **2단계**: 전처리 (주문 데이터 분리 및 정리)
+- **3단계**: 수율 예측 (생산 수율 계산)
+- **4단계**: DAG 생성 (공정 간 의존성 구축)
+- **5단계**: 스케줄링 실행 (최적 일정 생성)
+- **6단계**: 결과 후처리 (분석 및 정리)
+
+### 2. 실시간 진행 상황 추적
+- 단계별 진행 상황 시각화
+- 실시간 상태 업데이트
+- 오류 발생 시 상세 정보 제공
+
+### 3. 결과 분석 및 시각화
+- 스케줄링 결과 대시보드
+- 성과 지표 및 메트릭
+- 차트 및 그래프를 통한 시각화
+
+### 4. 세션 관리
+- Redis 기반 세션 저장
+- 단계별 데이터 지속성
+- 자동 만료 및 정리
+
+## 🛠️ 기술 스택
+
+### Frontend
+- **React 18** - UI 라이브러리
+- **React Router** - 라우팅
+- **React Query** - 서버 상태 관리
+- **Styled Components** - CSS-in-JS
+- **Lucide React** - 아이콘
+- **React Hot Toast** - 알림
+
+### Backend (Node.js)
+- **Express.js** - 웹 프레임워크
+- **Axios** - HTTP 클라이언트
+- **Joi** - 데이터 검증
+- **Winston** - 로깅
+- **CORS** - Cross-Origin 요청 처리
+
+### Backend (Python)
+- **FastAPI** - 고성능 API 프레임워크
+- **Pandas** - 데이터 처리
+- **Redis** - 세션 저장소
+- **Pydantic** - 데이터 검증
+
+### Infrastructure
+- **Docker** - 컨테이너화
+- **Docker Compose** - 오케스트레이션
+- **Redis** - 인메모리 데이터베이스
+- **Nginx** - 웹 서버 (프로덕션)
+
+## 📦 설치 및 실행
+
+### 1. 전체 시스템 실행 (Docker Compose)
+
+```bash
+# 저장소 클론
+git clone <repository-url>
+cd production-scheduling-system
+
+# 전체 시스템 실행
+docker-compose up -d
+
+# 로그 확인
+docker-compose logs -f
+
+# 시스템 중지
+docker-compose down
+```
+
+### 2. 개별 서비스 실행
+
+#### Python API 서버
+```bash
+cd python_engine
+
+# 의존성 설치
+pip install -r requirements.txt
+
+# Redis 실행 (별도 터미널)
+redis-server
+
+# Python API 실행
+python run_server.py
+```
+
+#### Node.js 백엔드 서버
+```bash
+cd backend
+
+# 의존성 설치
+npm install
+
+# 환경 변수 설정
+cp env.example .env
+
+# 서버 실행
+npm run dev
+```
+
+#### React 프론트엔드
+```bash
+cd frontend
+
+# 의존성 설치
+npm install
+
+# 개발 서버 실행
+npm start
+```
+
+## 🔧 환경 설정
+
+### 환경 변수
+
+#### Python API (.env)
+```env
+REDIS_URL=redis://localhost:6379/0
+SESSION_TIMEOUT=3600
+LOG_LEVEL=info
+```
+
+#### Node.js Backend (.env)
+```env
+PORT=3001
+NODE_ENV=development
+PYTHON_API_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:3000
+REDIS_URL=redis://localhost:6379/0
+```
+
+#### React Frontend (.env)
+```env
+REACT_APP_API_URL=http://localhost:3001
+```
+
+## 📊 API 문서
+
+### Node.js Backend API
+
+#### 스케줄링 API
+- `POST /api/scheduling/load-data` - 직접 데이터 로딩
+- `POST /api/scheduling/load-external-data` - 외부 API 데이터 로딩
+- `POST /api/scheduling/preprocessing` - 2단계: 전처리
+- `POST /api/scheduling/yield-prediction` - 3단계: 수율 예측
+- `POST /api/scheduling/dag-creation` - 4단계: DAG 생성
+- `POST /api/scheduling/scheduling` - 5단계: 스케줄링 실행
+- `POST /api/scheduling/results` - 6단계: 결과 후처리
+- `POST /api/scheduling/step-by-step` - 단계별 실행
+- `GET /api/scheduling/session/:id/status` - 세션 상태 조회
+- `DELETE /api/scheduling/session/:id` - 세션 삭제
+
+#### 헬스 체크 API
+- `GET /api/health` - 서버 상태 확인
+- `GET /api/health/python` - Python API 상태 확인
+- `GET /api/health/detailed` - 상세 상태 확인
+
+### Python API
+- `GET /docs` - Swagger UI 문서
+- `GET /redoc` - ReDoc 문서
+
+## 🔄 데이터 흐름
+
+### 1. 데이터 업로드
+```
+사용자 → React Frontend → Node.js Backend → Python API → Redis
+```
+
+### 2. 단계별 실행
+```
+React Frontend → Node.js Backend → Python API → Redis (세션 저장)
+```
+
+### 3. 결과 조회
+```
+React Frontend → Node.js Backend → Python API → Redis (세션 로드)
+```
 
 ## 📁 프로젝트 구조
 
 ```
-python_engine/
-├── data/                           # 📊 데이터 디렉토리
-│   ├── input/                      # 입력 파일들
-│   │   ├── preprocessed_order.xlsx                    # 전처리된 주문 데이터 (174개)
-│   │   ├── 품목별 분리 라인스피드 및 공정 순서.xlsx     # 기계/공정 정보
-│   │   ├── 공정 재분류 내역 및 교체 시간 정리.xlsx     # 공정 분류 및 교체시간
-│   │   └── 불가능한 공정 입력값.xlsx                  # 기계 제약조건
-│   └── output/                     # 출력 결과들
-│       ├── 0829 스케줄링결과.xlsx                     # 최종 스케줄링 결과
-│       ├── result.xlsx                               # 원본 알고리즘 결과
-│       ├── level4_gantt.png                          # 간트 차트 시각화
-│       └── stage*.json                               # 각 단계별 진행상황
-├── src/                            # 💻 소스 코드 디렉토리
-│   ├── preprocessing/              # 데이터 전처리 모듈
-│   ├── scheduler/                  # 스케줄링 알고리즘 (DispatchPriorityStrategy)
-│   ├── dag_management/             # 작업 의존성 그래프(DAG) 관리
-│   ├── yield_management/           # 수율 예측 및 관리
-│   └── results/                    # 결과 후처리 및 Export
-├── main.py                         # 🚀 메인 실행 파일
-├── config.py                       # ⚙️ 설정 파일 (파일경로, 상수)
-├── requirements.txt                # 📦 의존성 파일
-└── README.md                       # 📖 프로젝트 문서
+production-scheduling-system/
+├── frontend/                 # React 프론트엔드
+│   ├── public/
+│   ├── src/
+│   │   ├── components/       # 재사용 가능한 컴포넌트
+│   │   ├── pages/           # 페이지 컴포넌트
+│   │   ├── services/        # API 서비스
+│   │   └── App.js
+│   ├── package.json
+│   └── Dockerfile
+├── backend/                 # Node.js 백엔드
+│   ├── routes/             # API 라우트
+│   ├── services/           # 비즈니스 로직
+│   ├── middleware/         # 미들웨어
+│   ├── utils/              # 유틸리티
+│   ├── package.json
+│   └── Dockerfile
+├── python_engine/          # Python API 서버
+│   ├── src/                # 소스 코드
+│   ├── data/               # 데이터 파일
+│   ├── api_server.py       # FastAPI 서버
+│   ├── requirements.txt
+│   └── Dockerfile
+├── docker-compose.yml      # Docker Compose 설정
+└── README.md
 ```
 
-## 🚀 빠른 시작
+## 🧪 테스트
 
-### 1. 의존성 설치
+### 단위 테스트
 ```bash
+# Node.js 백엔드 테스트
+cd backend
+npm test
+
+# Python API 테스트
 cd python_engine
-pip install -r requirements.txt
+python -m pytest
 ```
 
-### 2. 실행 방법
+### API 테스트
 ```bash
-python main.py
+# 샘플 데이터 생성
+cd python_engine
+python sample_data_generator.py
+
+# API 테스트 실행
+python test_api_client.py
 ```
 
-### 3. 결과 확인
-- **Excel 결과**: `data/output/0829 스케줄링결과.xlsx`
-- **간트 차트**: `data/output/level4_gantt.png`
-- **진행상황**: `data/output/stage*.json` 파일들
+## 🚀 배포
 
-## 📊 입출력 데이터
+### 프로덕션 배포
+```bash
+# 프로덕션 빌드
+docker-compose -f docker-compose.prod.yml up -d
 
-### 입력 파일 (`data/input/`)
-- **preprocessed_order.xlsx**: 174개 실제 주문 데이터 (P/O NO, GITEM, 치수, 납기일)
-- **품목별 분리 라인스피드 및 공정 순서.xlsx**: 기계별 처리속도 및 공정순서
-- **공정 재분류 내역 및 교체 시간 정리.xlsx**: 공정 분류 및 셋업 시간
-- **불가능한 공정 입력값.xlsx**: 기계 제약조건 및 강제할당 정보
+# 로그 확인
+docker-compose -f docker-compose.prod.yml logs -f
+```
 
-### 출력 파일 (`data/output/`)
-- **0829 스케줄링결과.xlsx**: 주문별 완료시간, 지연정보, 기계별 작업할당
-- **result.xlsx**: 알고리즘 원본 결과 (노드별 시작/종료 시간)
-- **level4_gantt.png**: 기계별 시간축 간트 차트
-- **stage*.json**: 각 처리단계별 실시간 진행상황 데이터
+### 스케일링
+```bash
+# 서비스 스케일링
+docker-compose up -d --scale node-backend=3
+```
 
-## 🔧 주요 기능
+## 🔍 모니터링
 
-### ✅ 핵심 알고리즘
-- **Level 4 DispatchPriorityStrategy**: 우선순위 기반 디스패칭 스케줄링
-- **FJSP (Flexible Job Shop Problem)** 해결
-- **Multi-constraint 최적화**: 기계제약, 납기일, 셋업시간, 수율 고려
-- **Real-time Progress Tracking**: 6단계 세분화된 진행상황 모니터링
+### 헬스 체크
+- Node.js Backend: http://localhost:3001/api/health
+- Python API: http://localhost:8000/health
+- React Frontend: http://localhost:3000
 
-### 📈 처리 과정 (6단계)
-1. **데이터 로딩** (10-25%): Excel 파일에서 주문, 기계, 공정 정보 로딩
-2. **전처리** (25-35%): 주문 데이터 월별 분리 및 공정 순서 생성  
-3. **수율 예측** (35-40%): 과거 데이터 기반 공정별 수율 계산
-4. **DAG 생성** (40-60%): 작업 의존성 그래프 및 제약조건 적용
-5. **스케줄링 실행** (60-85%): DispatchPriorityStrategy 알고리즘 실행
-6. **결과 후처리** (85-100%): Excel/JSON 결과 생성 및 간트차트 시각화
+### 로그 확인
+```bash
+# 전체 로그
+docker-compose logs -f
 
-### 🎯 성능 지표
-- **처리 용량**: 174개 주문 → 약 2-3분 소요
-- **메모리 사용량**: 약 100-200MB
-- **최적화 목표**: Makespan 최소화 + 납기일 준수율 극대화
+# 특정 서비스 로그
+docker-compose logs -f python-api
+docker-compose logs -f node-backend
+docker-compose logs -f react-frontend
+```
 
-## 🛠 기술 스택
+## 🐛 문제 해결
 
-- **Core**: Python 3.8+, pandas, numpy
-- **Algorithm**: Custom DispatchPriorityStrategy (Priority-based Dispatching)
-- **Visualization**: matplotlib (Gantt Chart)
-- **Data I/O**: openpyxl (Excel), JSON
-- **Architecture**: Modular design with clear separation of concerns
+### 일반적인 문제
 
-## 📋 API 연동 가이드
+1. **Redis 연결 오류**
+   ```bash
+   # Redis 상태 확인
+   redis-cli ping
+   
+   # Redis 재시작
+   docker-compose restart redis
+   ```
 
-FastAPI/React 연동을 위한 세부 가이드는 `PYTHON_DATA_EXTRACTION_GUIDE.md` 참조
+2. **Python API 연결 오류**
+   ```bash
+   # Python API 상태 확인
+   curl http://localhost:8000/health
+   
+   # Python API 재시작
+   docker-compose restart python-api
+   ```
 
-### 주요 연동 포인트
-- **실행**: `subprocess`로 `python main.py` 호출
-- **진행상황**: `data/output/stage*.json` 파일 실시간 모니터링  
-- **결과 파싱**: `data/output/0829 스케줄링결과.xlsx` 파싱하여 DB 저장
+3. **포트 충돌**
+   ```bash
+   # 포트 사용 확인
+   netstat -tulpn | grep :3000
+   netstat -tulpn | grep :3001
+   netstat -tulpn | grep :8000
+   ```
+
+## 📝 라이선스
+
+MIT License
+
+## 🤝 기여하기
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📞 지원
+
+문제가 발생하거나 질문이 있으시면 이슈를 생성해주세요.
+
+---
+
+**Production Scheduling System** - 제조업 공정 스케줄링을 위한 통합 솔루션

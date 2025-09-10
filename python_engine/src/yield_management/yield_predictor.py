@@ -20,6 +20,7 @@ class YieldPredictor:
     def preprocessing(self):
         """ 데이터클렌징 """
         pass
+        
     def calculate_predicted_yield(self):
         df = self.df.copy()
 
@@ -82,6 +83,8 @@ class YieldPredictor:
     
         self.operation_sequence_yield = operation_sequence
         self._get_gitem_yield_dict()
+        
+        return operation_sequence
 
 
     def _get_gitem_yield_dict(self):

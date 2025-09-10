@@ -31,7 +31,11 @@ def create_machine_dict(sequence_seperated_order, linespeed, machine_columns):
     order_linespeed = order_linespeed.fillna(np.inf) # 
 
     for col in machine_columns:
-        order_linespeed[col] = np.ceil(order_linespeed[config.columns.PRODUCTION_LENGTH] / order_linespeed[col] / config.constants.TIME_MULTIPLIER).astype(int)
+        # 0으로 나누기 방지: 0인 경우 inf로 설정
+        order_linespeed[col] = order_linespeed[col].replace(0, np.inf)
+        order_linespeed[col] = np.ceil(order_linespeed[config.columns.PRODUCTION_LENGTH] / order_linespeed[col] / config.constants.TIME_MULTIPLIER)
+        # inf 값을 9999로 변경 후 정수 변환
+        order_linespeed[col] = order_linespeed[col].replace(np.inf, 9999).astype(int)
     
     for col in machine_columns:
         order_linespeed.loc[order_linespeed[col] == 0, col] = 9999
