@@ -9,49 +9,82 @@ from config import config
 
 
 class StageDataExtractor:
-    """각 단계별 데이터를 웹용 JSON 형태로 추출하는 클래스"""
+    """json 형태의 직접 변경은 백엔드에서. 백엔드가 간단한 연산 (len,count 등)만으로 화면에 필요한 데이터 알 수 있게 포맷팅"""
+    
+    # @staticmethod
+    # def extract_stage1_data(
+    #     linespeed: pd.DataFrame,
+    #     machine_master_info: pd.DataFrame,
+    #     operation_types: pd.DataFrame,
+    #     operation_delay_df: pd.DataFrame,
+    #     order: pd.DataFrame
+    # ) -> Dict[str, Any]:
+    #     """1단계: 데이터 로딩 결과 추출"""
+    #     return {
+    #         "stage": "loading",
+    #         "data": {
+    #             "linespeed_count": len(linespeed),
+    #             "machine_count": len(machine_master_info),
+    #             "operation_types_count": len(operation_types),
+    #             "operation_delay_count": len(operation_delay_df),
+    #             "total_orders": len(order),
+    #             "base_config": {
+    #                 "base_year": config.constants.BASE_YEAR,
+    #                 "base_month": config.constants.BASE_MONTH,
+    #                 "base_day": config.constants.BASE_DAY,
+    #                 "window_days": config.constants.WINDOW_DAYS
+    #             }
+    #         }
+    #     }
     
     @staticmethod
-    def extract_stage1_data(
-        linespeed: pd.DataFrame,
-        machine_master_info: pd.DataFrame,
-        operation_types: pd.DataFrame,
-        operation_delay_df: pd.DataFrame,
-        order: pd.DataFrame
-    ) -> Dict[str, Any]:
-        """1단계: 데이터 로딩 결과 추출"""
-        return {
-            "stage": "loading",
-            "data": {
-                "linespeed_count": len(linespeed),
-                "machine_count": len(machine_master_info),
-                "operation_types_count": len(operation_types),
-                "operation_delay_count": len(operation_delay_df),
-                "total_orders": len(order),
-                "base_config": {
-                    "base_year": config.constants.BASE_YEAR,
-                    "base_month": config.constants.BASE_MONTH,
-                    "base_day": config.constants.BASE_DAY,
-                    "window_days": config.constants.WINDOW_DAYS
-                }
-            }
-        }
-    
+    def _process_po_no_separation(unable_order: pd.DataFrame, unable_details: List[Dict] = None) -> pd.DataFrame:
+        """P/O NO 쉼표 분리 및 불가능한공정 매핑 처리"""
+        if len(unable_order) == 0:
+            return pd.DataFrame()
+            
+        processed = unable_order.copy()
+        
+        # 중복 제거 (explode 전에)
+        processed = processed.drop_duplicates()
+        
+        # 불가능한공정 매핑
+        if unable_details:
+            details_dict = {detail['gitem']: detail['operation'] for detail in unable_details}
+            processed['불가능한공정'] = processed['GITEM'].astype(str).map(details_dict)
+        
+        # P/O NO 쉼표 분리
+        if config.columns.PO_NO in processed.columns:
+            comma_mask = processed[config.columns.PO_NO].astype(str).str.contains(', ', na=False)
+            if comma_mask.any():
+                normal_rows = processed[~comma_mask]
+                comma_rows = processed[comma_mask].copy()
+                comma_rows[config.columns.PO_NO] = comma_rows[config.columns.PO_NO].str.split(', ')
+                comma_rows = comma_rows.explode(config.columns.PO_NO)
+                comma_rows[config.columns.PO_NO] = comma_rows[config.columns.PO_NO].str.strip()
+                processed = pd.concat([normal_rows, comma_rows], ignore_index=True)
+        
+        return processed
+
     @staticmethod
     def extract_stage2_data(
         order: pd.DataFrame,
         sequence_seperated_order: pd.DataFrame,
         unable_gitems: List[str],
-        unable_order: pd.DataFrame
+        unable_order: pd.DataFrame,
+        unable_details: List[Dict] = None
     ) -> Dict[str, Any]:
         """2단계: 전처리 결과 추출"""
+        
+        processed_unable_order = StageDataExtractor._process_po_no_separation(unable_order, unable_details)
+        
         return {
             "stage": "preprocessing", 
             "data": {
                 "input_orders": len(order),
                 "used_orders": sequence_seperated_order[config.columns.PO_NO].unique().tolist(),
                 "excluded_gitems_count": len(unable_gitems),
-                "excluded_orders": unable_order.to_dict(orient='records') if len(unable_order) > 0 else [],
+                "excluded_orders": processed_unable_order.to_dict(orient='records') if len(processed_unable_order) > 0 else [],
             }
         }
     
@@ -143,6 +176,44 @@ class StageDataExtractor:
                 "late_po_numbers": late_po_numbers
             }
         }
+    
+    @staticmethod
+    def extract_gitem_summary_data(
+        order: pd.DataFrame, 
+        sequence_seperated_order: pd.DataFrame
+    ) -> Dict[str, Any]:
+        """GITEM별 요약 정보 추출 (프론트엔드용)"""
+        result = {}
+        
+        for gitem, group in sequence_seperated_order.groupby('GITEM'):
+            # GITEM별 P/O 정보는 order에서 가져옴
+            po_list = []
+            order_filtered = order[order['GITEM'] == gitem]
+            for _, po_row in order_filtered.iterrows():
+                po_list.append({
+                    'P/O NO': po_row['P/O NO'],
+                    '길이': int(po_row['길이']),
+                    '너비': int(po_row['너비']),
+                    '납기일': po_row['납기일']
+                })
+            
+            # 공정 목록은 sequence_seperated_order에서 가져옴 (공정순서대로 정렬)
+            process_list = []
+            for _, row in group.sort_values('공정순서').iterrows():
+                process_list.append({
+                    '공정명': row['공정명'],
+                    'dag_node_id': row['ID']
+                })
+            
+            result[gitem] = {
+                '생산길이': int(order_filtered['길이'].sum()),  # P/O 길이들의 합계
+                '원단너비': int(group['원단너비'].iloc[0]),
+                '공정명': '→'.join(group.sort_values('공정순서')['공정명']),
+                'p/o_list': po_list,
+                '공정목록': process_list
+            }
+        
+        return result
 
 
 class WebTableFormatter:

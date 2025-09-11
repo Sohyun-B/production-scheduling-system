@@ -31,10 +31,11 @@ def preprocessing(order, operation_seperated_sequence, operation_types, machine_
     
 
     # unable_gitems: 기계의 특정 공정 휴기 때문에 생산하지 못하는 공정 리스트
-    linespeed, unable_gitems = operation_machine_limit(linespeed, machine_limit)
+    # unable_details: GITEM과 해당 불가능한 공정명 정보
+    linespeed, unable_gitems, unable_details = operation_machine_limit(linespeed, machine_limit)
     linespeed = operation_machine_exclusive(linespeed, machine_allocate)
 
-    print(f"unable order 여부 {unable_gitems}")
+    print(f"unable order: {len(unable_gitems)}개")
 
     if unable_gitems:
         """
@@ -46,6 +47,6 @@ def preprocessing(order, operation_seperated_sequence, operation_types, machine_
 
         unable_order = unable_order[['P/O NO', 'GITEM']] # 생산 불가능한 GITEM과 P/O 정보
 
-        return sequence_order, linespeed, unable_gitems, unable_order
+        return sequence_order, linespeed, unable_gitems, unable_order, unable_details
     else:
-        return sequence_order, linespeed, _, _
+        return sequence_order, linespeed, [], pd.DataFrame(), []

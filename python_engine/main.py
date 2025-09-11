@@ -102,7 +102,7 @@ def run_level4_scheduling():
 
     # === 2단계: 전처리 ===
     print("[30%] 주문 데이터 전처리 중...")
-    sequence_seperated_order, linespeed, unable_gitems, unable_order= preprocessing(order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed)
+    sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = preprocessing(order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed)
     print(f"[전처리] 전처리 완료: {len(sequence_seperated_order)}개 작업 생성")
     
 
@@ -110,15 +110,20 @@ def run_level4_scheduling():
     order.to_csv("0910_확인용_order.csv", encoding='utf-8-sig')
     
     # === 2단계 완료: JSON 저장 ===
-    stage2_data = {
-        "stage": "preprocessing", 
-        "data": {
-            "input_orders": len(order), # 총 주문 양
-            "used_orders": sequence_seperated_order['P/O NO'].unique().tolist(), # 실제로 제외되지 않고 사용된 양
-            "excluded_gitems_count": len(unable_gitems), # 제외된 gitem 개수
-            "excluded_orders": unable_order.to_dict(orient='records'), # gitem이 제외되면서 사용할 수 없었던 주문 개수
-        }
-    }
+    from src.web_interface.stage_formatters import StageDataExtractor
+    
+    stage2_data = StageDataExtractor.extract_stage2_data(
+        order=order,
+        sequence_seperated_order=sequence_seperated_order, 
+        unable_gitems=unable_gitems,
+        unable_order=unable_order,
+        unable_details=unable_details
+    )
+    
+    # stage_formatters에서 처리된 결과를 CSV로 저장
+    if stage2_data['data']['excluded_orders']:
+        processed_df = pd.DataFrame(stage2_data['data']['excluded_orders'])
+        processed_df.to_csv("0910_확인용_unable_order.csv", encoding='utf-8-sig', index=False)
     
     with open("data/output/stage2_preprocessing.json", "w", encoding="utf-8") as f:
         json.dump(stage2_data, f, ensure_ascii=False, default=str)

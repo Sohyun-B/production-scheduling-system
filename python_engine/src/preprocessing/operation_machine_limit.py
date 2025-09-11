@@ -25,11 +25,12 @@ def operation_machine_limit(linespeed, machine_limit):
         # print(linespeed.loc[target_mask])
         linespeed.loc[target_mask, machine_codes] = np.nan
         # print(linespeed.loc[target_mask])
-        unable_gitems = _check_unable_order(linespeed, list(machine_code_set))  # set을 list로 변환
+        unable_gitems, unable_details = _check_unable_order(linespeed, list(machine_code_set))  # set을 list로 변환
     else:
         # print("주문 데이터 중 해당 기계에서 해당 공정을 수행하는 경우가 없음")
         unable_gitems = []  # 빈 리스트 반환
-    return linespeed, unable_gitems
+        unable_details = []  # 빈 리스트 반환
+    return linespeed, unable_gitems, unable_details
 
 def _check_unable_order(linespeed, all_machine_columns):
     # 각 행에서 모든 기계 코드가 NaN인지 확인
@@ -40,19 +41,27 @@ def _check_unable_order(linespeed, all_machine_columns):
         # print("모든 기계에서 수행 불가능한 공정:")
         # print(linespeed.loc[mask_all_nan])
         
-        unable_gitems = (
-            linespeed.loc[mask_all_nan, 'GITEM']
-            .dropna()
-            .astype(str)
-            .tolist()
-        )
-        print(
-            "생산 불가(GITEM): 모든 기계 컬럼이 NaN인 공정/주문. "
-            f"대상 수={len(unable_gitems)} -> {unable_gitems}"
-        )
+        # GITEM과 공정명을 함께 추출
+        unable_items_df = linespeed.loc[mask_all_nan, [config.columns.GITEM, config.columns.OPERATION]].dropna()
+        
+        unable_gitems = unable_items_df[config.columns.GITEM].astype(str).tolist()
+        unable_operations = unable_items_df[config.columns.OPERATION].tolist()
+        
+        # GITEM과 공정명을 매핑한 딕셔너리 생성
+        unable_details = []
+        for _, row in unable_items_df.iterrows():
+            unable_details.append({
+                'gitem': str(row[config.columns.GITEM]),
+                'operation': row[config.columns.OPERATION]
+            })
+        
+        print(f"생산 불가(GITEM): {len(unable_gitems)}개")
+            
     else: # 모든 아이템이 결과적으로 생산 가능
         unable_gitems = []
-    return unable_gitems
+        unable_details = []
+        
+    return unable_gitems, unable_details
 
 
 
