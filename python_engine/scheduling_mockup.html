@@ -624,6 +624,86 @@
             border: 2px solid #f39c12;
         }
 
+        .timeline-item.changeover-time {
+            border: 2px solid #f39c12;
+            opacity: 0.9;
+        }
+
+        .changeover-badge {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        .changeover-details {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: normal;
+        }
+
+        /* Toggle Switch Styles */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #3498db;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            color: #2c3e50;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
         .time-range {
             min-width: 120px;
             font-weight: bold;
@@ -1226,7 +1306,16 @@
                     </div>
 
                     <div id="machine-schedule" class="results-sub-content active">
-                        <h4 style="margin-bottom: 20px;">📅 기계별 작업 스케줄</h4>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h4>📅 기계별 작업 스케줄</h4>
+                            <div class="toggle-container">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="changeoverToggle" checked onchange="toggleChangeoverTime()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">공정교체시간 표시</span>
+                            </div>
+                        </div>
                         
                         <div class="machine-schedule-container">
                             <!-- 1호기 -->
@@ -1247,13 +1336,20 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="timeline-item changeover-time" style="background: linear-gradient(135deg, #f39c12, #d68910);">
+                                        <div class="time-range">12:30 - 13:00</div>
+                                        <div class="item-info">
+                                            <div class="changeover-badge">🔄 공정교체</div>
+                                            <div class="changeover-details">배합액 변경: A-100 → B-200 (30분)</div>
+                                        </div>
+                                    </div>
                                     <div class="timeline-item" style="background: linear-gradient(135deg, #3498db, #2980b9);">
                                         <div class="time-range">13:00 - 16:30</div>
                                         <div class="item-info">
                                             <div class="gitem-badge">G12346</div>
                                             <div class="process-name">투명점착</div>
                                             <div class="batch-info">
-                                                <span class="batch-code">A-100</span>
+                                                <span class="batch-code">B-200</span>
                                                 <span class="po-list">PO-002</span>
                                             </div>
                                         </div>
@@ -1280,6 +1376,24 @@
                                 </div>
                                 <div class="timeline-items">
                                     <div class="timeline-item" style="background: linear-gradient(135deg, #27ae60, #229954);">
+                                        <div class="time-range">08:00 - 12:00</div>
+                                        <div class="item-info">
+                                            <div class="gitem-badge">G12347</div>
+                                            <div class="process-name">유광S/R</div>
+                                            <div class="batch-info">
+                                                <span class="batch-code no-batch">배합액 없음</span>
+                                                <span class="po-list">PO-003, PO-023</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="timeline-item changeover-time" style="background: linear-gradient(135deg, #f39c12, #d68910);">
+                                        <div class="time-range">12:00 - 14:00</div>
+                                        <div class="item-info">
+                                            <div class="changeover-badge">🔄 공정교체</div>
+                                            <div class="changeover-details">폭 변경: 1200mm → 1000mm (2시간)</div>
+                                        </div>
+                                    </div>
+                                    <div class="timeline-item" style="background: linear-gradient(135deg, #27ae60, #229954);">
                                         <div class="time-range">14:00 - 18:00</div>
                                         <div class="item-info">
                                             <div class="gitem-badge">G12345</div>
@@ -1287,17 +1401,6 @@
                                             <div class="batch-info">
                                                 <span class="batch-code no-batch">배합액 없음</span>
                                                 <span class="po-list">PO-001, PO-045</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="timeline-item" style="background: linear-gradient(135deg, #27ae60, #229954);">
-                                        <div class="time-range">08:00 - 14:00</div>
-                                        <div class="item-info">
-                                            <div class="gitem-badge">G12347</div>
-                                            <div class="process-name">유광S/R</div>
-                                            <div class="batch-info">
-                                                <span class="batch-code no-batch">배합액 없음</span>
-                                                <span class="po-list">PO-003, PO-023</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1681,6 +1784,29 @@
                         </div>
 
                         <div style="margin-top: 30px;">
+                            <h4>🚨 지각 주문 상세</h4>
+                            <table class="results-table">
+                                <thead>
+                                    <tr><th>P/O 번호</th><th>GITEM</th><th>납기일</th><th>완료예정일</th><th>지각일수</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>PO-2024-8901</td><td>ABC-12345</td><td>2024-08-15</td><td>2024-08-18</td><td>3일</td></tr>
+                                    <tr><td>PO-2024-8902</td><td>DEF-67890</td><td>2024-08-20</td><td>2024-08-22</td><td>2일</td></tr>
+                                    <tr><td>PO-2024-8903</td><td>GHI-11111</td><td>2024-08-25</td><td>2024-08-26</td><td>1일</td></tr>
+                                </tbody>
+                            </table>
+                            
+                            <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                                <h5 style="margin: 0 0 10px 0; color: #856404;">📋 지각 분석 요약</h5>
+                                <ul style="margin: 0; padding-left: 20px; color: #856404;">
+                                    <li>총 3건의 지각 주문 발생 (전체 주문의 3.2%)</li>
+                                    <li>평균 지각일수: 2.0일</li>
+                                    <li>최대 지각일수: 3일 (PO-2024-8901)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 30px;">
                             <h4>⚠️ 주요 이슈</h4>
                             <ul style="margin-left: 20px; line-height: 1.8;">
                                 <li>25호기에서 가장 많은 공정교체시간 발생 (67분)</li>
@@ -1699,10 +1825,10 @@
                             선택된 기간: <strong id="selectedYieldPeriod">6개월</strong> 기준
                         </p>
                         
-                        <h4>📈 수율 데이터가 있는 GITEM/공정 (2,677개)</h4>
+                        <h4>📈 공정 수율 데이터가 있는 GITEM/공정 (2,677개)</h4>
                         <table class="results-table" style="margin-bottom: 15px;" id="yieldDataTable">
                             <thead>
-                                <tr><th>GITEM</th><th>공정명</th><th>1년 수율</th><th>6개월 수율</th><th>3개월 수율</th><th>적용 수율</th><th>생산량</th></tr>
+                                <tr><th>GITEM</th><th>공정명</th><th>1년 공정수율</th><th>6개월 공정수율</th><th>3개월 공정수율</th><th>적용 공정수율</th><th>생산량</th></tr>
                             </thead>
                             <tbody id="yieldDataTableBody">
                                 <tr><td>G12345</td><td>투명점착</td><td>94.2%</td><td>93.8%</td><td>95.1%</td><td style="color: #3498db; font-weight: bold;">93.8%</td><td>2,450m</td></tr>
@@ -1718,17 +1844,17 @@
                             <button class="pagination-btn" onclick="nextPage('yieldData')" id="yieldDataNextBtn">다음 ▶</button>
                         </div>
 
-                        <h4 style="color: #e67e22;">⚠️ 수율 데이터가 없는 GITEM/공정 (156개) - 기본 수율 90% 적용</h4>
+                        <h4 style="color: #e67e22;">⚠️ 공정수율 데이터가 없는 GITEM/공정 (156개) - 기본 종합 수율 100% 적용</h4>
                         <table class="results-table" style="margin-bottom: 15px;" id="noYieldDataTable">
                             <thead>
                                 <tr><th>GITEM</th><th>공정명</th><th>적용 수율</th><th>영향받는 P/O NO</th></tr>
                             </thead>
                             <tbody id="noYieldDataTableBody">
-                                <tr><td>G12567</td><td>투명점착</td><td style="color: #e67e22; font-weight: bold;">90.0%</td><td>PO-2025-134, PO-2025-278</td></tr>
-                                <tr><td>G12567</td><td>검사</td><td style="color: #e67e22; font-weight: bold;">90.0%</td><td>PO-2025-134, PO-2025-278, PO-2025-445</td></tr>
-                                <tr><td>G12568</td><td>유광S/R</td><td style="color: #e67e22; font-weight: bold;">90.0%</td><td>PO-2025-156, PO-2025-329</td></tr>
-                                <tr><td>G12568</td><td>마무리코팅</td><td style="color: #e67e22; font-weight: bold;">90.0%</td><td>PO-2025-156, PO-2025-329</td></tr>
-                                <tr><td>G12569</td><td>투명점착</td><td style="color: #e67e22; font-weight: bold;">90.0%</td><td>PO-2025-189, PO-2025-234, PO-2025-401</td></tr>
+                                <tr><td>G12567</td><td>투명점착</td><td style="color: #e67e22; font-weight: bold;">100.0%</td><td>PO-2025-134, PO-2025-278</td></tr>
+                                <tr><td>G12567</td><td>검사</td><td style="color: #e67e22; font-weight: bold;">100.0%</td><td>PO-2025-134, PO-2025-278, PO-2025-445</td></tr>
+                                <tr><td>G12568</td><td>유광S/R</td><td style="color: #e67e22; font-weight: bold;">100.0%</td><td>PO-2025-156, PO-2025-329</td></tr>
+                                <tr><td>G12568</td><td>마무리코팅</td><td style="color: #e67e22; font-weight: bold;">100.0%</td><td>PO-2025-156, PO-2025-329</td></tr>
+                                <tr><td>G12569</td><td>투명점착</td><td style="color: #e67e22; font-weight: bold;">100.0%</td><td>PO-2025-189, PO-2025-234, PO-2025-401</td></tr>
                             </tbody>
                         </table>
                         <div class="table-pagination">
@@ -1741,8 +1867,8 @@
                             <h5 style="margin: 0 0 10px 0; color: #856404;">📋 수율 데이터 요약</h5>
                             <ul style="margin: 0; padding-left: 20px; color: #856404;">
                                 <li>총 2,833개 GITEM 중 2,677개(94.5%)에서 수율 데이터 확보</li>
-                                <li>156개(5.5%) GITEM은 기본 수율 90% 적용</li>
-                                <li>평균 실제 수율: 92.4% (기본 수율 제외)</li>
+                                <li>156개(5.5%) GITEM은 기본 종합 수율 100% 적용</li>
+                                <li>평균 실제 수율: 92.4% (기본 종합 수율 제외)</li>
                                 <li>수율 예측 신뢰도: 98.7%</li>
                             </ul>
                         </div>
@@ -2073,19 +2199,19 @@
                 },
                 { 
                     progress: 35, 
-                    text: "수율 예측 처리 중...", 
-                    duration: 1500,
-                    needsConfirmation: true,
-                    title: "📊 수율 예측 완료",
-                    getContent: () => getYieldContent()
-                },
-                { 
-                    progress: 40, 
                     text: "주문 묶음 생성 중...", 
                     duration: 2500,
                     needsConfirmation: true,
                     title: "🔗 주문 묶음 생성 완료",
                     getContent: () => getOrderGroupingContent()
+                },
+                { 
+                    progress: 40, 
+                    text: "수율 예측 처리 중...", 
+                    duration: 1500,
+                    needsConfirmation: true,
+                    title: "📊 수율 예측 완료",
+                    getContent: () => getYieldContent()
                 },
                 { 
                     progress: 60, 
@@ -2097,9 +2223,7 @@
                     progress: 75, 
                     text: "스케줄링 알고리즘 실행 중...", 
                     duration: 4000,
-                    needsConfirmation: true,
-                    title: "⚡ 스케줄링 실행 완료",
-                    getContent: () => getSchedulingContent()
+                    needsConfirmation: false
                 },
                 { 
                     progress: 90, 
@@ -2112,8 +2236,8 @@
                     text: "스케줄링 완료!", 
                     duration: 1000,
                     needsConfirmation: true,
-                    title: "🎉 전체 스케줄링 완료",
-                    getContent: () => getFinalContent()
+                    title: "🎉 스케줄링 완료",
+                    getContent: () => getCombinedSchedulingContent()
                 }
             ];
 
@@ -2435,10 +2559,10 @@
 
                 <div class="constraint-alert">
                     <span class="icon">⚠️</span>
-                    <div><strong>기본 수율 적용:</strong> 156개 GITEM은 ${periodText} 기간 내 생산 이력이 없어 기본 수율(90%)을 적용합니다.</div>
+                    <div><strong>기본 종합 수율 적용:</strong> 156개 GITEM은 ${periodText} 기간 내 생산 이력이 없어 기본 종합 수율(100%)을 적용합니다.</div>
                 </div>
 
-                <h5>기본 수율(90%) 적용 GITEM 목록:</h5>
+                <h5>기본 종합 수율(100%) 적용 GITEM 목록:</h5>
                 <table class="data-table" style="margin-top: 10px;">
                     <thead>
                         <tr><th>GITEM</th><th>공정명</th><th>영향받는 P/O NO</th></tr>
@@ -2502,6 +2626,68 @@
                     </tbody>
                 </table>
 
+            `;
+        }
+
+        function getCombinedSchedulingContent() {
+            return `
+                <div class="stage-summary">
+                    <h4>🎉 스케줄링 완료</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">12.5</div>
+                            <div class="label">Makespan (일)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">87.3%</div>
+                            <div class="label">기계 가동률</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">96.8%</div>
+                            <div class="label">납기 준수율</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">3</div>
+                            <div class="label">지각 주문</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">24</div>
+                            <div class="label">공정교체 횟수</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">156분</div>
+                            <div class="label">공정교체시간</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="constraint-alert success">
+                    <span class="icon">🎉</span>
+                    <div><strong>스케줄링 완료!</strong> 모든 결과 파일이 저장되었습니다.</div>
+                </div>
+
+                <h5>생성된 결과 파일:</h5>
+                <ul class="constraint-list">
+                    <li><span class="status ok">✓</span>간트 차트: level4_gantt.png (300 DPI)</li>
+                    <li><span class="status ok">✓</span>상세 결과: 0829 스케줄링결과.xlsx</li>
+                    <li><span class="status ok">✓</span>간격 분석: schedule_gaps_detailed.xlsx</li>
+                    <li><span class="status ok">✓</span>기계별 요약: machine_gap_summary.xlsx</li>
+                </ul>
+
+                <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px;">
+                    <h5 style="margin: 0 0 10px 0; color: #2c5530;">🎯 주요 달성 사항</h5>
+                    <ul style="margin: 0; padding-left: 20px; color: #2c5530;">
+                        <li>총 12.5일 소요로 스케줄링 완료</li>
+                        <li>배합액 및 폭 변경으로 인한 공정교체 24회, 총 156분 소요</li>
+                        <li>1호기, 25호기가 병목 구간으로 확인됨</li>
+                        <li>지각 주문 3건 발생 (전체의 3.2%)</li>
+                    </ul>
+                </div>
+
+                <div class="constraint-alert" style="margin-top: 15px;">
+                    <span class="icon">⚠️</span>
+                    <div><strong>주의사항:</strong> 3건의 주문이 납기를 초과했습니다. 상세 내용은 결과 탭에서 확인하세요.</div>
+                </div>
             `;
         }
 
@@ -2693,7 +2879,7 @@
                     const row = `<tr>
                         <td>${gitem}</td>
                         <td>${process}</td>
-                        <td style="color: #e67e22; font-weight: bold;">90.0%</td>
+                        <td style="color: #e67e22; font-weight: bold;">100.0%</td>
                         <td>${poList}</td>
                     </tr>`;
                     tableBody.innerHTML += row;
@@ -3114,6 +3300,24 @@
                 showDagIds(gitem);
             }
         });
+
+        // 공정교체시간 표시/숨김 토글 함수
+        function toggleChangeoverTime() {
+            const toggle = document.getElementById('changeoverToggle');
+            const changeoverItems = document.querySelectorAll('.timeline-item.changeover-time');
+            
+            if (toggle.checked) {
+                // 공정교체시간 표시
+                changeoverItems.forEach(item => {
+                    item.style.display = 'flex';
+                });
+            } else {
+                // 공정교체시간 숨김
+                changeoverItems.forEach(item => {
+                    item.style.display = 'none';
+                });
+            }
+        }
 
         // 페이지 로드 시 초기화
         window.addEventListener('load', function() {

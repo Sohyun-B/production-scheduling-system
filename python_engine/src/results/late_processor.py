@@ -1,8 +1,15 @@
+"""
+지각 작업 처리 통합 모듈 (late_order + late_order_processor 통합)
+"""
+
 import pandas as pd
 import numpy as np
 from config import config
 
+
 class LateOrderCalculator:
+    """지각 주문 계산 및 분석 (기존 late_order.py의 로직)"""
+    
     def __init__(self, final_result_df, merged_df, original_order):
         """
         :param final_result_df: 전체 작업 완료 시간 결과 (id, node_end 등)
@@ -16,6 +23,7 @@ class LateOrderCalculator:
         self.late_days_sum = None
 
     def calculate_late_order(self):
+        """지각 주문 계산 (기존 로직 유지)"""
         id2end = dict(zip(self.final_result_df['id'], self.final_result_df[config.columns.NODE_END]))
 
         # 공정ID 컬럼 순서
@@ -34,7 +42,6 @@ class LateOrderCalculator:
                         max_end_time = current_end_time
             return max_end_time
 
-        
         self.merged_df[config.columns.END_TIME] = self.merged_df.apply(get_end_time, axis=1)
 
         # 병합 후 납기일도 포함한 결과 생성
@@ -47,6 +54,7 @@ class LateOrderCalculator:
         return self.calculated_df
 
     def calc_late_days(self, df, base_date, end_col=None, due_col=None):
+        """지각 일수 계산 (기존 로직 유지)"""
         if end_col is None:
             end_col = config.columns.END_TIME
         if due_col is None:
@@ -64,3 +72,60 @@ class LateOrderCalculator:
         self.calculated_df = df
         self.late_days_sum = df[config.columns.LATE_DAYS].sum()
         return self.calculated_df, self.late_days_sum
+
+
+class LateProcessor:
+    """지각 작업 처리 및 분석 통합 클래스"""
+    
+    def __init__(self, base_date):
+        """
+        Args:
+            base_date (datetime): 기준 날짜
+        """
+        self.base_date = base_date
+    
+    def process(self, result_cleaned, merged_df, original_order):
+        """
+        지각 작업 처리 파이프라인 실행
+        
+        Args:
+            result_cleaned (pd.DataFrame): 정리된 스케줄링 결과
+            merged_df (pd.DataFrame): 병합된 주문 데이터
+            original_order (pd.DataFrame): 원본 주문 데이터
+            
+        Returns:
+            dict: {
+                'new_output_final_result': pd.DataFrame,  # 지각 계산 완료된 결과
+                'late_days_sum': int,                    # 총 지각 일수
+                'late_products': pd.DataFrame,           # 지각한 제품 정보
+                'late_po_numbers': list                  # 지각한 P/O 번호들
+            }
+        """
+        print("[지각처리] 지각 작업 처리 시작...")
+        
+        # 지각 계산기 초기화
+        late_calc = LateOrderCalculator(result_cleaned, merged_df, original_order)
+        
+        # 지각 계산 실행
+        new_output_final_result = late_calc.calculate_late_order()
+        new_output_final_result, late_days_sum = late_calc.calc_late_days(
+            new_output_final_result, self.base_date
+        )
+        
+        # 결과 정렬
+        new_output_final_result = new_output_final_result.sort_values(by=config.columns.END_TIME)
+        
+        # 지각한 제품 정보 추출
+        late_products = new_output_final_result[
+            new_output_final_result['지각일수'] > 0
+        ]
+        late_po_numbers = late_products['P/O NO'].tolist() if len(late_products) > 0 else []
+        
+        print(f"[지각처리] 완료 - 총 지각 일수: {late_days_sum}일, 지각 제품: {len(late_products)}개")
+        
+        return {
+            'new_output_final_result': new_output_final_result,
+            'late_days_sum': late_days_sum,
+            'late_products': late_products,
+            'late_po_numbers': late_po_numbers
+        }

@@ -17,6 +17,8 @@ class DelayProcessor:
         self.opnode_dict = opnode_dict
         self.base_df = self._generate_base_df(operation_delay_df, width_change_df)
         self.final_df = self._apply_delay_conditions(operation_delay_df, width_change_df)
+
+        self.final_df.to_csv("폭조합관련코드완성본.csv", encoding = 'utf-8-sig')
         self.delay_dict = self._dataframe_to_dict()
 
     def delay_calc_whole_process(self, item_id1, item_id2, machine_index):

@@ -9,7 +9,7 @@ class DrawChart:
         self.fig = None
         self.ax = None
 
-    def plot(self, figsize=(15, 8), fontsize=6, major_interval=48, minor_interval=24, dpi=300, show_gaps=True):
+    def plot(self, figsize=(15, 8), fontsize=6, major_interval=48, minor_interval=24, dpi=300, show_gaps=True, save_path='media/AutoColored_Gantt.png'):
         self.fig, self.ax = plt.subplots(figsize=figsize)
         
         # 모든 작업의 depth 추출 및 정렬
@@ -43,8 +43,17 @@ class DrawChart:
         self.ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1.2, 1), title="Legend")
 
         self._style_chart(major_interval, minor_interval)
-        plt.savefig('media/AutoColored_Gantt.png', dpi=dpi, bbox_inches='tight')
-        plt.show()
+        
+        # 저장 경로의 디렉토리가 없으면 생성
+        import os
+        save_dir = os.path.dirname(save_path)
+        if save_dir and not os.path.exists(save_dir):
+            os.makedirs(save_dir, exist_ok=True)
+            
+        plt.savefig(save_path, dpi=dpi, bbox_inches='tight')
+        # plt.show() 제거 - 비대화형 백엔드에서는 경고 발생
+        
+        return self.fig
     
     def _draw_gaps(self):
         """간격을 셋업시간/대기시간으로 구분하여 표시"""

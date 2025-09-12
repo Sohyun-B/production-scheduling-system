@@ -50,13 +50,14 @@ class Scheduler:
         
         # 타켓 머신의 가장 뒤에 있는 task의 id와 현재 넣으려는 id를 기반으로 맨 뒤에 할당할 경우 지연시간 계산
         if target_machine_task:
-            normal_delay = self.delay_processor.delay_calc_whole_process(node_id, target_machine_task[-1][1], Selected_Machine)
+            normal_delay = self.delay_processor.delay_calc_whole_process(target_machine_task[-1][1], node_id, Selected_Machine)
         else:
             normal_delay = 0
         
         # 기본 최소 시작시간 계산: 작업 이전 종료 vs 기계 최종 종료 + 최종 종료 이전 작업 + 딜레이
         earliest_start = max(last_O_end, Machine_end_time + normal_delay)
-        
+    
+
         if machine_window_flag: # 빈 시간대 창을 분석하지 않는 경우
             End_work_time = earliest_start + P_t
         

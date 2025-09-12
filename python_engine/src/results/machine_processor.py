@@ -1,8 +1,15 @@
+"""
+기계 정보 처리 통합 모듈 (machine_schedule + machine_info_processor 통합)
+"""
+
 import pandas as pd
 import numpy as np
 from config import config
 
+
 class MachineScheduleProcessor:
+    """기계 스케줄 처리 (기존 machine_schedule.py의 클래스)"""
+    
     def __init__(self, machine_mapping, machine_schedule_df, output_final_result, base_time, gap_analyzer=None):
         """
         :param machine_mapping: 머신 인덱스 -> 머신 이름 매핑 딕셔너리
@@ -94,57 +101,109 @@ class MachineScheduleProcessor:
         machine_info[config.columns.DUE_DATE] = duedate_list
 
         return machine_info
-    
-    def create_gap_analysis_report(self):
-        """간격 분석 리포트 생성"""
-        if not self.gap_analyzer:
-            print("간격 분석기가 제공되지 않았습니다.")
-            return None, None
-        
-        # 상세 간격 분석
-        detailed_gaps = self.gap_analyzer.export_detailed_gaps()
-        
-        # 기계별 요약
-        machine_summary = self.gap_analyzer.get_machine_summary()
-        
-        return detailed_gaps, machine_summary
-    
+
     def print_gap_summary(self):
-        """간격 분석 요약을 콘솔에 출력"""
+        """간격 분석 요약 출력"""
         if not self.gap_analyzer:
-            print("간격 분석기가 제공되지 않았습니다.")
+            print("[간격분석] 간격 분석기가 없습니다.")
             return
         
-        detailed_gaps, machine_summary = self.create_gap_analysis_report()
+        try:
+            machine_summary = self.gap_analyzer.get_machine_summary()
+            if not machine_summary.empty:
+                print("\n=== 기계별 간격 요약 ===")
+                for _, row in machine_summary.iterrows():
+                    machine_idx = row['machine_index']
+                    setup_time = row['total_setup_time']
+                    idle_time = row['total_idle_time'] 
+                    gap_count = row['gap_count']
+                    print(f"기계 {machine_idx}: 총 간격 {gap_count}개, 셋업시간 {setup_time:.1f}, 대기시간 {idle_time:.1f}")
+            else:
+                print("[간격분석] 분석할 간격이 없습니다.")
+        except Exception as e:
+            print(f"[간격분석] 요약 출력 중 오류: {e}")
+
+    def create_gap_analysis_report(self):
+        """상세 간격 분석 리포트 생성"""
+        if not self.gap_analyzer:
+            return None, None
         
-        if machine_summary is not None and not machine_summary.empty:
-            print("\n" + "="*60)
-            print("기계별 셋업시간/대기시간 분석 결과")
-            print("="*60)
+        try:
+            detailed_gaps = self.gap_analyzer.export_detailed_gaps()
+            machine_summary = self.gap_analyzer.get_machine_summary()
+            return detailed_gaps, machine_summary
+        except Exception as e:
+            print(f"[간격분석] 리포트 생성 중 오류: {e}")
+            return None, None
+
+
+class MachineProcessor:
+    """기계 정보 처리 통합 클래스"""
+    
+    def __init__(self, base_date):
+        """
+        Args:
+            base_date (datetime): 기준 날짜
+        """
+        self.base_date = base_date
+    
+    def process(self, machine_schedule_df, result_cleaned, machine_master_info, 
+                merged_result, original_order, gap_analyzer=None):
+        """
+        기계 정보 처리 파이프라인 실행
+        
+        Args:
+            machine_schedule_df (pd.DataFrame): 정리된 기계 스케줄
+            result_cleaned (pd.DataFrame): 정리된 스케줄링 결과
+            machine_master_info (pd.DataFrame): 기계 마스터 정보
+            merged_result (pd.DataFrame): 병합된 결과
+            original_order (pd.DataFrame): 원본 주문 데이터
+            gap_analyzer: 간격 분석기 (선택적)
             
-            for _, row in machine_summary.iterrows():
-                machine_idx = row['machine_index']
-                gap_count = row['gap_count']
-                total_gap = row['total_gap_time'] * 30  # 분 단위
-                setup_time = row['total_setup_time'] * 30
-                idle_time = row['total_idle_time'] * 30
-                efficiency = row['setup_efficiency']
-                
-                print(f"\n🔧 기계 {machine_idx}:")
-                print(f"   간격 수: {gap_count}개")
-                print(f"   전체 간격시간: {total_gap:.0f}분")
-                print(f"   └─ 셋업시간: {setup_time:.0f}분")
-                print(f"   └─ 대기시간: {idle_time:.0f}분")
-                print(f"   셋업 효율성: {efficiency:.1f}%")
+        Returns:
+            dict: {
+                'machine_info': pd.DataFrame   # 가공된 기계 정보
+            }
+        """
+        print("[기계처리] 기계 정보 처리 시작...")
         
-        if detailed_gaps is not None and not detailed_gaps.empty:
-            print(f"\n📊 총 {len(detailed_gaps)}개의 간격 발견")
-            
-            # 셋업 이유별 통계
-            setup_reasons = detailed_gaps['setup_reason'].value_counts()
-            print("\n셋업 발생 원인:")
-            for reason, count in setup_reasons.items():
-                if reason != 'no_change_detected':
-                    print(f"   {reason}: {count}회")
+        # 기계 인덱스 -> 코드 매핑
+        machine_mapping = machine_master_info.set_index('기계인덱스')['기계코드'].to_dict()
         
-        print("\n" + "="*60)
+        # 기계 스케줄 처리기 초기화
+        machine_proc = MachineScheduleProcessor(
+            machine_mapping, 
+            machine_schedule_df, 
+            result_cleaned, 
+            self.base_date,
+            gap_analyzer
+        )
+        
+        # 기본 기계 정보 생성
+        machine_info = machine_proc.make_readable_result_file()
+        machine_info = machine_proc.machine_info_decorate(merged_result)
+        
+        # === 데이터 가공 및 GITEM명 매핑 ===
+        # GITEM명 정보 매핑
+        order_with_names = original_order[['GITEM', 'GITEM명']].drop_duplicates()
+        
+        # 기계 정보 가공
+        code_to_name_mapping = machine_master_info.set_index('기계코드')['기계이름'].to_dict()
+        machine_info = machine_info.rename(columns={"기계인덱스": "기계코드"})
+        machine_info['기계이름'] = machine_info['기계코드'].map(code_to_name_mapping)
+        
+        # GITEM명 및 추가 컬럼 생성
+        machine_info = pd.merge(machine_info, order_with_names, on='GITEM', how='left')
+        machine_info['공정명'] = machine_info['ID'].str.split('_').str[1]
+        machine_info['작업시간'] = machine_info['작업 종료 시간'] - machine_info['작업 시작 시간']
+        
+        print(f"[기계처리] 완료 - 기계 정보: {len(machine_info)}행")
+        
+        # Gap 분석 관련 메서드들도 포함
+        if gap_analyzer:
+            machine_proc.print_gap_summary()
+        
+        return {
+            'machine_info': machine_info,
+            'processor': machine_proc  # gap 분석 리포트 생성용
+        }
