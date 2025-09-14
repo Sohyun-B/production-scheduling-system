@@ -1,3 +1,4 @@
+
 """
 Level 4 전략 테스트 및 결과 생성
 
@@ -104,6 +105,7 @@ def run_level4_scheduling():
     print("[30%] 주문 데이터 전처리 중...")
     sequence_seperated_order, linespeed = preprocessing(order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed)
     print(f"[전처리] 전처리 완료: {len(sequence_seperated_order)}개 작업 생성")
+    print(f"[전처리] sequence_seperated_order 컬럼: {list(sequence_seperated_order.columns)}")
     
     # === 2단계 완료: JSON 저장 ===
     stage2_data = {

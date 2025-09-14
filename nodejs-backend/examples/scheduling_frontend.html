@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>생산 스케줄링 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .main-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #34495e;
+            font-weight: 500;
+        }
+
+        .input-group input, 
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #2980b9, #21618c);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #229954, #1e8449);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+        }
+
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 8px;
+            color: #7f8c8d;
+        }
+
+        .status-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .status-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .status-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .status-card .label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .log-container {
+            height: 200px;
+            overflow-y: auto;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+        }
+
+        .log-entry.success {
+            color: #2ecc71;
+        }
+
+        .log-entry.warning {
+            color: #f39c12;
+        }
+
+        .log-entry.error {
+            color: #e74c3c;
+        }
+
+        .log-entry.info {
+            color: #3498db;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .results-table th {
+            background: #34495e;
+            color: white;
+            font-weight: 500;
+        }
+
+        .results-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .gantt-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border: 2px dashed #bdc3c7;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin: 20px 0;
+        }
+
+        .machine-schedule-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .machine-timeline {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #3498db;
+        }
+
+        .machine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .machine-header h5 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.3em;
+        }
+
+        .machine-status {
+            background: #3498db;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .timeline-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .timeline-item:hover {
+            transform: translateX(5px);
+        }
+
+        .time-range {
+            min-width: 120px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            margin-left: 20px;
+        }
+
+        .gitem-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .process-name {
+            font-weight: 500;
+            min-width: 80px;
+        }
+
+        .batch-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .batch-code {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .po-list {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-item .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .stat-item .label {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .step-item.active {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .step-item.completed {
+            background: #e8f5e8;
+            border-left: 4px solid #4caf50;
+        }
+
+        .step-item.error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #bdc3c7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .step-item.active .step-number {
+            background: #2196f3;
+        }
+
+        .step-item.completed .step-number {
+            background: #4caf50;
+        }
+
+        .step-item.error .step-number {
+            background: #f44336;
+        }
+
+        .step-name {
+            flex: 1;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .step-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: #ecf0f1;
+            color: #7f8c8d;
+        }
+
+        .step-item.active .step-status {
+            background: #2196f3;
+            color: white;
+        }
+
+        .step-item.completed .step-status {
+            background: #4caf50;
+            color: white;
+        }
+
+        .step-item.error .step-status {
+            background: #f44336;
+            color: white;
+        }
+
+        .step-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .step-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .step-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .step-btn.running {
+            background: #ff9800;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.4em;
+            font-weight: 500;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 25px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .stage-summary {
+            margin-bottom: 20px;
+        }
+
+        .stage-summary h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-item .label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+
+        .constraint-alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .constraint-alert.success {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .constraint-alert.warning {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+        .constraint-alert.error {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .results-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            background-color: #f8f9fa;
+            border-radius: 0 0 15px 15px;
+            text-align: right;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .statistics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏭 생산 스케줄링 시스템</h1>
+            <p class="subtitle">Level 4 DispatchPriority 전략 기반 최적화 스케줄링</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="section">
+                    <h3>📅 스케줄링 설정</h3>
+                    <div class="input-group">
+                        <label>기준 날짜</label>
+                        <input type="date" id="baseDate" value="2025-05-15">
+                    </div>
+                    <div class="input-group">
+                        <label>윈도우 크기 (일)</label>
+                        <select id="windowSize">
+                            <option value="3">3일</option>
+                            <option value="5" selected>5일</option>
+                            <option value="7">7일</option>
+                            <option value="10">10일</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>수율 기준 기간</label>
+                        <select id="yieldPeriod">
+                            <option value="12">1년 (12개월)</option>
+                            <option value="6" selected>6개월</option>
+                            <option value="3">3개월</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🎛️ 제어</h3>
+                    <button class="btn btn-danger" id="resetBtn" onclick="resetScheduling()">🔄 초기화</button>
+                </div>
+                
+                <div class="info-box" style="margin-top: 15px; padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #4caf50;">
+                    <h4 style="margin: 0 0 10px 0; color: #2e7d32;">💡 사용 방법</h4>
+                    <p style="margin: 0; color: #424242; font-size: 0.9em;">
+                        <strong>단계별 실행:</strong> 각 단계의 "실행" 버튼을 순서대로 클릭하여 진행하세요.<br>
+                        <strong>순서:</strong> 1단계 → 2단계 → 3단계 → 4단계 → 5단계 → 6단계
+                    </p>
+                </div>
+
+                <div class="section">
+                    <h3>📋 단계별 진행 상황</h3>
+                    <div id="stepProgress">
+                        <div class="step-item" id="step1">
+                            <div class="step-number">1</div>
+                            <div class="step-name">데이터 검증</div>
+                            <div class="step-status">대기</div>
+                            <button class="step-btn" onclick="runSingleStep(1)" disabled>실행</button>
+                        </div>
+                        <div class="step-item" id="step2">
+                            <div class="step-number">2</div>
+                            <div class="step-name">전처리</div>
+                            <div class="step-status">대기</div>
+                            <button class="step-btn" onclick="runSingleStep(2)" disabled>실행</button>
+                        </div>
+                        <div class="step-item" id="step3">
+                            <div class="step-number">3</div>
+                            <div class="step-name">수율 예측</div>
+                            <div class="step-status">대기</div>
+                            <button class="step-btn" onclick="runSingleStep(3)" disabled>실행</button>
+                        </div>
+                        <div class="step-item" id="step4">
+                            <div class="step-number">4</div>
+                            <div class="step-name">DAG 생성</div>
+                            <div class="step-status">대기</div>
+                            <button class="step-btn" onclick="runSingleStep(4)" disabled>실행</button>
+                        </div>
+                        <div class="step-item" id="step5">
+                            <div class="step-number">5</div>
+                            <div class="step-name">스케줄링</div>
+                            <div class="step-status">대기</div>
+                            <button class="step-btn" onclick="runSingleStep(5)" disabled>실행</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📊 실시간 로그</h3>
+                    <div class="log-container" id="logContainer">
+                        <div class="log-entry success">[시스템] 생산 스케줄링 시스템 준비 완료</div>
+                        <div class="log-entry info">[시스템] 1~5단계 스케줄링 시스템이 준비되었습니다. 1단계 "데이터 검증" 버튼을 클릭하여 시작하세요</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-panel">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">스케줄링 준비 완료 (0%)</div>
+                </div>
+
+                <div class="status-cards">
+                    <div class="status-card">
+                        <div class="number" id="totalOrders">0</div>
+                        <div class="label">총 주문 수</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="number" id="processedJobs">0</div>
+                        <div class="label">처리 작업 수</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="number" id="makespan">0.0</div>
+                        <div class="label">예상 Makespan (일)</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="number" id="lateOrders">0</div>
+                        <div class="label">지각 주문</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="number" id="onTimeRate">0%</div>
+                        <div class="label">납기 준수율</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="number" id="machineUtilization">0%</div>
+                        <div class="label">기계 가동률</div>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('gantt')">📊 간트 차트</button>
+                    <button class="tab" onclick="showTab('results')">📋 최종 결과</button>
+                    <button class="tab" onclick="showTab('dataLoading')">📄 데이터 로딩</button>
+                    <button class="tab" onclick="showTab('preprocessing')">🔄 전처리 결과</button>
+                    <button class="tab" onclick="showTab('analysis')">📈 분석 리포트</button>
+                </div>
+
+                <div class="tab-content active" id="gantt">
+                    <div class="gantt-placeholder" id="ganttPlaceholder">
+                        🎯 간트 차트가 여기에 표시됩니다<br>
+                        <small>스케줄링 완료 후 기계별 작업 타임라인을 확인할 수 있습니다</small>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="results">
+                    <div class="alert alert-info">
+                        <strong>📋 최종 결과</strong><br>
+                        스케줄링이 완료되면 여기에 상세한 결과가 표시됩니다.
+                    </div>
+                    <div id="resultsContent"></div>
+                </div>
+
+                <div class="tab-content" id="dataLoading">
+                    <div class="alert alert-info">
+                        <strong>📄 데이터 로딩</strong><br>
+                        데이터 검증이 완료되면 여기에 로딩된 데이터 정보가 표시됩니다.
+                    </div>
+                    <div id="dataLoadingContent"></div>
+                </div>
+
+                <div class="tab-content" id="preprocessing">
+                    <div class="alert alert-info">
+                        <strong>🔄 전처리 결과</strong><br>
+                        전처리가 완료되면 여기에 전처리 결과가 표시됩니다.
+                    </div>
+                    <div id="preprocessingContent"></div>
+                </div>
+
+                <div class="tab-content" id="analysis">
+                    <div class="alert alert-info">
+                        <strong>📈 분석 리포트</strong><br>
+                        스케줄링이 완료되면 여기에 성과 분석 결과가 표시됩니다.
+                    </div>
+                    <div id="analysisContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API 서비스 클래스
+        class SchedulingAPI {
+            constructor() {
+                this.baseURL = 'http://localhost:3000/api/scheduling';
+            }
+
+            async request(endpoint, options = {}) {
+                try {
+                    const response = await fetch(`${this.baseURL}${endpoint}`, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...options.headers
+                        },
+                        ...options
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.error('API 요청 오류:', error);
+                    throw error;
+                }
+            }
+
+            async healthCheck() {
+                return this.request('/health');
+            }
+
+            async runFullScheduling(data) {
+                return this.request('/run-full', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            }
+
+            async runStep(endpoint, data) {
+                return this.request(endpoint, {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            }
+
+            async getSessionStatus(sessionId) {
+                return this.request(`/status/${sessionId}`);
+            }
+        }
+
+        // 전역 변수
+        const api = new SchedulingAPI();
+        let currentSessionId = null; // localStorage에서 로드하지 않고 매번 새로 생성
+        let isScheduling = false;
+        let currentStep = 0;
+        let stepResults = {};
+
+        // 스케줄링 단계 정의
+        const SCHEDULING_STEPS = [
+            {
+                step: 1,
+                name: '데이터 검증',
+                endpoint: 'validation',
+                progress: 10,
+                description: 'JSON 데이터 검증 중...'
+            },
+            {
+                step: 2,
+                name: '전처리',
+                endpoint: 'preprocessing',
+                progress: 25,
+                description: '주문 데이터 전처리 중...'
+            },
+            {
+                step: 3,
+                name: '수율 예측',
+                endpoint: 'yield-prediction',
+                progress: 35,
+                description: '수율 예측 처리 중...'
+            },
+            {
+                step: 4,
+                name: 'DAG 생성',
+                endpoint: 'dag-creation',
+                progress: 50,
+                description: '주문 묶음 생성 중...'
+            },
+            {
+                step: 5,
+                name: '스케줄링',
+                endpoint: 'scheduling',
+                progress: 75,
+                description: '스케줄링 알고리즘 실행 중...'
+            },
+            {
+                step: 6,
+                name: '결과 처리',
+                endpoint: 'results',
+                progress: 100,
+                description: '결과 후처리 중...'
+            }
+        ];
+
+        // UI 업데이트 함수들
+        function updateProgress(progress, text) {
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function addLogEntry(type, message) {
+            const logContainer = document.getElementById('logContainer');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${time}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function updateStatusCard(id, value) {
+            document.getElementById(id).textContent = value;
+        }
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function setButtonState(start, pause, reset) {
+            document.getElementById('resetBtn').disabled = !reset;
+        }
+
+
+        // 단일 단계 실행 함수
+        async function runSingleStep(stepNumber) {
+            if (isScheduling) {
+                addLogEntry('warning', '이미 스케줄링이 진행 중입니다.');
+                return;
+            }
+
+            // 세션 ID가 없으면 생성
+            if (!currentSessionId) {
+                currentSessionId = `session_${Date.now()}`;
+                addLogEntry('info', `세션 ID 생성: ${currentSessionId}`);
+            }
+
+        const stepInfo = {
+            1: { step: 1, name: '데이터 검증', endpoint: '/step/validation' },
+            2: { step: 2, name: '전처리', endpoint: '/step/preprocessing' },
+            3: { step: 3, name: '수율 예측', endpoint: '/step/yield-prediction' },
+            4: { step: 4, name: 'DAG 생성', endpoint: '/step/dag-creation' },
+            5: { step: 5, name: '스케줄링', endpoint: '/step/scheduling' }
+        }[stepNumber];
+
+            if (!stepInfo) {
+                addLogEntry('error', '잘못된 단계 번호입니다.');
+                return;
+            }
+
+            // 이전 단계가 완료되었는지 확인 (1단계 제외)
+            if (stepNumber > 1) {
+                const prevStepElement = document.getElementById(`step${stepNumber - 1}`);
+                if (!prevStepElement.classList.contains('completed')) {
+                    addLogEntry('warning', `먼저 ${stepNumber - 1}단계를 완료해주세요.`);
+                    return;
+                }
+            }
+
+            isScheduling = true;
+            setButtonState(false, false, false);
+            updateStepProgress(stepNumber, 'running');
+            updateStepButton(stepNumber, 'running');
+
+            try {
+                const config = {
+                    baseDate: document.getElementById('baseDate').value,
+                    windowSize: parseInt(document.getElementById('windowSize').value),
+                    yieldPeriod: parseInt(document.getElementById('yieldPeriod').value)
+                };
+
+                addLogEntry('info', `${stepInfo.name} 시작...`);
+
+                const stepData = await executeStep(stepInfo, config, currentSessionId);
+                updateStepResults(stepNumber, stepData);
+                
+                addLogEntry('success', `${stepInfo.name} 완료!`);
+                
+                // 다음 단계 버튼 활성화 (1-5단계만)
+                if (stepNumber < 5) {
+                    const nextStepElement = document.getElementById(`step${stepNumber + 1}`);
+                    if (nextStepElement) {
+                        const nextButton = nextStepElement.querySelector('.step-btn');
+                        if (nextButton) {
+                            nextButton.disabled = false;
+                        }
+                    }
+                }
+
+            } catch (error) {
+                addLogEntry('error', `${stepInfo.name} 실패: ${error.message}`);
+                updateStepProgress(stepNumber, 'error');
+                updateStepButton(stepNumber, 'error');
+            } finally {
+                isScheduling = false;
+                setButtonState(false, false, true);
+            }
+        }
+
+        // 단계별 버튼 상태 업데이트 함수
+        function updateStepButton(stepNumber, status) {
+            const stepElement = document.getElementById(`step${stepNumber}`);
+            if (!stepElement) {
+                console.warn(`Step ${stepNumber} element not found`);
+                return;
+            }
+            const button = stepElement.querySelector('.step-btn');
+            
+            if (status === 'running') {
+                button.textContent = '실행중...';
+                button.classList.add('running');
+                button.disabled = true;
+            } else if (status === 'completed') {
+                button.textContent = '완료';
+                button.disabled = true;
+                button.classList.remove('running');
+            } else if (status === 'error') {
+                button.textContent = '실패';
+                button.disabled = false;
+                button.classList.remove('running');
+            } else {
+                button.textContent = '실행';
+                button.disabled = false;
+                button.classList.remove('running');
+            }
+        }
+
+        // 단계별 실행 함수
+        async function executeStep(stepInfo, config, sessionId) {
+            // session_id 확인 및 디버깅
+            if (!sessionId) {
+                sessionId = `session_${Date.now()}`;
+                addLogEntry('warning', `Session ID가 없어서 새로 생성: ${sessionId}`);
+            }
+            
+            let requestData = { sessionId: sessionId };
+            addLogEntry('info', `단계 ${stepInfo.step} 실행 - Session ID: ${sessionId}`);
+            console.log(`Step ${stepInfo.step} using session ID:`, sessionId);
+
+            // 첫 번째 단계(검증)의 경우 설정 데이터만 포함
+            if (stepInfo.step === 1) {
+                requestData = {
+                    windowDays: config.windowSize,
+                    sessionId: sessionId,
+                    baseDate: config.baseDate,
+                    yieldPeriod: config.yieldPeriod
+                };
+            }
+
+            const response = await api.runStep(stepInfo.endpoint, requestData);
+            
+            if (!response.success) {
+                throw new Error(response.error || `${stepInfo.name} 실행 실패`);
+            }
+
+            return response.data;
+        }
+
+
+        function resetScheduling() {
+            isScheduling = false;
+            currentSessionId = null;
+            currentStep = 0;
+            stepResults = {};
+            
+            updateProgress(0, '스케줄링 준비 완료 (0%)');
+            updateStatusCard('totalOrders', '0');
+            updateStatusCard('processedJobs', '0');
+            updateStatusCard('makespan', '0.0');
+            updateStatusCard('lateOrders', '0');
+            updateStatusCard('onTimeRate', '0%');
+            updateStatusCard('machineUtilization', '0%');
+            
+            // 단계별 진행 상황 초기화 (1-5단계만)
+            for (let i = 1; i <= 5; i++) {
+                updateStepProgress(i, 'waiting');
+                updateStepButton(i, 'waiting');
+            }
+            
+            // 첫 번째 단계 버튼만 활성화
+            const firstStepButton = document.getElementById('step1').querySelector('.step-btn');
+            firstStepButton.disabled = false;
+            
+            // 결과 탭 초기화
+            document.getElementById('resultsContent').innerHTML = '';
+            document.getElementById('dataLoadingContent').innerHTML = '';
+            document.getElementById('preprocessingContent').innerHTML = '';
+            document.getElementById('analysisContent').innerHTML = '';
+            
+            // 간트 차트 초기화
+            document.getElementById('ganttPlaceholder').innerHTML = `
+                🎯 간트 차트가 여기에 표시됩니다<br>
+                <small>스케줄링 완료 후 기계별 작업 타임라인을 확인할 수 있습니다</small>
+            `;
+            
+            setButtonState(false, false, true);
+            addLogEntry('info', '시스템 초기화됨');
+        }
+
+        // 단계별 진행 상황 업데이트
+        function updateStepProgress(step, status) {
+            const stepElement = document.getElementById(`step${step}`);
+            if (!stepElement) {
+                console.warn(`Step ${step} element not found`);
+                return;
+            }
+            const statusElement = stepElement.querySelector('.step-status');
+            
+            // 모든 단계의 active 클래스 제거
+            document.querySelectorAll('.step-item').forEach(item => {
+                item.classList.remove('active', 'completed', 'error');
+            });
+            
+            // 현재 단계에 따른 클래스 추가
+            if (status === 'active') {
+                stepElement.classList.add('active');
+                statusElement.textContent = '진행중';
+            } else if (status === 'completed') {
+                stepElement.classList.add('completed');
+                statusElement.textContent = '완료';
+            } else if (status === 'error') {
+                stepElement.classList.add('error');
+                statusElement.textContent = '오류';
+            } else {
+                statusElement.textContent = '대기';
+            }
+        }
+
+        // 단계별 결과 업데이트 함수
+        function updateStepResults(step, data) {
+            // 단계 완료 표시
+            updateStepProgress(step, 'completed');
+            updateStepButton(step, 'completed');
+            
+            switch(step) {
+                case 1: // 데이터 검증
+                    updateDataLoadingTab(data);
+                    showStageModal("📊 데이터 검증 완료", getDataLoadingContent(data));
+                    break;
+                case 2: // 전처리
+                    updatePreprocessingTab(data);
+                    showStageModal("🔄 전처리 완료", getPreprocessingContent(data));
+                    break;
+                case 3: // 수율 예측
+                    updateYieldTab(data);
+                    showStageModal("📊 수율 예측 완료", getYieldContent(data));
+                    break;
+                case 4: // DAG 생성
+                    updateDagTab(data);
+                    showStageModal("🔗 DAG 생성 완료", getDagContent(data));
+                    break;
+                case 5: // 스케줄링
+                    updateSchedulingTab(data);
+                    showStageModal("🎉 전체 스케줄링 완료!", getSchedulingContent(data));
+                    break;
+            }
+        }
+
+        // 최종 결과 통합 함수
+        function updateFinalResults() {
+            // 모든 단계의 결과를 통합하여 최종 통계 업데이트
+            const finalData = {
+                validation: stepResults[1],
+                preprocessing: stepResults[2],
+                yieldPrediction: stepResults[3],
+                dagCreation: stepResults[4],
+                scheduling: stepResults[5],
+                results: stepResults[6]
+            };
+
+            // 통계 카드 업데이트
+            if (stepResults[6]) {
+                const results = stepResults[6];
+                if (results.totalOrders) updateStatusCard('totalOrders', results.totalOrders);
+                if (results.processedJobs) updateStatusCard('processedJobs', results.processedJobs);
+                if (results.makespan) updateStatusCard('makespan', results.makespan);
+                if (results.lateOrders) updateStatusCard('lateOrders', results.lateOrders);
+                if (results.onTimeRate) updateStatusCard('onTimeRate', results.onTimeRate);
+                if (results.machineUtilization) updateStatusCard('machineUtilization', results.machineUtilization);
+            }
+        }
+
+        function updateResults(data) {
+            if (!data) return;
+
+            // 기본 통계 업데이트
+            if (data.totalOrders) updateStatusCard('totalOrders', data.totalOrders);
+            if (data.processedJobs) updateStatusCard('processedJobs', data.processedJobs);
+            if (data.makespan) updateStatusCard('makespan', data.makespan);
+            if (data.lateOrders) updateStatusCard('lateOrders', data.lateOrders);
+            if (data.onTimeRate) updateStatusCard('onTimeRate', data.onTimeRate);
+            if (data.machineUtilization) updateStatusCard('machineUtilization', data.machineUtilization);
+
+            // 결과 탭 업데이트
+            updateResultsTab(data);
+            updateDataLoadingTab(data);
+            updatePreprocessingTab(data);
+            updateAnalysisTab(data);
+            updateGanttChart(data);
+        }
+
+        function updateResultsTab(data) {
+            const content = document.getElementById('resultsContent');
+            
+            if (data.machineSchedule) {
+                content.innerHTML = `
+                    <h4>📅 기계별 작업 스케줄</h4>
+                    <div class="machine-schedule-container">
+                        ${Object.entries(data.machineSchedule).map(([machine, schedule]) => `
+                            <div class="machine-timeline">
+                                <div class="machine-header">
+                                    <h5>🔧 ${machine}</h5>
+                                    <span class="machine-status">활성</span>
+                                </div>
+                                <div class="timeline-items">
+                                    ${schedule.map(item => `
+                                        <div class="timeline-item" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                                            <div class="time-range">${item.startTime} - ${item.endTime}</div>
+                                            <div class="item-info">
+                                                <div class="gitem-badge">${item.gitem}</div>
+                                                <div class="process-name">${item.process}</div>
+                                                <div class="batch-info">
+                                                    <span class="batch-code">${item.batch || 'N/A'}</span>
+                                                    <span class="po-list">${item.poNumbers ? item.poNumbers.join(', ') : 'N/A'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="alert alert-info">
+                        기계 스케줄 정보가 아직 준비되지 않았습니다.
+                    </div>
+                `;
+            }
+        }
+
+        function updateDataLoadingTab(data) {
+            const content = document.getElementById('dataLoadingContent');
+            
+            if (data.validation) {
+                content.innerHTML = `
+                    <h4>📄 데이터 검증 결과</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">${data.validation.totalFiles || 0}</div>
+                            <div class="label">검증된 파일</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.validation.totalRecords || 0}</div>
+                            <div class="label">총 레코드</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.validation.errors || 0}</div>
+                            <div class="label">오류 수</div>
+                        </div>
+                    </div>
+                    <div class="alert alert-success">
+                        ✅ 데이터 검증이 완료되었습니다.
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="alert alert-info">
+                        데이터 검증 정보가 아직 준비되지 않았습니다.
+                    </div>
+                `;
+            }
+        }
+
+        function updatePreprocessingTab(data) {
+            const content = document.getElementById('preprocessingContent');
+            
+            if (data.preprocessing) {
+                content.innerHTML = `
+                    <h4>🔄 전처리 결과</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">${data.preprocessing.originalOrders || 0}</div>
+                            <div class="label">원본 주문</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.preprocessing.processedOrders || 0}</div>
+                            <div class="label">처리된 주문</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.preprocessing.excludedItems || 0}</div>
+                            <div class="label">제외된 아이템</div>
+                        </div>
+                    </div>
+                    <div class="alert alert-success">
+                        ✅ 전처리가 완료되었습니다.
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="alert alert-info">
+                        전처리 정보가 아직 준비되지 않았습니다.
+                    </div>
+                `;
+            }
+        }
+
+        function updateAnalysisTab(data) {
+            const content = document.getElementById('analysisContent');
+            
+            if (data && (data.analysis || data.makespan || data.onTimeRate)) {
+                content.innerHTML = `
+                    <h4>📈 성과 분석</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">${data.onTimeRate || data.analysis?.onTimeRate || '0%'}</div>
+                            <div class="label">납기 준수율</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.machineUtilization || data.analysis?.machineUtilization || '0%'}</div>
+                            <div class="label">기계 가동률</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.totalChangeovers || data.analysis?.totalChangeovers || 0}</div>
+                            <div class="label">공정교체 횟수</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.changeoverTime || data.analysis?.changeoverTime || '0분'}</div>
+                            <div class="label">공정교체시간</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="alert alert-info">
+                        분석 정보가 아직 준비되지 않았습니다.
+                    </div>
+                `;
+            }
+        }
+
+        // 수율 예측 탭 업데이트
+        function updateYieldTab(data) {
+            const content = document.getElementById('preprocessingContent');
+            
+            if (data && data.yieldData) {
+                content.innerHTML = `
+                    <h4>📊 수율 예측 결과</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">${data.totalGitems || 0}</div>
+                            <div class="label">분석 대상 GITEM</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.averageYield || '0%'}</div>
+                            <div class="label">평균 수율</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.noYieldData || 0}</div>
+                            <div class="label">수율 데이터 없음</div>
+                        </div>
+                    </div>
+                    <div class="alert alert-success">
+                        ✅ 수율 예측이 완료되었습니다.
+                    </div>
+                `;
+            }
+        }
+
+        // DAG 생성 탭 업데이트
+        function updateDagTab(data) {
+            const content = document.getElementById('preprocessingContent');
+            
+            if (data && data.dagData) {
+                content.innerHTML = `
+                    <h4>🔗 주문 묶음 생성 결과</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">${data.totalGroups || 0}</div>
+                            <div class="label">총 묶음 그룹</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.originalOrders || 0}</div>
+                            <div class="label">원본 P/O 수</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.averageGroupSize || 0}</div>
+                            <div class="label">평균 묶음 크기</div>
+                        </div>
+                    </div>
+                    <div class="alert alert-success">
+                        ✅ 주문 묶음 생성이 완료되었습니다.
+                    </div>
+                `;
+            }
+        }
+
+        // 스케줄링 탭 업데이트
+        function updateSchedulingTab(data) {
+            const content = document.getElementById('resultsContent');
+            
+            if (data && data.scheduling) {
+                content.innerHTML = `
+                    <h4>⚡ 스케줄링 실행 결과</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">${data.makespan || '0'}</div>
+                            <div class="label">Makespan (일)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.machineUtilization || '0%'}</div>
+                            <div class="label">기계 가동률</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.lateOrders || 0}</div>
+                            <div class="label">지각 주문</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data.totalChangeovers || 0}</div>
+                            <div class="label">공정교체 횟수</div>
+                        </div>
+                    </div>
+                    <div class="alert alert-success">
+                        ✅ 스케줄링이 완료되었습니다.
+                    </div>
+                `;
+            }
+        }
+
+        function updateGanttChart(data) {
+            const placeholder = document.getElementById('ganttPlaceholder');
+            
+            if (data.machineSchedule) {
+                placeholder.innerHTML = `
+                    <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #e8f5e8 0%, #f0f8f0 25%, #fff3e0 50%, #ffe0e0 75%, #e8f5e8 100%); 
+                                display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative;">
+                        <div style="position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+                            <span>시작</span><span>진행중</span><span>완료</span>
+                        </div>
+                        <div style="font-size: 1.2em; color: #2c3e50; font-weight: bold;">📊 간트 차트 (기계별 스케줄)</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: #7f8c8d;">
+                            총 ${Object.keys(data.machineSchedule).length}개 기계 | Makespan: ${data.makespan || '0'}일
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 초기화
+        window.addEventListener('load', function() {
+            addLogEntry('success', '생산 스케줄링 시스템 준비 완료');
+            addLogEntry('info', 'Node.js 백엔드 연결 확인 중...');
+            
+            // 헬스 체크
+            api.healthCheck()
+                .then(response => {
+                    addLogEntry('success', '백엔드 서버 연결 성공');
+                })
+                .catch(error => {
+                    addLogEntry('error', `백엔드 서버 연결 실패: ${error.message}`);
+                });
+        });
+
+        // Modal Functions
+        function showStageModal(title, content) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const stageModal = document.getElementById('stageModal');
+            
+            if (!modalTitle || !modalBody || !stageModal) {
+                console.warn('Modal elements not found');
+                return;
+            }
+            
+            modalTitle.textContent = title;
+            modalBody.innerHTML = content;
+            stageModal.style.display = 'block';
+        }
+
+        function closeModal() {
+            const stageModal = document.getElementById('stageModal');
+            if (stageModal) {
+                stageModal.style.display = 'none';
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('stageModal');
+            if (modal && event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 각 단계별 콘텐츠 생성 함수들
+        function getDataLoadingContent(data) {
+            const loadedFiles = data?.loaded_files || {};
+            const totalFiles = Object.keys(loadedFiles).length;
+            const successFiles = Object.values(loadedFiles).filter(file => file.status === 'success').length;
+            
+            return `
+                <div class="stage-summary">
+                    <h4>데이터 로딩 결과</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">${data?.total_orders || 0}</div>
+                            <div class="label">총 주문</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data?.total_linespeed || 0}</div>
+                            <div class="label">라인스피드</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data?.total_machines || 0}</div>
+                            <div class="label">기계정보</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${successFiles}/${totalFiles}</div>
+                            <div class="label">로드된 파일</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="constraint-alert success">
+                    <strong>✅ 데이터 로딩 성공!</strong><br>
+                    모든 JSON 파일이 성공적으로 로드되었습니다.
+                </div>
+            `;
+        }
+
+        function getPreprocessingContent(data) {
+            const originalOrders = data?.original_orders_count || 0;
+            const processedJobs = data?.processed_jobs_count || 0;
+            const originalGitems = data?.original_gitems_count || 0;
+            const processedGitems = data?.processed_gitems_count || 0;
+            const excludedGitems = data?.excluded_gitems_count || 0;
+            const excludedGitemsList = data?.excluded_gitems || [];
+            
+            return `
+                <div class="stage-summary">
+                    <h4>전처리 결과</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">${originalOrders} / ${processedJobs}</div>
+                            <div class="label">총 주문 / 실제 사용</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${originalGitems} / ${processedGitems}</div>
+                            <div class="label">GITEM 종류 / 실제 사용</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${excludedGitems}</div>
+                            <div class="label">제외된 GITEM 개수</div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${excludedGitems > 0 ? `
+                <div class="constraint-alert warning">
+                    <strong>⚠️ 장비 제약: ${excludedGitems}개 GITEM이 전용장비 사용불가로 제외되었습니다.</strong><br>
+                    제외된 GITEM 상세 (${excludedGitems}개):<br>
+                    <div style="margin-top: 10px; font-size: 0.9em;">
+                        ${excludedGitemsList.slice(0, 5).map(gitem => `• ${gitem}`).join('<br>')}
+                        ${excludedGitemsList.length > 5 ? `<br>• ... 외 ${excludedGitemsList.length - 5}개` : ''}
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="constraint-alert success">
+                    <strong>✅ 전처리 완료!</strong><br>
+                    주문 데이터가 스케줄링에 적합한 형태로 전처리되었습니다.
+                </div>
+            `;
+        }
+
+        function getYieldContent(data) {
+            return `
+                <div class="stage-summary">
+                    <h4>수율 예측 결과</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">${data?.yield_prediction_completed ? '완료' : '진행중'}</div>
+                            <div class="label">예측 상태</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="constraint-alert success">
+                    <strong>✅ 수율 예측 완료!</strong><br>
+                    각 공정별 수율이 예측되어 생산 계획이 최적화되었습니다.
+                </div>
+            `;
+        }
+
+        function getDagContent(data) {
+            return `
+                <div class="stage-summary">
+                    <h4>DAG 생성 결과</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">${data?.node_count || 0}</div>
+                            <div class="label">생성된 노드</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data?.machine_count || 0}</div>
+                            <div class="label">기계 수</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="constraint-alert success">
+                    <strong>✅ DAG 생성 완료!</strong><br>
+                    작업 간 의존성 그래프가 생성되어 스케줄링 준비가 완료되었습니다.
+                </div>
+            `;
+        }
+
+        function getSchedulingContent(data) {
+            return `
+                <div class="stage-summary">
+                    <h4>최종 스케줄링 결과</h4>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <div class="value">${data?.total_jobs_scheduled || 0}</div>
+                            <div class="label">총 작업 수</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data?.late_jobs_count || 0}</div>
+                            <div class="label">지각 작업</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${Math.round((data?.makespan || 0) / 48)}일</div>
+                            <div class="label">총 소요일</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${data?.late_days_sum || 0}</div>
+                            <div class="label">총 지각 일수</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="constraint-alert success">
+                    <strong>🎉 전체 스케줄링 완료!</strong><br>
+                    모든 단계가 성공적으로 완료되었습니다. 최적의 생산 스케줄이 생성되었습니다.
+                </div>
+            `;
+        }
+
+    </script>
+
+    <!-- Stage Confirmation Modal -->
+    <div id="stageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">단계 완료</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 동적으로 내용이 채워집니다 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal()">확인</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

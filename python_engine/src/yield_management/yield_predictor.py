@@ -82,6 +82,8 @@ class YieldPredictor:
     
         self.operation_sequence_yield = operation_sequence
         self._get_gitem_yield_dict()
+        
+        return operation_sequence
 
 
     def _get_gitem_yield_dict(self):

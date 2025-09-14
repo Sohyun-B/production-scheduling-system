@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Scheduling System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h2 {
+            color: #555;
+            margin-top: 0;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result, .error {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .result {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status.loading {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏭 Production Scheduling System</h1>
+        
+        <!-- 헬스 체크 섹션 -->
+        <div class="section">
+            <h2>🔍 시스템 상태</h2>
+            <button id="healthCheck">헬스 체크</button>
+            <div id="healthStatus"></div>
+        </div>
+
+        <!-- 전체 스케줄링 섹션 -->
+        <div class="section">
+            <h2>🚀 전체 스케줄링 프로세스</h2>
+            <p>6단계를 한 번에 실행합니다.</p>
+            <button id="runFullScheduling">전체 스케줄링 실행</button>
+            <div id="fullSchedulingStatus"></div>
+        </div>
+
+        <!-- 단계별 실행 섹션 -->
+        <div class="section">
+            <h2>📋 단계별 실행</h2>
+            <p>각 단계를 개별적으로 실행할 수 있습니다.</p>
+            
+            <div style="margin-bottom: 15px;">
+                <button id="runValidation">1단계: 데이터 검증</button>
+                <button id="runPreprocessing">2단계: 전처리</button>
+                <button id="runYieldPrediction">3단계: 수율 예측</button>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <button id="runDAGCreation">4단계: DAG 생성</button>
+                <button id="runScheduling">5단계: 스케줄링</button>
+                <button id="runResults">6단계: 결과 처리</button>
+            </div>
+            
+            <div id="stepStatus"></div>
+        </div>
+
+        <!-- 세션 관리 섹션 -->
+        <div class="section">
+            <h2>📊 세션 관리</h2>
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="sessionIdInput" placeholder="세션 ID 입력" style="padding: 8px; margin-right: 10px; width: 300px;">
+                <button id="getSessionStatus">세션 상태 조회</button>
+            </div>
+            <div id="sessionStatus"></div>
+        </div>
+
+        <!-- 결과 표시 섹션 -->
+        <div class="section">
+            <h2>📄 결과</h2>
+            <div id="result"></div>
+            <div id="error"></div>
+        </div>
+    </div>
+
+    <script src="frontend-integration.js"></script>
+    <script>
+        // 추가적인 UI 로직
+        document.addEventListener('DOMContentLoaded', function() {
+            const api = new SchedulingAPI();
+            
+            // 헬스 체크
+            document.getElementById('healthCheck').addEventListener('click', async function() {
+                const statusDiv = document.getElementById('healthStatus');
+                statusDiv.innerHTML = '<span class="status loading">체크 중...</span>';
+                
+                try {
+                    const result = await api.healthCheck();
+                    statusDiv.innerHTML = `
+                        <span class="status success">✅ 서버 정상</span>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                } catch (error) {
+                    statusDiv.innerHTML = `
+                        <span class="status error">❌ 서버 오류</span>
+                        <p>${error.message}</p>
+                    `;
+                }
+            });
+
+            // 전체 스케줄링 상태 표시
+            let fullSchedulingRunning = false;
+            document.getElementById('runFullScheduling').addEventListener('click', async function() {
+                if (fullSchedulingRunning) return;
+                
+                fullSchedulingRunning = true;
+                const statusDiv = document.getElementById('fullSchedulingStatus');
+                const button = this;
+                
+                button.disabled = true;
+                button.textContent = '실행 중...';
+                statusDiv.innerHTML = '<span class="status loading">전체 스케줄링 실행 중...</span>';
+                
+                try {
+                    const result = await api.runFullScheduling({}, 5);
+                    statusDiv.innerHTML = '<span class="status success">✅ 전체 스케줄링 완료</span>';
+                    displayResult(result);
+                } catch (error) {
+                    statusDiv.innerHTML = '<span class="status error">❌ 전체 스케줄링 실패</span>';
+                    displayError(error);
+                } finally {
+                    button.disabled = false;
+                    button.textContent = '전체 스케줄링 실행';
+                    fullSchedulingRunning = false;
+                }
+            });
+
+            // 세션 상태 조회
+            document.getElementById('getSessionStatus').addEventListener('click', async function() {
+                const sessionId = document.getElementById('sessionIdInput').value.trim();
+                if (!sessionId) {
+                    alert('세션 ID를 입력해주세요.');
+                    return;
+                }
+                
+                const statusDiv = document.getElementById('sessionStatus');
+                statusDiv.innerHTML = '<span class="status loading">조회 중...</span>';
+                
+                try {
+                    const result = await api.getSessionStatus(sessionId);
+                    statusDiv.innerHTML = `
+                        <span class="status success">✅ 세션 상태 조회 완료</span>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                } catch (error) {
+                    statusDiv.innerHTML = `
+                        <span class="status error">❌ 세션 상태 조회 실패</span>
+                        <p>${error.message}</p>
+                    `;
+                }
+            });
+
+            // 결과 표시 함수
+            function displayResult(result) {
+                const resultDiv = document.getElementById('result');
+                const errorDiv = document.getElementById('error');
+                
+                resultDiv.innerHTML = `
+                    <h3>✅ 성공</h3>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+                errorDiv.innerHTML = '';
+            }
+
+            // 에러 표시 함수
+            function displayError(error) {
+                const resultDiv = document.getElementById('result');
+                const errorDiv = document.getElementById('error');
+                
+                errorDiv.innerHTML = `
+                    <h3>❌ 에러</h3>
+                    <p><strong>메시지:</strong> ${error.message}</p>
+                    <pre>${JSON.stringify(error, null, 2)}</pre>
+                `;
+                resultDiv.innerHTML = '';
+            }
+        });
+    </script>
+</body>
+</html>
+
+
