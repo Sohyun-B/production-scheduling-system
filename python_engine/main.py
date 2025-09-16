@@ -22,6 +22,7 @@ from src.scheduler.scheduling_core import DispatchPriorityStrategy
 from src.results import create_results
 
 def run_level4_scheduling():
+    
 
     base_date = datetime(config.constants.BASE_YEAR, config.constants.BASE_MONTH, config.constants.BASE_DAY)
     window_days = config.constants.WINDOW_DAYS
@@ -29,33 +30,70 @@ def run_level4_scheduling():
     # === 1단계: JSON 데이터 로딩 ===
     # JSON 파일들에서 데이터 로딩
     try:
-        print("JSON 파일에서 데이터 로딩 중...")
+        # print("JSON 파일에서 데이터 로딩 중...")
         
-        # 1. 품목별 라인스피드 및 공정 순서 관련
-        linespeed = pd.read_json(config.files.JSON_LINESPEED)
-        operation_seperated_sequence = pd.read_json(config.files.JSON_OPERATION_SEQUENCE)
-        machine_master_info = pd.read_json(config.files.JSON_MACHINE_INFO)
-        yield_data = pd.read_json(config.files.JSON_YIELD_DATA)
-        gitem_operation = pd.read_json(config.files.JSON_GITEM_OPERATION)
+        # # 1. 품목별 라인스피드 및 공정 순서 관련
+        # linespeed = pd.read_json(config.files.JSON_LINESPEED)
+        # operation_seperated_sequence = pd.read_json(config.files.JSON_OPERATION_SEQUENCE)
+        # machine_master_info = pd.read_json(config.files.JSON_MACHINE_INFO)
+        # yield_data = pd.read_json(config.files.JSON_YIELD_DATA)
+        # gitem_operation = pd.read_json(config.files.JSON_GITEM_OPERATION)
+        
+        # # 2. 공정 재분류 내역 및 교체 시간 관련ㄴ
+        # operation_types = pd.read_json(config.files.JSON_OPERATION_TYPES)
+        # operation_delay_df = pd.read_json(config.files.JSON_OPERATION_DELAY)
+        # width_change_df = pd.read_json(config.files.JSON_WIDTH_CHANGE)
+    
+        # # 3. 불가능한 공정 입력값 관련 (날짜 컬럼 변환 필요)
+        # machine_rest = pd.read_json(config.files.JSON_MACHINE_REST)
+        # # machine_rest의 날짜 컬럼들을 datetime으로 변환
+        # if '시작시간' in machine_rest.columns:
+        #     machine_rest['시작시간'] = pd.to_datetime(machine_rest['시작시간'])
+        # if '종료시간' in machine_rest.columns:
+        #     machine_rest['종료시간'] = pd.to_datetime(machine_rest['종료시간'])
+        
+        # machine_allocate = pd.read_json(config.files.JSON_MACHINE_ALLOCATE)
+        # machine_limit = pd.read_json(config.files.JSON_MACHINE_LIMIT)
+        
+        # # 4. 주문 데이터 (날짜 컬럼 변환 필요)
+        # order = pd.read_json(config.files.JSON_ORDER_DATA)
+
+        linespeed = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "linespeed", skiprows=[1])
+        linespeed = linespeed.drop(columns = {"한글명"})
+
+        operation_seperated_sequence = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_sequence", skiprows=[1])
+        operation_seperated_sequence = operation_seperated_sequence.drop(columns = {"한글명"})
+        machine_master_info = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_master_info", skiprows=[1])
+        machine_master_info = machine_master_info.drop(columns = {"한글명"})
+        yield_data = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "yield_data", skiprows=[1])
+        yield_data = yield_data.drop(columns = {"한글명"})
+        gitem_operation = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "gitem_operation", skiprows=[1])
+        gitem_operation = gitem_operation.drop(columns = {"한글명"})
         
         # 2. 공정 재분류 내역 및 교체 시간 관련
-        operation_types = pd.read_json(config.files.JSON_OPERATION_TYPES)
-        operation_delay_df = pd.read_json(config.files.JSON_OPERATION_DELAY)
-        width_change_df = pd.read_json(config.files.JSON_WIDTH_CHANGE)
-    
-        # 3. 불가능한 공정 입력값 관련 (날짜 컬럼 변환 필요)
-        machine_rest = pd.read_json(config.files.JSON_MACHINE_REST)
-        # machine_rest의 날짜 컬럼들을 datetime으로 변환
+        operation_types = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_types", skiprows=[1])
+        operation_types = operation_types.drop(columns = {"한글명"})
+        operation_delay_df = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_delay", skiprows=[1])
+        operation_delay_df = operation_delay_df.drop(columns = {"한글명"})
+        width_change_df = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "width_change", skiprows=[1])
+        width_change_df = width_change_df.drop(columns = {"한글명"})
+
+        machine_allocate = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_allocate", skiprows=[1])
+        machine_rest = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_rest", skiprows=[1])
+        machine_limit = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_limit", skiprows=[1])
         if '시작시간' in machine_rest.columns:
             machine_rest['시작시간'] = pd.to_datetime(machine_rest['시작시간'])
         if '종료시간' in machine_rest.columns:
             machine_rest['종료시간'] = pd.to_datetime(machine_rest['종료시간'])
-        
-        machine_allocate = pd.read_json(config.files.JSON_MACHINE_ALLOCATE)
-        machine_limit = pd.read_json(config.files.JSON_MACHINE_LIMIT)
-        
-        # 4. 주문 데이터 (날짜 컬럼 변환 필요)
-        order = pd.read_json(config.files.JSON_ORDER_DATA)
+
+        print(machine_allocate)
+
+        order = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "order_data", skiprows=[1])
+        order = order.drop(columns = {"한글명"})
+
+        print(order.head(2))
+
+
         # 날짜 컬럼을 datetime으로 변환
         if config.columns.DUE_DATE in order.columns:
             order[config.columns.DUE_DATE] = pd.to_datetime(order[config.columns.DUE_DATE])
@@ -70,9 +108,6 @@ def run_level4_scheduling():
         order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed)
     
 
-    sequence_seperated_order.to_csv("0910_확인용_sequence_sepereated_order.csv", encoding='utf-8-sig')
-    order.to_csv("0910_확인용_order.csv", encoding='utf-8-sig')
-    
     # === 2단계 완료: JSON 저장 ===
     from src.web_interface.stage_formatters import StageDataExtractor
     
@@ -155,9 +190,18 @@ def run_level4_scheduling():
         )
         
         # 기본 결과 출력
-        print(f"[98%] 스케줄링 완료! Makespan: {final_results['actual_makespan']:.1f} (총 {final_results['actual_makespan']/48:.1f}일)")
-        print(f"[결과] 실제 Makespan: {final_results['actual_makespan']} (가짜 공정 제외)")
-        print(f"[결과] 총 소요시간: {final_results['actual_makespan'] / 48:.2f}일")
+        print(f"order 수 : {len(order)}")
+        print(f"실제 수행한 order: {len(order) - len(unable_order)}")
+        print(f"사용 불가능한 gitem: {len(unable_gitems)}")
+        print(f"makespan: {final_results['actual_makespan']}")
+        print(f"납기준수율: {1 - (final_results['order_summary']['지각일수'] > 0).sum() / len(final_results['order_summary'])}")
+        print(f"지각 주문: {(final_results['order_summary']['지각일수'] > 0).sum()}")
+        # print(f"공정교체 횟수: {(final_results['order_summary']['지각일수'] > 0).sum()}")
+
+
+        # print(f"[98%] 스케줄링 완료! Makespan: {final_results['actual_makespan']:.1f} (총 {final_results['actual_makespan']/48:.1f}일)")
+        # print(f"[결과] 실제 Makespan: {final_results['actual_makespan']} (가짜 공정 제외)")
+        # print(f"[결과] 총 소요시간: {final_results['actual_makespan'] / 48:.2f}일")
     
         # 원본 결과 저장 (임시)
         excel_filename = "data/output/result.xlsx"

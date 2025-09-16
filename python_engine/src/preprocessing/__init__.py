@@ -1,4 +1,5 @@
 from config import config
+import pandas as pd
 from .order_preprocessing import seperate_order_by_month, same_order_groupby
 from .sequence_preprocessing import process_operations_by_category, create_sequence_seperated_order
 from .operation_machine_limit import operation_machine_limit, operation_machine_exclusive
@@ -35,7 +36,7 @@ def preprocessing(order, operation_seperated_sequence, operation_types, machine_
     linespeed, unable_gitems, unable_details = operation_machine_limit(linespeed, machine_limit)
     linespeed = operation_machine_exclusive(linespeed, machine_allocate)
 
-    print(f"unable order: {len(unable_gitems)}개")
+    print(f"unable gitems: {len(unable_gitems)}개")
 
     if unable_gitems:
         """
@@ -46,6 +47,7 @@ def preprocessing(order, operation_seperated_sequence, operation_types, machine_
         sequence_order = sequence_order[~ (sequence_order[config.columns.GITEM].isin(unable_gitems))]
 
         unable_order = unable_order[['P/O NO', 'GITEM']] # 생산 불가능한 GITEM과 P/O 정보
+        print(f"unable order: {len(unable_order)}개")
 
         return sequence_order, linespeed, unable_gitems, unable_order, unable_details
     else:
