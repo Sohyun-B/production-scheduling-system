@@ -55,7 +55,7 @@ class MachineScheduleProcessor:
         for idx, row in machine_info.iterrows():
             process_order = row[config.columns.OPERATION_ORDER]
             
-            process_col = f'{process_order}공정{config.columns.ID}'
+            process_col = f'{process_order}{config.columns.PROCESS_ID_SUFFIX}'
             machine_id = row[config.columns.ID]
             filtered_rows = result_df[result_df[process_col] == machine_id]
 
@@ -65,13 +65,13 @@ class MachineScheduleProcessor:
             gitems = filtered_rows[config.columns.GITEM].tolist()
             gitem_list.append(gitems)
 
-            item_width = filtered_rows[f'{config.columns.FABRIC_WIDTH}_{process_order}공정'].tolist()
+            item_width = filtered_rows[f'{config.columns.FABRIC_WIDTH}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
             width_list.append(item_width)
 
-            item_length = filtered_rows[f'{config.columns.PRODUCTION_LENGTH}_{process_order}공정'].tolist()
+            item_length = filtered_rows[f'{config.columns.PRODUCTION_LENGTH}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
             length_list.append(item_length)
 
-            mixtures = filtered_rows[f'{config.columns.MIXTURE_CODE}_{process_order}공정'].tolist()
+            mixtures = filtered_rows[f'{config.columns.MIXTURE_CODE}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
             mixture_list.append(mixtures)
 
             duedates = filtered_rows[config.columns.DUE_DATE].tolist()
@@ -168,7 +168,7 @@ class MachineProcessor:
         print("[기계처리] 기계 정보 처리 시작...")
         
         # 기계 인덱스 -> 코드 매핑
-        machine_mapping = machine_master_info.set_index('기계인덱스')['기계코드'].to_dict()
+        machine_mapping = machine_master_info.set_index(config.columns.MACHINE_INDEX)[config.columns.MACHINE_CODE].to_dict()
         
         # 기계 스케줄 처리기 초기화
         machine_proc = MachineScheduleProcessor(
@@ -185,17 +185,17 @@ class MachineProcessor:
         
         # === 데이터 가공 및 GITEM명 매핑 ===
         # GITEM명 정보 매핑
-        order_with_names = original_order[['GITEM', 'GITEM명']].drop_duplicates()
+        order_with_names = original_order[[config.columns.GITEM, config.columns.GITEM_NAME]].drop_duplicates()
         
         # 기계 정보 가공
-        code_to_name_mapping = machine_master_info.set_index('기계코드')['기계이름'].to_dict()
-        machine_info = machine_info.rename(columns={"기계인덱스": "기계코드"})
-        machine_info['기계이름'] = machine_info['기계코드'].map(code_to_name_mapping)
+        code_to_name_mapping = machine_master_info.set_index(config.columns.MACHINE_CODE)[config.columns.MACHINE_NAME].to_dict()
+        machine_info = machine_info.rename(columns={config.columns.MACHINE_INDEX: config.columns.MACHINE_CODE})
+        machine_info[config.columns.MACHINE_NAME] = machine_info[config.columns.MACHINE_CODE].map(code_to_name_mapping)
         
         # GITEM명 및 추가 컬럼 생성
-        machine_info = pd.merge(machine_info, order_with_names, on='GITEM', how='left')
-        machine_info['공정명'] = machine_info['ID'].str.split('_').str[1]
-        machine_info['작업시간'] = machine_info['작업 종료 시간'] - machine_info['작업 시작 시간']
+        machine_info = pd.merge(machine_info, order_with_names, on=config.columns.GITEM, how='left')
+        machine_info[config.columns.OPERATION] = machine_info[config.columns.ID].str.split('_').str[1]
+        machine_info[config.columns.WORK_TIME] = machine_info[config.columns.WORK_END_TIME] - machine_info[config.columns.WORK_START_TIME]
         
         print(f"[기계처리] 완료 - 기계 정보: {len(machine_info)}행")
         

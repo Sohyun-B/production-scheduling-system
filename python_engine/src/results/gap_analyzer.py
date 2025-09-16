@@ -284,7 +284,7 @@ class GapAnalysisProcessor:
             gap_analyzer = ScheduleGapAnalyzer(scheduler, delay_processor)
             
             # 기계 매핑 정보
-            machine_mapping = machine_master_info.set_index('기계인덱스')['기계코드'].to_dict()
+            machine_mapping = machine_master_info.set_index(config.columns.MACHINE_INDEX)[config.columns.MACHINE_CODE].to_dict()
             
             # 기계별 스케줄 결과 처리기에 간격 분석기 전달
             from .machine_processor import MachineScheduleProcessor

@@ -104,17 +104,16 @@ def create_results(
     # === 7단계: 주문 생산 요약본 생성 ===
     print("[96%] 주문 생산 요약본 생성 중...")
     order_summary = late_results['new_output_final_result'].copy()
-    if '종료시각' in order_summary.columns:
-        order_summary = order_summary[['P/O NO', '1공정ID', '2공정ID', '3공정ID', '4공정ID', 'GITEM', '납기일', '종료날짜', '지각일수']]
+    if config.columns.END_TIME in order_summary.columns:
+        order_summary = order_summary[[config.columns.PO_NO, '1_operation_id', '2_operation_id', '3_operation_id', '4_operation_id', config.columns.GITEM, config.columns.DUE_DATE, config.columns.END_DATE, config.columns.LATE_DAYS]]
     
     # === 8단계: 데이터 검증 및 최종 정리 ===
     print("[97%] 데이터 검증 중...")
     print(f"[검증] 원본 결과 행 수: {len(result_cleaned)}")
     print(f"[검증] 처리된 결과 행 수: {len(late_results['new_output_final_result'])}")
     print(f"[검증] 원본 최대 node_end: {result_cleaned['node_end'].max()}")
-    print(f"[검증] 처리된 최대 종료시각: {late_results['new_output_final_result']['종료시각'].max()}")
-    print(f"[분석] 총 소요시간: {late_results['new_output_final_result']['종료시각'].max() / 48:.2f}일")
-    print(f"[분석] 총 makespan: {late_results['new_output_final_result']['종료시각'].max()}")
+    print(f"[분석] 총 소요시간: {late_results['new_output_final_result'][config.columns.END_TIME].max() / 48:.2f}일")
+    print(f"[분석] 총 makespan: {late_results['new_output_final_result'][config.columns.END_TIME].max()}")
     
     print("[98%] 모든 결과 처리 완료!")
     

@@ -117,13 +117,15 @@ def make_process_table(df):
     df_exploded = df.explode(config.columns.PO_NO).reset_index(drop=True)
     df_exploded[config.columns.PO_NO] = df_exploded[config.columns.PO_NO].str.strip()  # 공백 제거
 
+    
+
     # 2. 공정순서별로 'n공정' 컬럼명 생성
-    df_exploded['공정컬럼'] = df_exploded[config.columns.OPERATION_ORDER].astype(str) + f'공정{config.columns.ID}'
+    df_exploded['operation_col'] = df_exploded[config.columns.OPERATION_ORDER].astype(str) + config.columns.PROCESS_ID_SUFFIX
 
     # 3. 피벗: P/O NO, GITEM별로 공정순서별 공정명을 컬럼으로
     pivot_df = df_exploded.pivot_table(
         index=[config.columns.PO_NO],
-        columns='공정컬럼',
+        columns='operation_col',
         values=config.columns.ID,
         aggfunc='first'
     ).reset_index()

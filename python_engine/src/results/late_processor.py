@@ -29,7 +29,7 @@ class LateOrderCalculator:
         # 공정ID 컬럼 순서
         unique_depth_values = self.final_result_df[config.columns.DEPTH].unique()
         
-        id_cols = [f"{val}공정{config.columns.ID}" for val in unique_depth_values]
+        id_cols = [f"{val}{config.columns.PROCESS_ID_SUFFIX}" for val in unique_depth_values]
         
         def get_end_time(row):
             # 마지막 공정의 종료시간을 반환해야 함 (역순으로 탐색)
@@ -117,7 +117,7 @@ class LateProcessor:
         
         # 지각한 제품 정보 추출
         late_products = new_output_final_result[
-            new_output_final_result['지각일수'] > 0
+            new_output_final_result[config.columns.LATE_DAYS] > 0
         ]
         late_po_numbers = late_products['P/O NO'].tolist() if len(late_products) > 0 else []
         

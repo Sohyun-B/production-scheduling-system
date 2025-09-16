@@ -58,38 +58,38 @@ def run_level4_scheduling():
         # # 4. 주문 데이터 (날짜 컬럼 변환 필요)
         # order = pd.read_json(config.files.JSON_ORDER_DATA)
 
-        linespeed = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "linespeed", skiprows=[1])
-        linespeed = linespeed.drop(columns = {"한글명"})
+        linespeed = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "linespeed", skiprows=[0])
+        linespeed = linespeed.drop(columns = {"영문명"})
 
-        operation_seperated_sequence = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_sequence", skiprows=[1])
-        operation_seperated_sequence = operation_seperated_sequence.drop(columns = {"한글명"})
-        machine_master_info = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_master_info", skiprows=[1])
-        machine_master_info = machine_master_info.drop(columns = {"한글명"})
-        yield_data = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "yield_data", skiprows=[1])
-        yield_data = yield_data.drop(columns = {"한글명"})
-        gitem_operation = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "gitem_operation", skiprows=[1])
-        gitem_operation = gitem_operation.drop(columns = {"한글명"})
+        operation_seperated_sequence = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_sequence", skiprows=[0])
+        operation_seperated_sequence = operation_seperated_sequence.drop(columns = {"영문명"})
+        machine_master_info = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_master_info", skiprows=[0])
+        machine_master_info = machine_master_info.drop(columns = {"영문명"})
+        yield_data = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "yield_data", skiprows=[0])
+        yield_data = yield_data.drop(columns = {"영문명"})
+        gitem_operation = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "gitem_operation", skiprows=[0])
+        gitem_operation = gitem_operation.drop(columns = {"영문명"})
         
         # 2. 공정 재분류 내역 및 교체 시간 관련
-        operation_types = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_types", skiprows=[1])
-        operation_types = operation_types.drop(columns = {"한글명"})
-        operation_delay_df = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_delay", skiprows=[1])
-        operation_delay_df = operation_delay_df.drop(columns = {"한글명"})
-        width_change_df = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "width_change", skiprows=[1])
-        width_change_df = width_change_df.drop(columns = {"한글명"})
+        operation_types = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_types", skiprows=[0])
+        operation_types = operation_types.drop(columns = {"영문명"})
+        operation_delay_df = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_delay", skiprows=[0])
+        operation_delay_df = operation_delay_df.drop(columns = {"영문명"})
+        width_change_df = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "width_change", skiprows=[0])
+        width_change_df = width_change_df.drop(columns = {"영문명"})
 
-        machine_allocate = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_allocate", skiprows=[1])
-        machine_rest = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_rest", skiprows=[1])
-        machine_limit = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_limit", skiprows=[1])
-        if '시작시간' in machine_rest.columns:
-            machine_rest['시작시간'] = pd.to_datetime(machine_rest['시작시간'])
-        if '종료시간' in machine_rest.columns:
-            machine_rest['종료시간'] = pd.to_datetime(machine_rest['종료시간'])
+        machine_allocate = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_allocate", skiprows=[0])
+        machine_rest = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_rest", skiprows=[0])
+        machine_limit = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_limit", skiprows=[0])
+        if 'dt_start' in machine_rest.columns:
+            machine_rest['dt_start'] = pd.to_datetime(machine_rest['dt_start'])
+        if 'dt_end' in machine_rest.columns:
+            machine_rest['dt_end'] = pd.to_datetime(machine_rest['dt_end'])
 
         print(machine_allocate)
 
-        order = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "order_data", skiprows=[1])
-        order = order.drop(columns = {"한글명"})
+        order = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "order_data", skiprows=[0])
+        order = order.drop(columns = {"영문명"})
 
         print(order.head(2))
 
@@ -194,8 +194,8 @@ def run_level4_scheduling():
         print(f"실제 수행한 order: {len(order) - len(unable_order)}")
         print(f"사용 불가능한 gitem: {len(unable_gitems)}")
         print(f"makespan: {final_results['actual_makespan']}")
-        print(f"납기준수율: {1 - (final_results['order_summary']['지각일수'] > 0).sum() / len(final_results['order_summary'])}")
-        print(f"지각 주문: {(final_results['order_summary']['지각일수'] > 0).sum()}")
+        print(f"납기준수율: {1 - (final_results['order_summary'][config.columns.LATE_DAYS] > 0).sum() / len(final_results['order_summary'])}")
+        print(f"지각 주문: {(final_results['order_summary'][config.columns.LATE_DAYS] > 0).sum()}")
         # print(f"공정교체 횟수: {(final_results['order_summary']['지각일수'] > 0).sum()}")
 
 

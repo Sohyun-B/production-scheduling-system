@@ -41,6 +41,9 @@ def create_complete_dag_system(sequence_seperated_order, linespeed, machine_mast
         tuple: (dag_df, opnode_dict, manager, machine_dict, merged_df)
     """
     merged_df = make_process_table(sequence_seperated_order)
+
+    print("merged_df")
+    print(merged_df.columns)
     hierarchy = sorted(
         [col for col in merged_df.columns if col.endswith(config.columns.PROCESS_ID_SUFFIX)],
         key=lambda x: int(x.replace(config.columns.PROCESS_ID_SUFFIX, ''))

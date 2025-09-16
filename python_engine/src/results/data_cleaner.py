@@ -4,6 +4,7 @@
 """
 
 import pandas as pd
+from config import config
 
 
 class DataCleaner:
@@ -57,7 +58,7 @@ class DataCleaner:
         
         # 할당 작업이 -1 공정인 경우 삭제
         machine_schedule_df = machine_schedule_df[
-            ~machine_schedule_df['할당 작업'].astype(str).str.startswith('[-1', na=False)
+            ~machine_schedule_df[config.columns.ALLOCATED_WORK].astype(str).str.startswith('[-1', na=False)
         ]
         
         return machine_schedule_df
