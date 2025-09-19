@@ -2,6 +2,7 @@ from .dag_dataframe import make_process_table, Create_dag_dataframe
 from .node_dict import create_opnode_dict, create_machine_dict
 from .dag_manager import DAGGraphManager
 from .dag_visualizer import DAGVisualizer
+from config import config
 
 def run_dag_pipeline(merged_df, hierarchy, sequence_seperated_order, linespeed, machine_columns):
     """
@@ -27,7 +28,7 @@ def run_dag_pipeline(merged_df, hierarchy, sequence_seperated_order, linespeed, 
     return dag_df, opnode_dict, manager, machine_dict
 
 
-def create_complete_dag_system(sequence_seperated_order, linespeed, machine_master_info, config):
+def create_complete_dag_system(sequence_seperated_order, linespeed, machine_master_info):
     """
     DAG 생성을 위한 전체 파이프라인을 한번에 처리하는 통합 함수
     

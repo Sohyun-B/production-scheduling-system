@@ -137,8 +137,7 @@ def run_level4_scheduling():
     # === 4단계: DAG 생성 ===
     print("[40%] DAG 시스템 생성 중...")
     dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
-        sequence_seperated_order, linespeed, machine_master_info, config
-    )
+        sequence_seperated_order, linespeed, machine_master_info)
     print(f"[50%] DAG 시스템 생성 완료 - 노드: {len(dag_df)}개, 기계: {len(machine_dict)}개")
     
 
