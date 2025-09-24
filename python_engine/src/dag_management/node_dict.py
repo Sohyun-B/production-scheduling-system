@@ -6,7 +6,7 @@ def create_opnode_dict(sequence_seperated_order):
     return {
         row[config.columns.ID]: [
             row[config.columns.OPERATION_ORDER],
-            row[config.columns.OPERATION],
+            row[config.columns.OPERATION_CODE],
             row[config.columns.OPERATION_CLASSIFICATION],
             row[config.columns.FABRIC_WIDTH],
             row[config.columns.MIXTURE_CODE],
@@ -25,8 +25,8 @@ def create_machine_dict(sequence_seperated_order, linespeed, machine_columns):
     """
     linespeed[config.columns.GITEM] = linespeed[config.columns.GITEM].astype(str)
     
-    order_linespeed = sequence_seperated_order[[config.columns.GITEM, config.columns.OPERATION, config.columns.PRODUCTION_LENGTH, config.columns.ID]]
-    order_linespeed = pd.merge(order_linespeed, linespeed, on=[config.columns.GITEM, config.columns.OPERATION], how='left')
+    order_linespeed = sequence_seperated_order[[config.columns.GITEM, config.columns.OPERATION_CODE, config.columns.PRODUCTION_LENGTH, config.columns.ID]]
+    order_linespeed = pd.merge(order_linespeed, linespeed, on=[config.columns.GITEM, config.columns.OPERATION_CODE], how='left')
 
     order_linespeed = order_linespeed.fillna(np.inf) # 
 

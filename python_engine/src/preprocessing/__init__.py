@@ -21,9 +21,9 @@ def preprocessing(order, operation_seperated_sequence, operation_types, machine_
 
     # 1-D. 공정 타입 정보 병합 및 형 변환
     sequence_order = sequence_order.merge(
-        operation_types[[config.columns.OPERATION, config.columns.OPERATION_CLASSIFICATION]],
-        left_on=config.columns.OPERATION,
-        right_on=config.columns.OPERATION,
+        operation_types[[config.columns.OPERATION_CODE, config.columns.OPERATION_CLASSIFICATION]],
+        left_on=config.columns.OPERATION_CODE,
+        right_on=config.columns.OPERATION_CODE,
         how='left'
     )
     sequence_order[config.columns.GITEM] = sequence_order[config.columns.GITEM].astype(str)
@@ -33,6 +33,8 @@ def preprocessing(order, operation_seperated_sequence, operation_types, machine_
 
     # unable_gitems: 기계의 특정 공정 휴기 때문에 생산하지 못하는 공정 리스트
     # unable_details: GITEM과 해당 불가능한 공정명 정보
+
+
     linespeed, unable_gitems, unable_details = operation_machine_limit(linespeed, machine_limit)
     linespeed = operation_machine_exclusive(linespeed, machine_allocate)
 

@@ -56,8 +56,8 @@ class FilePaths:
 class ColumnNames:
     # Core identifiers
     PO_NO: str = "po_no" # "P/O NO"
-    GITEM: str = "id_gitem" # "GITEM"
-    GITEM_NAME: str = "tx_gitem" # "GITEM명"
+    GITEM: str = "GitemNo" # "GITEM"
+    GITEM_NAME: str = "GItemName" # "GITEM명"
     ID: str = "ID" # "ID"
     
     # Product specifications
@@ -80,19 +80,20 @@ class ColumnNames:
     WORK_TIME: str = "work_time" # "작업시간"              # Calculated duration
     
     # Machine identifiers (from 기계정보.xlsx)
-    MACHINE_INDEX: str = "idx_machine" # "기계인덱스"        # 0,1,2,3... (numeric index)
-    MACHINE_CODE: str = "id_machine" # "기계코드"           # C2010, C2250... (unique code)
-    MACHINE_NAME: str = "tx_machine" # "기계명"             # 1호기, 25호기... (human name)
+    MACHINE_INDEX: str = "MachineIndex" # "기계인덱스"        # 0,1,2,3... (numeric index)
+    MACHINE_CODE: str = "MachineNo" # "기계코드"           # C2010, C2250... (unique code)
+    MACHINE_NAME: str = "MachineName" # "기계명"             # 1호기, 25호기... (human name)
     
     # Operations
-    OPERATION_ORDER: str = "idx_operation_seq" # "공정순서"
-    OPERATION: str = "tx_operation" # "공정명"
-    OPERATION_CLASSIFICATION: str = "tx_operation_type" # "공정분류"
+    OPERATION_ORDER: str = "PROCSEQ" # "공정순서"
+    OPERATION: str = "PROCNAME" # "공정명"
+    OPERATION_CODE: str = "PROCCODE"
+    OPERATION_CLASSIFICATION: str = "ProcGbn" # "공정분류"
     MIXTURE_CODE: str = "id_mixture" # "배합코드"
     ALLOCATED_WORK: str = "allocated_work" # "할당 작업"
     
     # Process IDs (structured pattern)
-    PROCESS_ID_SUFFIX: str = "_operation_id" #  "공정ID"  # 동적 공정 처리용
+    PROCESS_ID_SUFFIX: str = "_PROCCODE" #  "공정ID"  # 동적 공정 처리용
     
     # Technical fields
     DEPTH: str = "depth"

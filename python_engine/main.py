@@ -86,12 +86,8 @@ def run_level4_scheduling():
         if 'dt_end' in machine_rest.columns:
             machine_rest['dt_end'] = pd.to_datetime(machine_rest['dt_end'])
 
-        print(machine_allocate)
-
         order = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "order_data", skiprows=[0])
         order = order.drop(columns = {"영문명"})
-
-        print(order.head(2))
 
 
         # 날짜 컬럼을 datetime으로 변환
@@ -155,10 +151,17 @@ def run_level4_scheduling():
         
         # 스케줄러 초기화
         print("[70%] 스케줄러 초기화 및 자원 할당 중...")
+        print("machine rest")
+        width_change_df = pd.merge(width_change_df, machine_master_info, on = config.columns.MACHINE_CODE, how = 'left')
+        print(machine_rest.columns)
         delay_processor = DelayProcessor(opnode_dict, operation_delay_df, width_change_df)
 
         scheduler = Scheduler(machine_dict, delay_processor)
         scheduler.allocate_resources()
+
+        print("machine rest")
+        machine_rest = pd.merge(machine_rest, machine_master_info, on = config.columns.MACHINE_CODE, how = 'left')
+        print(machine_rest.columns)
         scheduler.allocate_machine_downtime(machine_rest, base_date)
         print("[스케줄러] 기계 자원 할당 완료, 기계 중단시간 설정 완료")
         

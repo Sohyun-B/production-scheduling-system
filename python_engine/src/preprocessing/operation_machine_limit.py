@@ -12,15 +12,15 @@ def operation_machine_limit(linespeed, machine_limit):
         필수 컬럼: 기계코드, 공정명 
 
     """
-    m = linespeed[config.columns.OPERATION].isin(machine_limit[config.columns.OPERATION])
+    m = linespeed[config.columns.OPERATION_CODE].isin(machine_limit[config.columns.OPERATION_CODE])
     
-    sub_ml = machine_limit[[config.columns.OPERATION, config.columns.MACHINE_CODE]].dropna()
-    sub_ml = sub_ml[sub_ml[config.columns.OPERATION].isin(linespeed.loc[m, config.columns.OPERATION])]
+    sub_ml = machine_limit[[config.columns.OPERATION_CODE, config.columns.MACHINE_CODE]].dropna()
+    sub_ml = sub_ml[sub_ml[config.columns.OPERATION_CODE].isin(linespeed.loc[m, config.columns.OPERATION_CODE])]
     valid_machine_codes = set(linespeed.columns)  # '공정' 포함 가능
-    machine_code_set = valid_machine_codes - {config.columns.OPERATION, config.columns.GITEM}      # 안전하게 '공정' 제외
+    machine_code_set = valid_machine_codes - {config.columns.OPERATION_CODE, config.columns.GITEM}      # 안전하게 '공정' 제외
     machine_codes = [c for c in sub_ml[config.columns.MACHINE_CODE].unique() if c in machine_code_set]
     
-    target_mask = linespeed[config.columns.OPERATION].isin(sub_ml[config.columns.OPERATION])
+    target_mask = linespeed[config.columns.OPERATION_CODE].isin(sub_ml[config.columns.OPERATION_CODE])
     if machine_codes: 
         # print(linespeed.loc[target_mask])
         linespeed.loc[target_mask, machine_codes] = np.nan
@@ -42,17 +42,17 @@ def _check_unable_order(linespeed, all_machine_columns):
         # print(linespeed.loc[mask_all_nan])
         
         # GITEM과 공정명을 함께 추출
-        unable_items_df = linespeed.loc[mask_all_nan, [config.columns.GITEM, config.columns.OPERATION]].dropna()
+        unable_items_df = linespeed.loc[mask_all_nan, [config.columns.GITEM, config.columns.OPERATION_CODE]].dropna()
         
         unable_gitems = unable_items_df[config.columns.GITEM].astype(str).tolist()
-        unable_operations = unable_items_df[config.columns.OPERATION].tolist()
+        unable_operations = unable_items_df[config.columns.OPERATION_CODE].tolist()
         
         # GITEM과 공정명을 매핑한 딕셔너리 생성
         unable_details = []
         for _, row in unable_items_df.iterrows():
             unable_details.append({
                 'gitem': str(row[config.columns.GITEM]),
-                'operation': row[config.columns.OPERATION]
+                'operation': row[config.columns.OPERATION_CODE]
             })
         
         print(f"생산 불가(GITEM): {len(unable_gitems)}개")
@@ -73,7 +73,7 @@ def operation_machine_exclusive(linespeed, machine_allocate):
     ex) 안료점착을 c2260에서만 생산가능하다고 했지만 gitem 30000의 경우 c2260에서 안료점착을 수행하지 못하는 경우 원본 유지
     """
     # 유효한 기계코드 추출
-    machine_codes = set(linespeed.columns) - {config.columns.OPERATION, config.columns.GITEM}
+    machine_codes = set(linespeed.columns) - {config.columns.OPERATION_CODE, config.columns.GITEM}
     allocated_machines = [m for m in machine_allocate[config.columns.MACHINE_CODE].dropna().unique() if m in machine_codes]
     
     if not allocated_machines:
@@ -81,7 +81,7 @@ def operation_machine_exclusive(linespeed, machine_allocate):
         return linespeed
     
     # 대상 행 선택
-    target_mask = linespeed[config.columns.OPERATION].isin(machine_allocate[config.columns.OPERATION].dropna())
+    target_mask = linespeed[config.columns.OPERATION_CODE].isin(machine_allocate[config.columns.OPERATION_CODE].dropna())
     if not target_mask.any():
         print("독점 할당할 공정이 없음")
         return linespeed

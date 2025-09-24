@@ -151,7 +151,7 @@ class FabricCombiner:
     """
     def __init__(self, groupby_cols=None, dropna=False):
         self.rule_handler = FabricRuleHandler()
-        self.groupby_cols = groupby_cols or [config.columns.GITEM, config.columns.OPERATION, config.columns.OPERATION_ORDER, config.columns.COMBINATION_CLASSIFICATION]
+        self.groupby_cols = groupby_cols or [config.columns.GITEM, config.columns.OPERATION_CODE, config.columns.OPERATION_ORDER, config.columns.COMBINATION_CLASSIFICATION]
         self.dropna = dropna  # groupby에서 NA 그룹 포함 여부 
 
     def process(self, input_df: pd.DataFrame) -> pd.DataFrame:
@@ -195,7 +195,7 @@ class FabricCombiner:
         return pd.DataFrame([{
             config.columns.PO_NO: ', '.join(map(str, sub_df[config.columns.PO_NO].explode().unique())),
             config.columns.GITEM: sub_df[config.columns.GITEM].iloc[0],
-            config.columns.OPERATION: sub_df[config.columns.OPERATION].iloc[0],
+            config.columns.OPERATION_CODE: sub_df[config.columns.OPERATION_CODE].iloc[0],
             config.columns.OPERATION_ORDER: sub_df[config.columns.OPERATION_ORDER].iloc[0],
             config.columns.COMBINATION_CLASSIFICATION: comb_type,
             config.columns.DUE_DATE: sub_df[config.columns.DUE_DATE].min(),
