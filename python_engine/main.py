@@ -32,31 +32,6 @@ def run_level4_scheduling():
     try:
         # print("JSON 파일에서 데이터 로딩 중...")
         
-        # # 1. 품목별 라인스피드 및 공정 순서 관련
-        # linespeed = pd.read_json(config.files.JSON_LINESPEED)
-        # operation_seperated_sequence = pd.read_json(config.files.JSON_OPERATION_SEQUENCE)
-        # machine_master_info = pd.read_json(config.files.JSON_MACHINE_INFO)
-        # yield_data = pd.read_json(config.files.JSON_YIELD_DATA)
-        # gitem_operation = pd.read_json(config.files.JSON_GITEM_OPERATION)
-        
-        # # 2. 공정 재분류 내역 및 교체 시간 관련ㄴ
-        # operation_types = pd.read_json(config.files.JSON_OPERATION_TYPES)
-        # operation_delay_df = pd.read_json(config.files.JSON_OPERATION_DELAY)
-        # width_change_df = pd.read_json(config.files.JSON_WIDTH_CHANGE)
-    
-        # # 3. 불가능한 공정 입력값 관련 (날짜 컬럼 변환 필요)
-        # machine_rest = pd.read_json(config.files.JSON_MACHINE_REST)
-        # # machine_rest의 날짜 컬럼들을 datetime으로 변환
-        # if '시작시간' in machine_rest.columns:
-        #     machine_rest['시작시간'] = pd.to_datetime(machine_rest['시작시간'])
-        # if '종료시간' in machine_rest.columns:
-        #     machine_rest['종료시간'] = pd.to_datetime(machine_rest['종료시간'])
-        
-        # machine_allocate = pd.read_json(config.files.JSON_MACHINE_ALLOCATE)
-        # machine_limit = pd.read_json(config.files.JSON_MACHINE_LIMIT)
-        
-        # # 4. 주문 데이터 (날짜 컬럼 변환 필요)
-        # order = pd.read_json(config.files.JSON_ORDER_DATA)
 
         linespeed = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "linespeed", skiprows=[0])
         linespeed = linespeed.drop(columns = {"영문명"})
@@ -88,6 +63,36 @@ def run_level4_scheduling():
 
         order = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "order_data", skiprows=[0])
         order = order.drop(columns = {"영문명"})
+
+        # ====================================================
+
+        linespeed = pd.read_excel("data/input/python_input.xlsx", sheet_name = "linespeed")
+        operation_types = pd.read_excel("data/input/python_input.xlsx", sheet_name = "operation_types") 
+        operation_seperated_sequence = pd.read_excel("data/input/python_input.xlsx", sheet_name = "operation_sequence") # 배합액 정보 누락, 공정타입 정보 추가
+        
+        yield_data = pd.read_excel("data/input/python_input.xlsx", sheet_name = "yield_data")
+        machine_master_info = pd.read_excel("data/input/python_input.xlsx", sheet_name = "machine_master_info")
+        mixture_data = pd.read_excel("data/input/python_input.xlsx", sheet_name = "mixture_data")
+
+        operation_delay_df = pd.read_excel("data/input/python_input.xlsx", sheet_name = "operation_delay")
+
+        width_change_df = pd.read_excel("data/input/python_input.xlsx", sheet_name = "width_change")
+
+        machine_limit = pd.read_excel("data/input/python_input.xlsx", sheet_name = "machine_limit")
+        machine_rest = pd.read_excel("data/input/python_input.xlsx", sheet_name = "machine_rest")
+        if 'dt_start' in machine_rest.columns:
+            machine_rest['dt_start'] = pd.to_datetime(machine_rest['dt_start'])
+        if 'dt_end' in machine_rest.columns:
+            machine_rest['dt_end'] = pd.to_datetime(machine_rest['dt_end'])
+        machine_allocate = pd.read_excel("data/input/python_input.xlsx", sheet_name = "machine_allocate")
+
+        order = pd.read_excel("data/input/python_input.xlsx", sheet_name = "order_data")
+
+
+
+
+
+
 
 
         # 날짜 컬럼을 datetime으로 변환

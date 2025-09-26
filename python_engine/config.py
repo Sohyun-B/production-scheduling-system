@@ -55,22 +55,22 @@ class FilePaths:
 @dataclass
 class ColumnNames:
     # Core identifiers
-    PO_NO: str = "po_no" # "P/O NO"
+    PO_NO: str = "PoNo" # "P/O NO"
     GITEM: str = "GitemNo" # "GITEM"
-    GITEM_NAME: str = "GItemName" # "GITEM명"
+    GITEM_NAME: str = "GitemName" # "GITEM명"
     ID: str = "ID" # "ID"
     
     # Product specifications
-    WIDTH: str = "width" # "너비"                      # Product width from SPEC
+    WIDTH: str = "Width" # "너비"                      # Product width from SPEC
     FABRIC_WIDTH: str = "fabric_width" # "원단너비"           # Different: process-specific fabric width
-    LENGTH: str = "length" # "길이"                       # Single unit length from SPEC  
-    FABRIC_LENGTH: str = "fabric_length" # "원단길이"          # Different: calculated total length (길이 * 의뢰량)
+    LENGTH: str = "Length" # "길이"                       # Single unit length from SPEC  
+    FABRIC_LENGTH: str = "Fabric_Length" # "원단길이"          # Different: calculated total length (길이 * 의뢰량)
     PRODUCTION_LENGTH: str = "production_length" # "생산길이"      # Different: actual production length (after yield adjustment)
     ORIGINAL_PRODUCTION_LENGTH: str = "original_production_length" # "원본생산길이"  # Before yield adjustment
-    REQUEST_AMOUNT: str = "quantity" # "의뢰량"
+    REQUEST_AMOUNT: str = "IpgmQty" # "의뢰량"
     
     # Dates and times
-    DUE_DATE: str = "due_date" # "납기일"
+    DUE_DATE: str = "DUEDATE" # "납기일"
     END_DATE: str = "end_date" # "종료날짜"
     LATE_DAYS: str = "late_days" # "지각일수"
     END_TIME: str = "end_time" # "종료시각"               # End time (abstract units)

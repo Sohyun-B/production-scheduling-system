@@ -16,17 +16,26 @@ def preprocessing(order, operation_seperated_sequence, operation_types, machine_
     groupby_columns = [config.columns.GITEM, config.columns.GITEM_NAME, config.columns.WIDTH, config.columns.LENGTH]
     order_list = [same_order_groupby(groupby_columns, df) for df in order_list]
 
+    print("order_list")
+    print(order_list[0])
+
+    print("operation_seperated_sequence")
+    print(operation_seperated_sequence)
+
     # 1-C. 시퀀스 주문 생성
     sequence_order = create_sequence_seperated_order(order_list, operation_seperated_sequence)
 
+    # print("sequence_order")
+    # print(sequence_order.columns)
+
     # 1-D. 공정 타입 정보 병합 및 형 변환
-    sequence_order = sequence_order.merge(
-        operation_types[[config.columns.OPERATION_CODE, config.columns.OPERATION_CLASSIFICATION]],
-        left_on=config.columns.OPERATION_CODE,
-        right_on=config.columns.OPERATION_CODE,
-        how='left'
-    )
-    sequence_order[config.columns.GITEM] = sequence_order[config.columns.GITEM].astype(str)
+    # sequence_order = sequence_order.merge(
+    #     operation_types[[config.columns.OPERATION_CODE, config.columns.OPERATION_CLASSIFICATION]],
+    #     left_on=config.columns.OPERATION_CODE,
+    #     right_on=config.columns.OPERATION_CODE,
+    #     how='left'
+    # )
+    # sequence_order[config.columns.GITEM] = sequence_order[config.columns.GITEM].astype(str)
 
     # 2. 기계 정보 수정
     
