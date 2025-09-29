@@ -71,7 +71,7 @@ class MachineScheduleProcessor:
             item_length = filtered_rows[f'{config.columns.PRODUCTION_LENGTH}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
             length_list.append(item_length)
 
-            mixtures = filtered_rows[f'{config.columns.MIXTURE_CODE}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
+            mixtures = filtered_rows[f'{config.columns.MIXTURE_LIST}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
             mixture_list.append(mixtures)
 
             duedates = filtered_rows[config.columns.DUE_DATE].tolist()
@@ -97,7 +97,7 @@ class MachineScheduleProcessor:
         machine_info[config.columns.GITEM] = gitem_list
         machine_info[config.columns.FABRIC_WIDTH] = width_list
         machine_info[config.columns.PRODUCTION_LENGTH] = length_list
-        machine_info[config.columns.MIXTURE_CODE] = mixture_list
+        machine_info[config.columns.MIXTURE_LIST] = mixture_list
         machine_info[config.columns.DUE_DATE] = duedate_list
 
         return machine_info

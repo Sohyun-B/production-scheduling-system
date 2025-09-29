@@ -1,10 +1,11 @@
 from config import config
 import pandas as pd
+import numpy as np
 from .order_preprocessing import seperate_order_by_month, same_order_groupby
 from .sequence_preprocessing import process_operations_by_category, create_sequence_seperated_order
 from .operation_machine_limit import operation_machine_limit, operation_machine_exclusive
 
-def preprocessing(order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed):
+def preprocessing(order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed, mixture_data):
     """
     order -> 월별 분리 -> 동일 주문 병합 -> 시퀀스 주문 생성 -> 공정 타입 병합 + 컬럼 타입 변환
     한 번에 처리하는 파이프라인 함수
@@ -16,26 +17,29 @@ def preprocessing(order, operation_seperated_sequence, operation_types, machine_
     groupby_columns = [config.columns.GITEM, config.columns.GITEM_NAME, config.columns.WIDTH, config.columns.LENGTH]
     order_list = [same_order_groupby(groupby_columns, df) for df in order_list]
 
-    print("order_list")
-    print(order_list[0])
-
-    print("operation_seperated_sequence")
-    print(operation_seperated_sequence)
-
     # 1-C. 시퀀스 주문 생성
+    mixture_data[config.columns.MIXTURE_LIST] = mixture_data[["Che1", "Che2"]].apply(
+    lambda row: f"{row['Che1']}|{row['Che2']}" if pd.notna(row['Che2']) else str(row['Che1']),
+    axis=1
+)
+    mixture_data = mixture_data[[
+        config.columns.GITEM, 
+        config.columns.OPERATION_CODE, 
+        config.columns.MIXTURE_LIST]]
+    operation_seperated_sequence = operation_seperated_sequence.merge(mixture_data,  on = [config.columns.GITEM, config.columns.OPERATION_CODE], how = 'left')
+    # 배합액 없는 공정의 경우 None으로 추가
+    operation_seperated_sequence[config.columns.MIXTURE_LIST] = operation_seperated_sequence[config.columns.MIXTURE_LIST].replace(np.nan, "None")
+
     sequence_order = create_sequence_seperated_order(order_list, operation_seperated_sequence)
 
-    # print("sequence_order")
-    # print(sequence_order.columns)
-
     # 1-D. 공정 타입 정보 병합 및 형 변환
-    # sequence_order = sequence_order.merge(
-    #     operation_types[[config.columns.OPERATION_CODE, config.columns.OPERATION_CLASSIFICATION]],
-    #     left_on=config.columns.OPERATION_CODE,
-    #     right_on=config.columns.OPERATION_CODE,
-    #     how='left'
-    # )
-    # sequence_order[config.columns.GITEM] = sequence_order[config.columns.GITEM].astype(str)
+    sequence_order = sequence_order.merge(
+        operation_types[[config.columns.OPERATION_CODE, config.columns.OPERATION_CLASSIFICATION]],
+        left_on=config.columns.OPERATION_CODE,
+        right_on=config.columns.OPERATION_CODE,
+        how='left'
+    )
+    sequence_order[config.columns.GITEM] = sequence_order[config.columns.GITEM].astype(str)
 
     # 2. 기계 정보 수정
     

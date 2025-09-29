@@ -24,7 +24,7 @@ class ResultMerger:
     def merge_everything(self):
         """모든 데이터 병합 실행"""
         df = pd.merge(self.merged_df, self.original_order, on=config.columns.PO_NO, how='left')
-        merge_cols = [config.columns.COMBINATION_CLASSIFICATION, config.columns.FABRIC_WIDTH, config.columns.PRODUCTION_LENGTH, config.columns.MIXTURE_CODE]
+        merge_cols = [config.columns.COMBINATION_CLASSIFICATION, config.columns.FABRIC_WIDTH, config.columns.PRODUCTION_LENGTH, config.columns.MIXTURE_LIST]
         # 동적으로 공정ID 컬럼들을 찾아서 순서대로 정렬
         process_columns = [col for col in df.columns if col.endswith(config.columns.PROCESS_ID_SUFFIX)]
         process_list = sorted(process_columns, key=lambda x: int(x.replace(config.columns.PROCESS_ID_SUFFIX, '')))

@@ -31,73 +31,47 @@ def run_level4_scheduling():
     # JSON 파일들에서 데이터 로딩
     try:
         # print("JSON 파일에서 데이터 로딩 중...")
-        
-
-        linespeed = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "linespeed", skiprows=[0])
-        linespeed = linespeed.drop(columns = {"영문명"})
-
-        operation_seperated_sequence = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_sequence", skiprows=[0])
-        operation_seperated_sequence = operation_seperated_sequence.drop(columns = {"영문명"})
-        machine_master_info = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_master_info", skiprows=[0])
-        machine_master_info = machine_master_info.drop(columns = {"영문명"})
-        yield_data = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "yield_data", skiprows=[0])
-        yield_data = yield_data.drop(columns = {"영문명"})
-        gitem_operation = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "gitem_operation", skiprows=[0])
-        gitem_operation = gitem_operation.drop(columns = {"영문명"})
-        
-        # 2. 공정 재분류 내역 및 교체 시간 관련
-        operation_types = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_types", skiprows=[0])
-        operation_types = operation_types.drop(columns = {"영문명"})
-        operation_delay_df = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "operation_delay", skiprows=[0])
-        operation_delay_df = operation_delay_df.drop(columns = {"영문명"})
-        width_change_df = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "width_change", skiprows=[0])
-        width_change_df = width_change_df.drop(columns = {"영문명"})
-
-        machine_allocate = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_allocate", skiprows=[0])
-        machine_rest = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_rest", skiprows=[0])
-        machine_limit = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "machine_limit", skiprows=[0])
-        if 'dt_start' in machine_rest.columns:
-            machine_rest['dt_start'] = pd.to_datetime(machine_rest['dt_start'])
-        if 'dt_end' in machine_rest.columns:
-            machine_rest['dt_end'] = pd.to_datetime(machine_rest['dt_end'])
-
-        order = pd.read_excel("data/input/생산계획_db샘플.xlsx", sheet_name = "order_data", skiprows=[0])
-        order = order.drop(columns = {"영문명"})
+        path = "data/input/python_input.xlsx"
+        # path = "data/input/생산계획_db샘플.xlsx"
 
         # ====================================================
 
-        linespeed = pd.read_excel("data/input/python_input.xlsx", sheet_name = "linespeed")
-        operation_types = pd.read_excel("data/input/python_input.xlsx", sheet_name = "operation_types") 
-        operation_seperated_sequence = pd.read_excel("data/input/python_input.xlsx", sheet_name = "operation_sequence") # 배합액 정보 누락, 공정타입 정보 추가
+        linespeed = pd.read_excel(path, sheet_name = "linespeed")
+        operation_types = pd.read_excel(path, sheet_name = "operation_types") 
+        operation_seperated_sequence = pd.read_excel(path, sheet_name = "operation_sequence") # 배합액 정보 누락, 공정타입 정보 추가
         
-        yield_data = pd.read_excel("data/input/python_input.xlsx", sheet_name = "yield_data")
-        machine_master_info = pd.read_excel("data/input/python_input.xlsx", sheet_name = "machine_master_info")
-        mixture_data = pd.read_excel("data/input/python_input.xlsx", sheet_name = "mixture_data")
+        yield_data = pd.read_excel(path, sheet_name = "yield_data")
+        machine_master_info = pd.read_excel(path, sheet_name = "machine_master_info")
+        mixture_data = pd.read_excel(path, sheet_name = "mixture_data")
 
-        operation_delay_df = pd.read_excel("data/input/python_input.xlsx", sheet_name = "operation_delay")
+        operation_delay_df = pd.read_excel(path, sheet_name = "operation_delay")
 
-        width_change_df = pd.read_excel("data/input/python_input.xlsx", sheet_name = "width_change")
+        width_change_df = pd.read_excel(path, sheet_name = "width_change")
 
-        machine_limit = pd.read_excel("data/input/python_input.xlsx", sheet_name = "machine_limit")
-        machine_rest = pd.read_excel("data/input/python_input.xlsx", sheet_name = "machine_rest")
+        machine_limit = pd.read_excel(path, sheet_name = "machine_limit")
+        machine_rest = pd.read_excel(path, sheet_name = "machine_rest")
         if 'dt_start' in machine_rest.columns:
             machine_rest['dt_start'] = pd.to_datetime(machine_rest['dt_start'])
         if 'dt_end' in machine_rest.columns:
             machine_rest['dt_end'] = pd.to_datetime(machine_rest['dt_end'])
-        machine_allocate = pd.read_excel("data/input/python_input.xlsx", sheet_name = "machine_allocate")
+        machine_allocate = pd.read_excel(path, sheet_name = "machine_allocate")
 
-        order = pd.read_excel("data/input/python_input.xlsx", sheet_name = "order_data")
-
-
-
-
-
-
-
+        order = pd.read_excel(path, sheet_name = "order_data")
 
         # 날짜 컬럼을 datetime으로 변환
         if config.columns.DUE_DATE in order.columns:
             order[config.columns.DUE_DATE] = pd.to_datetime(order[config.columns.DUE_DATE])
+
+
+        # # 공정에 배합액 관련 정보 임시 추가
+        # mixture_data = mixture_data.rename(columns = {'Che1':'id_1st_mixture', 'Che2': 'id_2nd_mixture'})
+        # operation_seperated_sequence = pd.merge(operation_seperated_sequence, mixture_data, on = ['GitemNo', 'PROCCODE'], how = 'left')
+        # import numpy as np
+        # operation_seperated_sequence['id_1st_mixture'] = operation_seperated_sequence['id_1st_mixture'].replace(np.nan, "None")
+        # operation_seperated_sequence['id_2nd_mixture'] = operation_seperated_sequence['id_2nd_mixture'].replace(np.nan, "None")
+        # print(operation_seperated_sequence)
+
+
         
     except FileNotFoundError as e:
         print(f"오류: {e}")
@@ -106,35 +80,18 @@ def run_level4_scheduling():
 
     # === 2단계: 전처리 ===
     sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = preprocessing(
-        order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed)
-    
+        order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed, mixture_data)
 
-    # === 2단계 완료: JSON 저장 ===
-    from src.web_interface.stage_formatters import StageDataExtractor
-    
-    stage2_data = StageDataExtractor.extract_stage2_data(
-        order=order,
-        sequence_seperated_order=sequence_seperated_order, 
-        unable_gitems=unable_gitems,
-        unable_order=unable_order,
-        unable_details=unable_details
-    )
-    
-    # stage_formatters에서 처리된 결과를 CSV로 저장
-    if stage2_data['data']['excluded_orders']:
-        processed_df = pd.DataFrame(stage2_data['data']['excluded_orders'])
-        processed_df.to_csv("0910_확인용_unable_order.csv", encoding='utf-8-sig', index=False)
-    
-    with open("data/output/stage2_preprocessing.json", "w", encoding="utf-8") as f:
-        json.dump(stage2_data, f, ensure_ascii=False, default=str)
-    print("[단계2] JSON 저장 완료: data/output/stage2_preprocessing.json")
-    
+    print("sequence_seperated_order 정보!!!!!!!")
+    print(sequence_seperated_order.columns)
+
+
     # === 3단계: 수율 예측 (3단계, 4단계 건너뛰기) ===
     print("[35%] 수율 예측 처리 중...")
-    yield_predictor, sequence_yield_df, sequence_seperated_order = yield_prediction(
-        yield_data, gitem_operation, sequence_seperated_order
+    sequence_seperated_order = yield_prediction(
+        yield_data, sequence_seperated_order
     )
-    
+
     # === 4단계: DAG 생성 ===
     print("[40%] DAG 시스템 생성 중...")
     dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
@@ -157,9 +114,17 @@ def run_level4_scheduling():
         # 스케줄러 초기화
         print("[70%] 스케줄러 초기화 및 자원 할당 중...")
         print("machine rest")
+        print(width_change_df[config.columns.MACHINE_CODE].values.tolist())
+        print(width_change_df.columns)
+        print(width_change_df)
+
+        # MACHINE_CODE → MACHINE_INDEX dict 생성 후 공정교체시간 존재하는 기계인덱스만 가져옴
+        code_to_index = dict(zip(machine_master_info[config.columns.MACHINE_CODE],
+                                machine_master_info[config.columns.MACHINE_INDEX]))
+        machine_index_list = width_change_df[config.columns.MACHINE_CODE].map(code_to_index).tolist() # 공정교체시간 존재하는기계인덱스 리스ㅌ
+
         width_change_df = pd.merge(width_change_df, machine_master_info, on = config.columns.MACHINE_CODE, how = 'left')
-        print(machine_rest.columns)
-        delay_processor = DelayProcessor(opnode_dict, operation_delay_df, width_change_df)
+        delay_processor = DelayProcessor(opnode_dict, operation_delay_df, width_change_df, machine_index_list)
 
         scheduler = Scheduler(machine_dict, delay_processor)
         scheduler.allocate_resources()

@@ -5,20 +5,20 @@ from config import config
 
 
 class DelayProcessor:
-    def __init__(self, opnode_dict, operation_delay_df, width_change_df):
+    def __init__(self, opnode_dict, operation_delay_df, width_change_df, machine_index_list):
         """
         V5 방식 구조 유지 + mixture 로직 추가
         
         Args:
             opnode_dict: 노드 정보 딕셔너리
+            machine_index_list: 공정교체시간 존재하는기계인덱스 리스트
             operation_delay_df: 공정별 지연시간 규칙 데이터프레임
             width_change_df: 폭 변경 지연시간 규칙 데이터프레임
         """
         self.opnode_dict = opnode_dict
+        self.machine_index_list = machine_index_list
         self.base_df = self._generate_base_df(operation_delay_df, width_change_df)
         self.final_df = self._apply_delay_conditions(operation_delay_df, width_change_df)
-
-        self.final_df.to_csv("폭조합관련코드완성본.csv", encoding = 'utf-8-sig')
         self.delay_dict = self._dataframe_to_dict()
 
     def delay_calc_whole_process(self, item_id1, item_id2, machine_index):
@@ -33,7 +33,7 @@ class DelayProcessor:
         Returns:
             delay_time: 계산된 지연시간 (분 단위)
         """
-        if machine_index not in [0, 2, 3]:
+        if machine_index not in self.machine_index_list:
             return 0
             
         empty_list = [0] * 6
@@ -52,7 +52,7 @@ class DelayProcessor:
             기본 조합 데이터프레임
         """
         columns = {
-            'machine_index': [0, 2, 3],
+            'machine_index': self.machine_index_list,
             'earlier_operation_type': operation_delay_df[config.columns.EARLIER_OPERATION_TYPE].unique().tolist(),
             'later_operation_type': operation_delay_df[config.columns.LATER_OPERATION_TYPE].unique().tolist(),
             'long_to_short': [True, False],  # 장폭 -> 단폭 여부

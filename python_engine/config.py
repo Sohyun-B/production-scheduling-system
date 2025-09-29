@@ -33,23 +33,6 @@ class FilePaths:
     GANTT_INPUT: str = "gantt_input.xlsx"
 
 
-# @dataclass
-# class SheetNames:
-#     ITEM_LINESPEED: str = "품목별 라인스피드"
-#     OPERATION_SEQUENCE: str = "공정순서"
-#     MACHINE_MASTER_INFO: str = "기계기준정보"
-#     YIELD_DATA: str = "수율데이터"
-#     GITEM_OPERATION: str = "GITEM별 공정"
-#     OPERATION_TYPES: str = "공정군"
-#     OPERATION_DELAY: str = "공정교체시간"
-#     WIDTH_CHANGE: str = "폭변경"
-#     MACHINE_REST: str = "기계"
-#     MACHINE_ALLOCATE: str = "공정강제할당"
-#     MACHINE_LIMIT: str = "공정강제회피"
-#     ORDER_CONFIRMED: str = "25년 5월 PO확정 내역"
-#     ORDER_PRODUCTION_SUMMARY: str = "주문_생산_요약본"
-#     MACHINE_INFO_RESULT: str = "호기_정보"
-#     ORDER_PRODUCTION_INFO: str = "주문_생산_정보"
 
 
 @dataclass
@@ -89,7 +72,7 @@ class ColumnNames:
     OPERATION: str = "PROCNAME" # "공정명"
     OPERATION_CODE: str = "PROCCODE"
     OPERATION_CLASSIFICATION: str = "ProcGbn" # "공정분류"
-    MIXTURE_CODE: str = "id_mixture" # "배합코드"
+    MIXTURE_LIST: str = "mixture_list" # "배합코드"
     ALLOCATED_WORK: str = "allocated_work" # "할당 작업"
     
     # Process IDs (structured pattern)
@@ -109,7 +92,7 @@ class ColumnNames:
     
     # Scheduler delay/setup time related
     EARLIER_OPERATION_TYPE: str = "prev_operation_type" # "선행공정분류"
-    LATER_OPERATION_TYPE: str = "next_opertation_type" # "후행공정분류"
+    LATER_OPERATION_TYPE: str = "next_operation_type" # "후행공정분류"
     TYPE_CHANGE_TIME: str = "type_change_time" # "타입교체시간"
     LONG_TO_SHORT: str = "long_to_short"
     SHORT_TO_LONG: str = "short_to_long"

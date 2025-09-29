@@ -201,6 +201,6 @@ class FabricCombiner:
             config.columns.DUE_DATE: sub_df[config.columns.DUE_DATE].min(),
             config.columns.FABRIC_WIDTH: result['fabric_width'],
             config.columns.PRODUCTION_LENGTH: result['production_length'],
-            config.columns.MIXTURE_CODE: sub_df[config.columns.MIXTURE_CODE].iloc[0],
+            config.columns.MIXTURE_LIST: sub_df[config.columns.MIXTURE_LIST].iloc[0],
             #'MIDDLE (점착제)': middle_value  # 항상 포함
         }])

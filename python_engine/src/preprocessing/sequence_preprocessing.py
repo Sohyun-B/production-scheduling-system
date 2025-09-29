@@ -16,12 +16,12 @@ def process_operations_by_category(merged_df):
             opslice = category_df[category_df[config.columns.OPERATION_CODE] == operation]
 
             # 배합코드 유무에 따라 분리
-            nan_bh = opslice[opslice[config.columns.MIXTURE_CODE].isna()]
-            notnan_bh = opslice[~opslice[config.columns.MIXTURE_CODE].isna()]
+            nan_bh = opslice[opslice[config.columns.MIXTURE_LIST].isna()]
+            notnan_bh = opslice[~opslice[config.columns.MIXTURE_LIST].isna()]
 
             # 배합코드가 존재하는 경우
             if not notnan_bh.empty:
-                groupby_col = [config.columns.GITEM, config.columns.OPERATION_CODE, config.columns.MIXTURE_CODE, config.columns.COMBINATION_CLASSIFICATION]
+                groupby_col = [config.columns.GITEM, config.columns.OPERATION_CODE, config.columns.MIXTURE_LIST, config.columns.COMBINATION_CLASSIFICATION]
                 combiner = FabricCombiner(groupby_col)
                 
                 
@@ -32,13 +32,13 @@ def process_operations_by_category(merged_df):
                         str(gitem) + "_" + 
                         paired_order[config.columns.OPERATION_CODE].round().astype(int).astype(str) + "_" +
                         paired_order[config.columns.FABRIC_WIDTH].round().astype(int).astype(str) + "_" + 
-                        paired_order[config.columns.MIXTURE_CODE].astype(str) + "_" +
+                        paired_order[config.columns.MIXTURE_LIST].astype(str) + "_" +
                         paired_order[config.columns.COMBINATION_CLASSIFICATION].astype(str)
                     )
                     results.append(paired_order)
 
             if not nan_bh.empty:
-                print(f"[{category}/{operation}] 배합코드 미존재 행 존재!!!!")
+                print(f"[{gitem}/{operation}] 배합코드 미존재 행 존재!!!!")
 
     if results:
         return pd.concat(results, ignore_index=True)
