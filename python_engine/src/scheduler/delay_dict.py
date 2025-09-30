@@ -36,9 +36,17 @@ class DelayProcessor:
         if machine_index not in self.machine_index_list:
             return 0
             
-        empty_list = [0] * 6
-        values1 = self.opnode_dict.get(item_id1, empty_list)
-        values2 = self.opnode_dict.get(item_id2, empty_list)
+        # 기본값 딕셔너리 생성
+        empty_dict = {
+            "OPERATION_ORDER": 0,
+            "OPERATION_CODE": "",
+            "OPERATION_CLASSIFICATION": "",
+            "FABRIC_WIDTH": 0,
+            "MIXTURE_LIST": (),
+            "PRODUCTION_LENGTH": 0
+        }
+        values1 = self.opnode_dict.get(item_id1, empty_dict)
+        values2 = self.opnode_dict.get(item_id2, empty_dict)
         
         input_key = self.calculate_delay(values1, values2, machine_index)
         delay_time = self.delay_dict.get(input_key, 0)
@@ -156,8 +164,8 @@ class DelayProcessor:
         지연 키 계산 (V5 방식 + mixture 로직)
         
         Args:
-            earlier: 이전 공정 정보 [순서, 공정이름, 지연유형, 너비, 배합코드, 길이]
-            later: 다음 공정 정보 [순서, 공정이름, 지연유형, 너비, 배합코드, 길이]
+            earlier: 이전 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, MIXTURE_LIST, PRODUCTION_LENGTH)
+            later: 다음 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, MIXTURE_LIST, PRODUCTION_LENGTH)
             machine_idx: 기계 인덱스
             
         Returns:
@@ -170,12 +178,12 @@ class DelayProcessor:
         same_mixture = False
 
         # 공정 정보 추출
-        earlier_operation_type = earlier[2]
-        later_operation_type = later[2]
-        earlier_width = earlier[3]
-        later_width = later[3]
-        earlier_mixture = earlier[4]
-        later_mixture = later[4]
+        earlier_operation_type = earlier["OPERATION_CLASSIFICATION"]
+        later_operation_type = later["OPERATION_CLASSIFICATION"]
+        earlier_width = earlier["FABRIC_WIDTH"]
+        later_width = later["FABRIC_WIDTH"]
+        earlier_mixture = earlier["MIXTURE_LIST"]
+        later_mixture = later["MIXTURE_LIST"]
 
         # 1. 너비 변경 여부 확인
         if earlier_width > later_width:
