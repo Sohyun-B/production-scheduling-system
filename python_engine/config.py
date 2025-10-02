@@ -2,37 +2,6 @@ from dataclasses import dataclass, field
 from typing import Dict, List
 
 
-@dataclass
-class FilePaths:
-    # Excel Input files (변환용)
-    ITEM_LINESPEED_SEQUENCE: str = "data/input/품목별 분리 라인스피드 및 공정 순서.xlsx"
-    OPERATION_RECLASSIFICATION: str = "data/input/공정 재분류 내역 및 교체 시간 정리(250820).xlsx"
-    IMPOSSIBLE_OPERATION: str = "data/input/불가능한 공정 입력값.xlsx"
-    ORDER_DATA: str = "data/input/preprocessed_order.xlsx"  # 전처리된 주문 데이터
-    ORDER_PO_RAW: str = "25년 5월 PO 내역(송부건).xlsx"  # 원본 주문 데이터 (전처리용)
-    
-    # JSON Data files (실제 사용)
-    JSON_DIR: str = "data/json"
-    JSON_LINESPEED: str = "data/json/md_step2_linespeed.json"
-    JSON_OPERATION_SEQUENCE: str = "data/json/md_step3_operation_sequence.json"
-    JSON_MACHINE_INFO: str = "data/json/md_step4_machine_master_info.json"
-    JSON_YIELD_DATA: str = "data/json/md_step3_yield_data.json"
-    JSON_GITEM_OPERATION: str = "data/json/md_step3_gitem_operation.json"
-    JSON_OPERATION_TYPES: str = "data/json/md_step2_operation_types.json"
-    JSON_OPERATION_DELAY: str = "data/json/md_step5 operation_delay.json"
-    JSON_WIDTH_CHANGE: str = "data/json/md_step5_width_change.json"
-    JSON_MACHINE_REST: str = "data/json/user_step5_machine_rest.json"
-    JSON_MACHINE_ALLOCATE: str = "data/json/user_step2_machine_allocate.json"
-    JSON_MACHINE_LIMIT: str = "data/json/user_step2_machine_limit.json"
-    JSON_ORDER_DATA: str = "data/json/md_step2_order_data.json"
-    
-    # Output files
-    RESULT_INTERMEDIATE: str = "data/output/result.xlsx"
-    RESULT_FINAL: str = "data/output/0829 스케줄링결과.xlsx"
-    GANTT_CHART: str = "data/output/level4_gantt.png"
-    GANTT_INPUT: str = "gantt_input.xlsx"
-
-
 
 
 @dataclass
@@ -108,6 +77,8 @@ class BusinessConstants:
     BASE_MONTH: int = 5
     BASE_DAY: int = 15
     WINDOW_DAYS: int = 5
+    LINESPEED_PERIOD: str = '6_months'
+    YIELD_PERIOD: str = '6_months'
     TIME_MULTIPLIER: int = 30
     GANTT_DPI: int = 300
     FAKE_OPERATION_DEPTH: int = -1
@@ -115,8 +86,6 @@ class BusinessConstants:
 
 @dataclass
 class Config:
-    files: FilePaths = field(default_factory=FilePaths)
-    # sheets: SheetNames = field(default_factory=SheetNames)
     columns: ColumnNames = field(default_factory=ColumnNames)
     constants: BusinessConstants = field(default_factory=BusinessConstants)
 
