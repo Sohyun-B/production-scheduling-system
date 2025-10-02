@@ -22,12 +22,13 @@ class ProductionDataPreprocessor:
         """
         pass
 
-    def preprocess_order_data(self, order_df: pd.DataFrame) -> pd.DataFrame:
+    def preprocess_order_data(self, order_df: pd.DataFrame, buffer_days: int = 7) -> pd.DataFrame:
         """
         주문 데이터 전처리
 
         Args:
             order_df (pd.DataFrame): PO정보 원본 데이터프레임
+            buffer_days (int): 납기 여유일자 (디폴트 7일)
 
         Returns:
             pd.DataFrame: 전처리된 주문 데이터
@@ -41,6 +42,10 @@ class ProductionDataPreprocessor:
 
         # Fabric_Length 계산
         order_data[config.columns.FABRIC_LENGTH] = order_data[config.columns.LENGTH].astype(int) * order_data[config.columns.REQUEST_AMOUNT].astype(int)
+
+        # 납기일 처리: 원본 백업 및 조정된 납기일로 덮어쓰기
+        order_data[config.columns.ORIGINAL_DUE_DATE] = order_data['DUEDATE']
+        order_data['DUEDATE'] = pd.to_datetime(order_data['DUEDATE']) - pd.Timedelta(days=buffer_days)
 
         return order_data
 

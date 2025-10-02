@@ -26,6 +26,7 @@ def run_level4_scheduling():
     window_days = config.constants.WINDOW_DAYS
     linespeed_period = config.constants.LINESPEED_PERIOD
     yield_period = config.constants.YIELD_PERIOD
+    buffer_days = config.constants.BUFFER_DAYS
 
     # === Excel 파일 로딩 ===
     try:
@@ -61,8 +62,9 @@ def run_level4_scheduling():
         gitem_sitem_df=gitem_sitem_df,
         linespeed_period=linespeed_period,
         yield_period=yield_period,
-        validate=True, 
-        save_output=False 
+        buffer_days=buffer_days,
+        validate=True,
+        save_output=False
     )
 
     # 전처리된 데이터 추출

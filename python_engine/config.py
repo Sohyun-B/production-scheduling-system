@@ -23,6 +23,7 @@ class ColumnNames:
     
     # Dates and times
     DUE_DATE: str = "DUEDATE" # "납기일"
+    ORIGINAL_DUE_DATE: str = "original_due_date" # "원본납기일"
     END_DATE: str = "end_date" # "종료날짜"
     LATE_DAYS: str = "late_days" # "지각일수"
     END_TIME: str = "end_time" # "종료시각"               # End time (abstract units)
@@ -82,6 +83,7 @@ class BusinessConstants:
     TIME_MULTIPLIER: int = 30
     GANTT_DPI: int = 300
     FAKE_OPERATION_DEPTH: int = -1
+    BUFFER_DAYS: int = 7  # 납기 여유일자 (디폴트 7일)
 
 
 @dataclass
