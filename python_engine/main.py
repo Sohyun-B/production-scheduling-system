@@ -14,7 +14,7 @@ import json
 
 from config import config
 from src.validation import preprocess_production_data
-from src.preprocessing import preprocessing
+from src.order_sequencing import generate_order_sequences
 from src.yield_management import yield_prediction
 from src.dag_management import create_complete_dag_system
 from src.scheduler.scheduling_core import DispatchPriorityStrategy
@@ -89,8 +89,8 @@ def run_level4_scheduling():
 
     print("[30%] Validation 완료!")
 
-    # === 2단계: 전처리 (Preprocessing) ===
-    sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = preprocessing(
+    # === 2단계: 주문 시퀀스 생성 (Order Sequencing) ===
+    sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = generate_order_sequences(
         order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed, mixture_data)
 
     print("sequence_seperated_order 정보!!!!!!!")
