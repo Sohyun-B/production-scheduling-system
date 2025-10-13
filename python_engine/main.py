@@ -10,83 +10,95 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 import pandas as pd
 from datetime import datetime
-import sys
-import os
 import json
 
 from config import config
-from src.preprocessing import preprocessing
+from src.validation import preprocess_production_data
+from src.order_sequencing import generate_order_sequences
 from src.yield_management import yield_prediction
 from src.dag_management import create_complete_dag_system
 from src.scheduler.scheduling_core import DispatchPriorityStrategy
 from src.results import create_results
 
 def run_level4_scheduling():
-    
-
+    # 사용자 입력으로 받는 부분
     base_date = datetime(config.constants.BASE_YEAR, config.constants.BASE_MONTH, config.constants.BASE_DAY)
     window_days = config.constants.WINDOW_DAYS
+    linespeed_period = config.constants.LINESPEED_PERIOD
+    yield_period = config.constants.YIELD_PERIOD
+    buffer_days = config.constants.BUFFER_DAYS
 
-    # === 1단계: JSON 데이터 로딩 ===
-    # JSON 파일들에서 데이터 로딩
+    # === Excel 파일 로딩 ===
     try:
-        # print("JSON 파일에서 데이터 로딩 중...")
-        path = "data/input/python_input.xlsx"
-        # path = "data/input/생산계획_db샘플.xlsx"
+        print("Excel 파일 로딩 중...")
+        input_file = "data/input/생산계획 필요기준정보 내역-Ver4.xlsx"
 
-        # ====================================================
+        # 각 시트에서 데이터 읽기
+        order_df = pd.read_excel(input_file, sheet_name="PO정보", skiprows=1)
+        gitem_sitem_df = pd.read_excel(input_file, sheet_name="제품군-GITEM-SITEM", skiprows=2)
+        linespeed_df = pd.read_excel(input_file, sheet_name="라인스피드-GITEM등", skiprows=5)
+        operation_df = pd.read_excel(input_file, sheet_name="GITEM-공정-순서", skiprows=1)
+        yield_df = pd.read_excel(input_file, sheet_name="수율-GITEM등", skiprows=5)
+        mixture_df = pd.read_excel(input_file, sheet_name="배합액정보", skiprows=5)
+        operation_delay_df = pd.read_excel(input_file, sheet_name="공정교체시간", skiprows=1)
+        width_change_df = pd.read_excel(input_file, sheet_name="폭변경", skiprows=1)
 
-        linespeed = pd.read_excel(path, sheet_name = "linespeed")
-        operation_types = pd.read_excel(path, sheet_name = "operation_types") 
-        operation_seperated_sequence = pd.read_excel(path, sheet_name = "operation_sequence") # 배합액 정보 누락, 공정타입 정보 추가
-        
-        yield_data = pd.read_excel(path, sheet_name = "yield_data")
-        machine_master_info = pd.read_excel(path, sheet_name = "machine_master_info")
-        mixture_data = pd.read_excel(path, sheet_name = "mixture_data")
+        print("Excel 파일 로딩 완료!")
 
-        operation_delay_df = pd.read_excel(path, sheet_name = "operation_delay")
-
-        width_change_df = pd.read_excel(path, sheet_name = "width_change")
-
-        machine_limit = pd.read_excel(path, sheet_name = "machine_limit")
-        machine_rest = pd.read_excel(path, sheet_name = "machine_rest")
-        if 'dt_start' in machine_rest.columns:
-            machine_rest['dt_start'] = pd.to_datetime(machine_rest['dt_start'])
-        if 'dt_end' in machine_rest.columns:
-            machine_rest['dt_end'] = pd.to_datetime(machine_rest['dt_end'])
-        machine_allocate = pd.read_excel(path, sheet_name = "machine_allocate")
-
-        order = pd.read_excel(path, sheet_name = "order_data")
-
-        # 날짜 컬럼을 datetime으로 변환
-        if config.columns.DUE_DATE in order.columns:
-            order[config.columns.DUE_DATE] = pd.to_datetime(order[config.columns.DUE_DATE])
-
-
-        # # 공정에 배합액 관련 정보 임시 추가
-        # mixture_data = mixture_data.rename(columns = {'Che1':'id_1st_mixture', 'Che2': 'id_2nd_mixture'})
-        # operation_seperated_sequence = pd.merge(operation_seperated_sequence, mixture_data, on = ['GitemNo', 'PROCCODE'], how = 'left')
-        # import numpy as np
-        # operation_seperated_sequence['id_1st_mixture'] = operation_seperated_sequence['id_1st_mixture'].replace(np.nan, "None")
-        # operation_seperated_sequence['id_2nd_mixture'] = operation_seperated_sequence['id_2nd_mixture'].replace(np.nan, "None")
-        # print(operation_seperated_sequence)
-
-
-        
     except FileNotFoundError as e:
-        print(f"오류: {e}")
+        print(f"오류: 파일을 찾을 수 없습니다 - {e}")
+        return
 
-    # 1단계: VALIDATION
+    # === 1단계: Validation - 데이터 유효성 검사 및 전처리 ===
+    print("[10%] 데이터 유효성 검사 및 전처리 (Validation) 시작...")
+    processed_data = preprocess_production_data(
+        order_df=order_df,
+        linespeed_df=linespeed_df,
+        operation_df=operation_df,
+        yield_df=yield_df,
+        mixture_df=mixture_df,
+        operation_delay_df=operation_delay_df,
+        width_change_df=width_change_df,
+        gitem_sitem_df=gitem_sitem_df,
+        linespeed_period=linespeed_period,
+        yield_period=yield_period,
+        buffer_days=buffer_days,
+        validate=True,
+        save_output=False
+    )
 
-    # === 2단계: 전처리 ===
-    sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = preprocessing(
+    # 전처리된 데이터 추출
+    linespeed = processed_data['linespeed']
+    operation_types = processed_data['operation_types']
+    operation_seperated_sequence = processed_data['operation_sequence']
+    yield_data = processed_data['yield_data']
+    machine_master_info = processed_data['machine_master_info']
+    mixture_data = processed_data['mixture_data']
+    operation_delay_df = processed_data['operation_delay']
+    width_change_df = processed_data['width_change']
+    machine_limit = processed_data['machine_limit']
+    machine_allocate = processed_data['machine_allocate']
+    machine_rest = processed_data['machine_rest']
+    order = processed_data['order_data']
+
+    # 날짜 컬럼을 datetime으로 변환
+    if config.columns.DUE_DATE in order.columns:
+        order[config.columns.DUE_DATE] = pd.to_datetime(order[config.columns.DUE_DATE])
+    if 'dt_start' in machine_rest.columns:
+        machine_rest['dt_start'] = pd.to_datetime(machine_rest['dt_start'])
+    if 'dt_end' in machine_rest.columns:
+        machine_rest['dt_end'] = pd.to_datetime(machine_rest['dt_end'])
+
+    print("[30%] Validation 완료!")
+
+    # === 2단계: 주문 시퀀스 생성 (Order Sequencing) ===
+    sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = generate_order_sequences(
         order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed, mixture_data)
 
     print("sequence_seperated_order 정보!!!!!!!")
     print(sequence_seperated_order.columns)
 
-
-    # === 3단계: 수율 예측 (3단계, 4단계 건너뛰기) ===
+    # === 3단계: 수율 예측 ===
     print("[35%] 수율 예측 처리 중...")
     sequence_seperated_order = yield_prediction(
         yield_data, sequence_seperated_order
@@ -208,7 +220,14 @@ def run_level4_scheduling():
         
         # 최종 완료
         print("[100%] 스케줄링 완료! 모든 결과 파일 저장 완료")
-        
+
+        # 배합액 선택 통계
+        mixture_selected_count = sum(1 for node_info in opnode_dict.values()
+                                     if node_info.get('SELECTED_MIXTURE') is not None)
+        mixture_none_count = len(opnode_dict) - mixture_selected_count
+        print(f"\n[배합액] 선택된 노드: {mixture_selected_count}개, None인 노드: {mixture_none_count}개")
+
+
     except Exception as e:
         print(f"[ERROR] Level 4 스케줄링 실행 중 오류: {e}")
         import traceback

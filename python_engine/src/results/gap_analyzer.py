@@ -156,29 +156,28 @@ class ScheduleGapAnalyzer:
                 'setup_key': 'no_setup_machine'
             }
         
-        # opnode_dict에서 작업 정보 추출
-        prev_info = self.delay_processor.opnode_dict.get(prev_task_id, [0]*6)
-        next_info = self.delay_processor.opnode_dict.get(next_task_id, [0]*6)
-        
-        if len(prev_info) < 5 or len(next_info) < 5:
-            return {
-                'machine_index': machine_index,
-                'earlier_operation_type': 'unknown',
-                'later_operation_type': 'unknown',
-                'long_to_short': False,
-                'short_to_long': False, 
-                'same_type': False,
-                'same_mixture': False,
-                'setup_key': 'insufficient_data'
-            }
-        
-        # DelayProcessor의 calculate_delay와 동일한 로직
-        earlier_operation_type = prev_info[2]
-        later_operation_type = next_info[2]
-        earlier_width = prev_info[3]
-        later_width = next_info[3]
-        earlier_mixture = prev_info[4]
-        later_mixture = next_info[4]
+        # opnode_dict에서 작업 정보 추출 (딕셔너리 구조)
+        prev_info = self.delay_processor.opnode_dict.get(prev_task_id)
+        next_info = self.delay_processor.opnode_dict.get(next_task_id)
+
+        if not prev_info:
+            raise ValueError(f"[간격분석] prev_task_id '{prev_task_id}'에 대한 opnode_dict 정보가 없습니다.")
+        if not next_info:
+            raise ValueError(f"[간격분석] next_task_id '{next_task_id}'에 대한 opnode_dict 정보가 없습니다.")
+
+        # DelayProcessor의 calculate_delay와 동일한 로직 (딕셔너리 키로 접근)
+        # 필수 필드 검증 및 추출
+        try:
+            earlier_operation_type = prev_info["OPERATION_CLASSIFICATION"]
+            later_operation_type = next_info["OPERATION_CLASSIFICATION"]
+            earlier_width = prev_info["FABRIC_WIDTH"]
+            later_width = next_info["FABRIC_WIDTH"]
+        except KeyError as e:
+            raise KeyError(f"[간격분석] 필수 필드 누락: {e}. prev_info 키: {prev_info.keys()}, next_info 키: {next_info.keys()}")
+
+        # SELECTED_MIXTURE는 None일 수 있음 (배합액 없는 공정)
+        earlier_mixture = prev_info.get("SELECTED_MIXTURE")
+        later_mixture = next_info.get("SELECTED_MIXTURE")
         
         # 조건 계산
         long_to_short = earlier_width > later_width
@@ -210,19 +209,14 @@ class ScheduleGapAnalyzer:
         if df.empty:
             return pd.DataFrame()
         
-        summary = df.groupby('machine_index').agg({
-            'gap_duration': ['count', 'sum'],
-            'setup_time': 'sum', 
-            'idle_time': 'sum',
-            'theoretical_setup_time': 'sum'
-        }).round(2)
-        
-        summary.columns = [
-            'gap_count', 'total_gap_time', 
-            'total_setup_time', 'total_idle_time', 
-            'total_theoretical_setup_time'
-        ]
-        
+        summary = df.groupby('machine_index').agg(
+            gap_count=('gap_duration', 'count'),
+            total_gap_time=('gap_duration', 'sum'),
+            total_setup_time=('setup_time', 'sum'),
+            total_idle_time=('idle_time', 'sum'),
+            total_theoretical_setup_time=('theoretical_setup_time', 'sum')
+        ).round(2)
+
         return summary.reset_index()
     
     def export_detailed_gaps(self):
@@ -296,9 +290,8 @@ class GapAnalysisProcessor:
                 gap_analyzer
             )
             
-            # 간격 분석 요약 출력
-            processor.print_gap_summary()
-            
+            # 간격 분석 요약 출력은 machine_processor.py:218에서 수행됨 (중복 제거)
+
             # 상세 간격 분석 결과 저장
             detailed_gaps, machine_summary = processor.create_gap_analysis_report()
             

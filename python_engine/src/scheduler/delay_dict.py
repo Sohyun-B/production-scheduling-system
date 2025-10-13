@@ -162,12 +162,12 @@ class DelayProcessor:
     def calculate_delay(earlier: list, later: list, machine_idx: int) -> Tuple:
         """
         지연 키 계산 (V5 방식 + mixture 로직)
-        
+
         Args:
-            earlier: 이전 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, MIXTURE_LIST, PRODUCTION_LENGTH)
-            later: 다음 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, MIXTURE_LIST, PRODUCTION_LENGTH)
+            earlier: 이전 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, SELECTED_MIXTURE, PRODUCTION_LENGTH)
+            later: 다음 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, SELECTED_MIXTURE, PRODUCTION_LENGTH)
             machine_idx: 기계 인덱스
-            
+
         Returns:
             지연 계산을 위한 키 튜플
         """
@@ -182,8 +182,8 @@ class DelayProcessor:
         later_operation_type = later["OPERATION_CLASSIFICATION"]
         earlier_width = earlier["FABRIC_WIDTH"]
         later_width = later["FABRIC_WIDTH"]
-        earlier_mixture = earlier["MIXTURE_LIST"]
-        later_mixture = later["MIXTURE_LIST"]
+        earlier_mixture = earlier["SELECTED_MIXTURE"]
+        later_mixture = later["SELECTED_MIXTURE"]
 
         # 1. 너비 변경 여부 확인
         if earlier_width > later_width:
@@ -195,9 +195,10 @@ class DelayProcessor:
         if earlier_operation_type == later_operation_type:
             same_type = True
 
-        # 3. mixture 동일 여부 확인 (추가)
+        # 3. mixture 동일 여부 확인 (SELECTED_MIXTURE 기준)
+        # 둘 다 None인 경우도 같은 것으로 처리
         if earlier_mixture == later_mixture:
             same_mixture = True
 
-        return (machine_idx, earlier_operation_type, later_operation_type, 
+        return (machine_idx, earlier_operation_type, later_operation_type,
                 long_to_short, short_to_long, same_type, same_mixture)

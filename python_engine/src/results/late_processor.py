@@ -119,7 +119,7 @@ class LateProcessor:
         late_products = new_output_final_result[
             new_output_final_result[config.columns.LATE_DAYS] > 0
         ]
-        late_po_numbers = late_products['P/O NO'].tolist() if len(late_products) > 0 else []
+        late_po_numbers = late_products[config.columns.PO_NO].tolist() if len(late_products) > 0 else []
         
         print(f"[지각처리] 완료 - 총 지각 일수: {late_days_sum}일, 지각 제품: {len(late_products)}개")
         

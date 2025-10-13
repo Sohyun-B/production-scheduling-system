@@ -110,18 +110,20 @@ class MachineScheduleProcessor:
         
         try:
             machine_summary = self.gap_analyzer.get_machine_summary()
+
             if not machine_summary.empty:
                 print("\n=== 기계별 간격 요약 ===")
                 for _, row in machine_summary.iterrows():
                     machine_idx = row['machine_index']
                     setup_time = row['total_setup_time']
-                    idle_time = row['total_idle_time'] 
+                    idle_time = row['total_idle_time']
                     gap_count = row['gap_count']
                     print(f"기계 {machine_idx}: 총 간격 {gap_count}개, 셋업시간 {setup_time:.1f}, 대기시간 {idle_time:.1f}")
             else:
                 print("[간격분석] 분석할 간격이 없습니다.")
         except Exception as e:
             print(f"[간격분석] 요약 출력 중 오류: {e}")
+            raise
 
     def create_gap_analysis_report(self):
         """상세 간격 분석 리포트 생성"""
@@ -134,7 +136,7 @@ class MachineScheduleProcessor:
             return detailed_gaps, machine_summary
         except Exception as e:
             print(f"[간격분석] 리포트 생성 중 오류: {e}")
-            return None, None
+            raise
 
 
 class MachineProcessor:
