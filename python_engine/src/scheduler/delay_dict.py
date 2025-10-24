@@ -7,7 +7,7 @@ from config import config
 class DelayProcessor:
     def __init__(self, opnode_dict, operation_delay_df, width_change_df, machine_index_list):
         """
-        V5 방식 구조 유지 + mixture 로직 추가
+        V5 방식 구조 유지 + chemical 로직 추가
         
         Args:
             opnode_dict: 노드 정보 딕셔너리
@@ -42,7 +42,7 @@ class DelayProcessor:
             "OPERATION_CODE": "",
             "OPERATION_CLASSIFICATION": "",
             "FABRIC_WIDTH": 0,
-            "MIXTURE_LIST": (),
+            "CHEMICAL_LIST": (),
             "PRODUCTION_LENGTH": 0
         }
         values1 = self.opnode_dict.get(item_id1, empty_dict)
@@ -66,7 +66,7 @@ class DelayProcessor:
             'long_to_short': [True, False],  # 장폭 -> 단폭 여부
             'short_to_long': [True, False],  # 단폭 -> 장폭 여부
             'same_type': [True, False],      # 공정 유형 동일 여부
-            'same_mixture': [True, False]    # mixture 동일 여부 (추가)
+            'same_chemical': [True, False]    # chemical 동일 여부 (추가)
         }
         return pd.DataFrame(product(*columns.values()), columns=columns.keys())
 
@@ -76,7 +76,7 @@ class DelayProcessor:
         width_change_df: pd.DataFrame
     ) -> pd.DataFrame:
         """
-        지연 조건들을 적용하여 최종 지연시간 계산 (V5 방식 + mixture 로직)
+        지연 조건들을 적용하여 최종 지연시간 계산 (V5 방식 + chemical 로직)
         
         Args:
             operation_delay_df: 공정 타입별 지연 규칙
@@ -117,9 +117,9 @@ class DelayProcessor:
         # 지연시간 계산: 각 조건에 해당하는 지연시간 중 최대값 선택
         delay_columns = []
         
-        # 1. 공정 타입 변경 지연시간 (mixture가 다를 때만 적용)
+        # 1. 공정 타입 변경 지연시간 (chemical가 다를 때만 적용)
         type_delay = df[config.columns.TYPE_CHANGE_TIME].fillna(0)
-        type_delay = type_delay.where(~df['same_mixture'].fillna(False), 0)  # same_mixture=True면 0
+        type_delay = type_delay.where(~df['same_chemical'].fillna(False), 0)  # same_chemical=True면 0
         delay_columns.append(type_delay)
         
         # 2. 장폭 -> 단폭 지연시간 (조건 만족시에만)
@@ -154,18 +154,18 @@ class DelayProcessor:
         
         return {
             tuple(row[['machine_index', 'earlier_operation_type', 'later_operation_type', 
-                      long_to_short_col, short_to_long_col, 'same_type', 'same_mixture']]): row['delay_time']
+                      long_to_short_col, short_to_long_col, 'same_type', 'same_chemical']]): row['delay_time']
             for _, row in self.final_df.iterrows()
         }
 
     @staticmethod
     def calculate_delay(earlier: list, later: list, machine_idx: int) -> Tuple:
         """
-        지연 키 계산 (V5 방식 + mixture 로직)
+        지연 키 계산 (V5 방식 + chemical 로직)
 
         Args:
-            earlier: 이전 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, SELECTED_MIXTURE, PRODUCTION_LENGTH)
-            later: 다음 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, SELECTED_MIXTURE, PRODUCTION_LENGTH)
+            earlier: 이전 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, SELECTED_CHEMICAL, PRODUCTION_LENGTH)
+            later: 다음 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, SELECTED_CHEMICAL, PRODUCTION_LENGTH)
             machine_idx: 기계 인덱스
 
         Returns:
@@ -175,15 +175,15 @@ class DelayProcessor:
         long_to_short = False
         short_to_long = False
         same_type = False
-        same_mixture = False
+        same_chemical = False
 
         # 공정 정보 추출
         earlier_operation_type = earlier["OPERATION_CLASSIFICATION"]
         later_operation_type = later["OPERATION_CLASSIFICATION"]
         earlier_width = earlier["FABRIC_WIDTH"]
         later_width = later["FABRIC_WIDTH"]
-        earlier_mixture = earlier["SELECTED_MIXTURE"]
-        later_mixture = later["SELECTED_MIXTURE"]
+        earlier_chemical = earlier["SELECTED_CHEMICAL"]
+        later_chemical = later["SELECTED_CHEMICAL"]
 
         # 1. 너비 변경 여부 확인
         if earlier_width > later_width:
@@ -195,10 +195,10 @@ class DelayProcessor:
         if earlier_operation_type == later_operation_type:
             same_type = True
 
-        # 3. mixture 동일 여부 확인 (SELECTED_MIXTURE 기준)
+        # 3. chemical 동일 여부 확인 (SELECTED_CHEMICAL 기준)
         # 둘 다 None인 경우도 같은 것으로 처리
-        if earlier_mixture == later_mixture:
-            same_mixture = True
+        if earlier_chemical == later_chemical:
+            same_chemical = True
 
         return (machine_idx, earlier_operation_type, later_operation_type,
-                long_to_short, short_to_long, same_type, same_mixture)
+                long_to_short, short_to_long, same_type, same_chemical)

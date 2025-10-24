@@ -23,7 +23,7 @@ class Scheduler:
                        for i in range(self.machine_numbers)]  
 
 
-    def earliest_start(self, machine_info, machine_index, node_earliest_start, node_id, machine_window_flag = False):
+    def machine_earliest_start(self, machine_info, machine_index, node_earliest_start, node_id, machine_window_flag = False):
 ##############
         """
         (node_id, machine_index) 필요 <_ 이걸로 machine_List 접근. -> 공정의 수행시간
@@ -55,14 +55,14 @@ class Scheduler:
             normal_delay = 0
         
         # 기본 최소 시작시간 계산: 작업 이전 종료 vs 기계 최종 종료 + 최종 종료 이전 작업 + 딜레이
-        earliest_start = max(last_O_end, Machine_end_time + normal_delay)
+        machine_earliest_start = max(last_O_end, Machine_end_time + normal_delay)
     
 
         if machine_window_flag: # 빈 시간대 창을 분석하지 않는 경우
-            End_work_time = earliest_start + P_t
+            End_work_time = machine_earliest_start + P_t
         
             return (
-                earliest_start,     # M_earliest
+                machine_earliest_start,     # M_earliest
                 Selected_Machine,   # machine 번호
                 P_t,                # 수행 시간
                 last_O_end,         # 삽입 전 종료시간
@@ -86,7 +86,7 @@ class Scheduler:
                     later_delay = self.delay_processor.delay_calc_whole_process(node_id, target_machine_task[le_i][1], Selected_Machine)
 
                     if M_Tlen[le_i] >=  earlier_delay + P_t + later_delay: # 실제 지연 시간을 포함한 수행시간보다 빈 창이 더 큰 경우
-                        earliest_start = M_Tstart[le_i] + earlier_delay
+                        machine_earliest_start = M_Tstart[le_i] + earlier_delay
                         break
                 
                 # 2. 빈 창 중간에 작업 종료시간이 포함되는 경우
@@ -103,16 +103,16 @@ class Scheduler:
 
                     # 빈 창 + 시작 지연 시간과 이전 작업 종료 시간 중 더 늦은 시간 계산 후, 실행 시간과 이후 지연시간 더해서 종료예정시각 구함 
                     # 실제 시작 시간 
-                    real_earliest_start = max(M_Tstart[le_i] + earlier_delay, last_O_end)
-                    if (M_Tend[le_i] - real_earliest_start) >= P_t:
-                        earliest_start = real_earliest_start
+                    real_machine_earliest_start = max(M_Tstart[le_i] + earlier_delay, last_O_end)
+                    if (M_Tend[le_i] - real_machine_earliest_start) >= P_t:
+                        machine_earliest_start = real_machine_earliest_start
                         break
         
         # 최종 종료시간 계산
-        End_work_time = earliest_start + P_t
+        End_work_time = machine_earliest_start + P_t
         
         return (
-            earliest_start,     # M_earliest
+            machine_earliest_start,     # M_earliest
             Selected_Machine,   # machine 번호
             P_t,                # 수행 시간
             last_O_end,         # 삽입 전 종료시간
@@ -150,7 +150,7 @@ class Scheduler:
         # 모든 기계 후보 탐색
         for machine_index, machine_processing_time in enumerate(machine_info):
             if machine_processing_time != 9999: # 0이면 수행하지 않는 기계로 판단]
-                earliest_start = self.earliest_start(machine_info, machine_index, node_earliest_start, node_id)[0]  # 튜플 첫 번째 값이 시작 시간
+                earliest_start = self.machine_earliest_start(machine_info, machine_index, node_earliest_start, node_id)[0]  # 튜플 첫 번째 값이 시작 시간
 
                 # 최적 기계 선정 조건
                 if (earliest_start + machine_processing_time) < (best_earliest_start + ideal_machine_processing_time):
@@ -197,9 +197,9 @@ class Scheduler:
         if machine_processing_time != 9999: # 0이면 수행하지 않는 기계로 판단]
             
             if machine_window_flag: # machine의 빈 쉬는 시간에 할당하지 않음
-                earliest_start, _, processing_time = self.earliest_start(machine_info, machine_idx, node_earliest_start, node_id, machine_window_flag = True)[0:3]
+                earliest_start, _, processing_time = self.machine_earliest_start(machine_info, machine_idx, node_earliest_start, node_id, machine_window_flag = True)[0:3]
             else:
-                earliest_start, _, processing_time = self.earliest_start(machine_info, machine_idx, node_earliest_start, node_id)[0:3]  # 튜플 첫 번째 값이 시작 시간
+                earliest_start, _, processing_time = self.machine_earliest_start(machine_info, machine_idx, node_earliest_start, node_id)[0:3]  # 튜플 첫 번째 값이 시작 시간
 
         # 작업/기계 업데이트
         # 머신 클래스 변경 필요

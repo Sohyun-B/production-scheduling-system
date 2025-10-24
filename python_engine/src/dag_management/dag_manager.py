@@ -45,9 +45,18 @@ class DAGGraphManager:
     def build_from_dataframe(self, dag_df):
         # children이 리스트 형태가 아닌 경우 리스트 형태로 변환
         dag_df['CHILDREN'] = dag_df['CHILDREN'].apply(self.parse_list)
-        # 노드 생성 (변경 없음)
+        # 노드 생성 및 aging_time 설정
         for idx, row in dag_df.iterrows():
             node = DAGNode(row['ID'], row['DEPTH'])
+            # opnode_dict에서 aging_time 가져와서 설정, aging_time이 없으면 0으로 설정
+            node_id = row['ID']
+            if node_id in self.opnode_dict:
+                node_info = self.opnode_dict[node_id]
+                aging_time = node_info.get('AGING_TIME', 0) if isinstance(node_info, dict) else 0
+                node.aging_time = aging_time if aging_time is not None else 0
+            else:
+                # opnode_dict에 없는 노드는 aging_time을 0으로 유지
+                node.aging_time = 0
             self.nodes[row['ID']] = node
 
         # 관계 설정: CHILDREN 컬럼 기준

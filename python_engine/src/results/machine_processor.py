@@ -49,7 +49,7 @@ class MachineScheduleProcessor:
         gitem_list = []
         width_list = []
         length_list = []
-        mixture_list = []
+        chemical_list = []
         duedate_list = []
 
         for idx, row in machine_info.iterrows():
@@ -71,8 +71,8 @@ class MachineScheduleProcessor:
             item_length = filtered_rows[f'{config.columns.PRODUCTION_LENGTH}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
             length_list.append(item_length)
 
-            mixtures = filtered_rows[f'{config.columns.MIXTURE_LIST}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
-            mixture_list.append(mixtures)
+            chemicals = filtered_rows[f'{config.columns.CHEMICAL_LIST}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
+            chemical_list.append(chemicals)
 
             duedates = filtered_rows[config.columns.DUE_DATE].tolist()
             duedate_list.append(duedates)
@@ -90,14 +90,14 @@ class MachineScheduleProcessor:
         gitem_list = [unique_or_single(x) for x in gitem_list]
         width_list = [unique_or_single(x) for x in width_list]
         length_list = [unique_or_single(x) for x in length_list]
-        mixture_list = [unique_or_single(x) for x in mixture_list]
+        chemical_list = [unique_or_single(x) for x in chemical_list]
         duedate_list = [timestamps_to_dates(sublist) for sublist in duedate_list]
 
         machine_info[config.columns.PO_NO] = po_no_list
         machine_info[config.columns.GITEM] = gitem_list
         machine_info[config.columns.FABRIC_WIDTH] = width_list
         machine_info[config.columns.PRODUCTION_LENGTH] = length_list
-        machine_info[config.columns.MIXTURE_LIST] = mixture_list
+        machine_info[config.columns.CHEMICAL_LIST] = chemical_list
         machine_info[config.columns.DUE_DATE] = duedate_list
 
         return machine_info

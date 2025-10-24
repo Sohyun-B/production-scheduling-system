@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import re
 from typing import Dict, Tuple, Union
+from config import config
 
 
 class ProductionDataPreprocessor:
@@ -32,17 +33,15 @@ class ProductionDataPreprocessor:
             pd.DataFrame: 전처리된 주문 데이터
         """
         # 필요한 컬럼만 선택
-        order_data = order_df[['PoNo', 'GItemNo', 'GItemName', 'sitemno', 
-                              'SitemName', 'Spec', 'IpgmQty', 'DUEDATE']]
+        order_data = order_df[[config.columns.PO_NO, config.columns.GITEM, config.columns.GITEM_NAME, config.columns.SITEM,
+                              config.columns.SITEM_NAME, config.columns.SPEC, config.columns.REQUEST_AMOUNT, config.columns.DUE_DATE]]
 
         # Spec 컬럼을 분해 (Thickness, Width, Length)
-        order_data[['Thickness', 'Width', 'Length']] = order_data['Spec'].str.split("*", expand=True)
+        order_data[['Thickness', config.columns.WIDTH, config.columns.LENGTH]] = order_data[config.columns.SPEC].str.split("*", expand=True)
 
         # Fabric_Length 계산
-        order_data['Fabric_Length'] = order_data['Length'].astype(int) * order_data['IpgmQty'].astype(int)
+        order_data[config.columns.FABRIC_LENGTH] = order_data[config.columns.LENGTH].astype(int) * order_data[config.columns.REQUEST_AMOUNT].astype(int)
 
-        # 컬럼명 변경
-        order_data = order_data.rename(columns={"GItemNo": "GitemNo", "GItemName": "GitemName"})
 
         return order_data
 
@@ -86,17 +85,17 @@ class ProductionDataPreprocessor:
 
         # 기간별 컬럼 선택
         period_mapping = {
-            '6_months': r"^L.*1$",
-            '1_year': r"^L.*2$",
-            '3_months': r"^L.*2$"  # 원본 코드에서 3개월도 2로 끝나는 패턴 사용
+            '6_months': r"^l.*1$",
+            '1_year': r"^l.*0$",
+            '3_months': r"^l.*2$"  # 원본 코드에서 3개월도 2로 끝나는 패턴 사용
         }
 
         linespeed, linespeed_cols = self._select_period_columns(
-            linespeed, linespeed_period, 'L', period_mapping
+            linespeed, linespeed_period, 'l', period_mapping
         )
 
         # NaN이 아닌 첫 번째 값으로 linespeed 컬럼 생성
-        linespeed['linespeed'] = linespeed[linespeed_cols].bfill(axis=1).iloc[:, 0]
+        linespeed['selected_linespeed'] = linespeed[linespeed_cols].bfill(axis=1).iloc[:, 0]
 
         # 선택된 컬럼명 저장
         linespeed['selected'] = linespeed[linespeed_cols].apply(
@@ -105,14 +104,14 @@ class ProductionDataPreprocessor:
 
         # L로 시작하는 컬럼 제거
         linespeed = linespeed.drop(
-            columns=linespeed.columns[linespeed.columns.str.startswith("L")]
+            columns=linespeed.columns[linespeed.columns.str.startswith("l")]
         )
 
         # 피벗 테이블 생성
         linespeed_pivot = linespeed.pivot(
-            index=['GitemNo', 'PROCCODE'],
-            columns='MachineNo',
-            values='linespeed'
+            index=[config.columns.GITEM, config.columns.OPERATION_CODE],
+            columns=config.columns.MACHINE_CODE,
+            values='selected_linespeed'
         ).reset_index().rename_axis(None, axis=1)
 
         return linespeed, linespeed_pivot
@@ -131,12 +130,7 @@ class ProductionDataPreprocessor:
         gitem_operation_sequence = operation_df.copy()
 
         # 공정 타입 데이터 추출
-        operation_types = gitem_operation_sequence[['PROCCODE', 'PROCNAME', 'ProcGbn']].drop_duplicates(keep='first')
-
-        # 공정 순서 데이터 컬럼명 변경
-        gitem_operation_sequence = gitem_operation_sequence.rename(
-            columns={"GITEMNO": "GitemNo", "GItemName": "GitemName"}
-        )
+        operation_types = gitem_operation_sequence[[config.columns.operation_code, config.columns.OPERATION, config.columns.operation_classification]].drop_duplicates(keep='first')
 
         return operation_types, gitem_operation_sequence
 
@@ -213,20 +207,20 @@ class ProductionDataPreprocessor:
 
         return machine_master_info
 
-    def preprocess_mixture_data(self, mixture_df: pd.DataFrame) -> pd.DataFrame:
+    def preprocess_chemical_data(self, chemical_df: pd.DataFrame) -> pd.DataFrame:
         """
         배합액 정보 전처리
 
         Args:
-            mixture_df (pd.DataFrame): 배합액정보 원본 데이터프레임
+            chemical_df (pd.DataFrame): 배합액정보 원본 데이터프레임
 
         Returns:
             pd.DataFrame: 전처리된 배합액 데이터
         """
         # 필요한 컬럼만 선택
-        mixture_data = mixture_df[['GitemNo', 'PROCCODE', 'Che1', 'Che2']]
+        chemical_data = chemical_df[[config.columns.GITEM, config.columns.OPERATION_CODE, config.columns.CHEMICAL_1, config.columns.CHEMICAL_2]]
 
-        return mixture_data
+        return chemical_data
 
     def create_empty_dataframes(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """
@@ -235,9 +229,9 @@ class ProductionDataPreprocessor:
         Returns:
             tuple: (machine_limit, machine_allocate, machine_rest)
         """
-        machine_limit = pd.DataFrame(columns=['PROCCODE', 'MachineNo'])
-        machine_allocate = pd.DataFrame(columns=['PROCCODE', 'MachineNo'])
-        machine_rest = pd.DataFrame(columns=['MachineNo', 'dt_start', 'dt_end'])
+        machine_limit = pd.DataFrame(columns=[config.columns.OPERATION_CODE, config.columns.MACHINE_CODE])
+        machine_allocate = pd.DataFrame(columns=[config.columns.OPERATION_CODE, config.columns.MACHINE_CODE])
+        machine_rest = pd.DataFrame(columns=[config.columns.MACHINE_CODE, 'dt_start', 'dt_end'])
 
         return machine_limit, machine_allocate, machine_rest
 
@@ -266,7 +260,7 @@ def main(excel_file_path: str = "생산계획 필요기준정보 내역-Ver4.xls
     linespeed_df = pd.read_excel(excel_file_path, sheet_name="라인스피드-GITEM등", skiprows=5)
     operation_df = pd.read_excel(excel_file_path, sheet_name="GITEM-공정-순서", skiprows=1)
     yield_df = pd.read_excel(excel_file_path, sheet_name="수율-GITEM등", skiprows=5)
-    mixture_df = pd.read_excel(excel_file_path, sheet_name="배합액정보", skiprows=5)
+    chemical_df = pd.read_excel(excel_file_path, sheet_name="배합액정보", skiprows=5)
     operation_delay_df = pd.read_excel(excel_file_path, sheet_name="공정교체시간", skiprows=1)
     width_change_df = pd.read_excel(excel_file_path, sheet_name="폭변경", skiprows=1)
 
@@ -281,7 +275,7 @@ def main(excel_file_path: str = "생산계획 필요기준정보 내역-Ver4.xls
     operation_types, operation_sequence = preprocessor.preprocess_operation_data(operation_df)
     yield_info = preprocessor.preprocess_yield_data(yield_df, yield_period)
     machine_master_info = preprocessor.preprocess_machine_master_info(linespeed_df)
-    mixture_data = preprocessor.preprocess_mixture_data(mixture_df)
+    chemical_data = preprocessor.preprocess_chemical_data(chemical_df)
     machine_limit, machine_allocate, machine_rest = preprocessor.create_empty_dataframes()
 
     print("전처리 완료. 결과 정리 중...")
@@ -294,7 +288,7 @@ def main(excel_file_path: str = "생산계획 필요기준정보 내역-Ver4.xls
         'operation_sequence': operation_sequence,
         'yield_data': yield_info,
         'machine_master_info': machine_master_info,
-        'mixture_data': mixture_data,
+        'chemical_data': chemical_data,
         'operation_delay': operation_delay_df,
         'width_change': width_change_df,
         'machine_limit': machine_limit,

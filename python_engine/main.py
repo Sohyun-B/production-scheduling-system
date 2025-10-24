@@ -26,22 +26,23 @@ def run_level4_scheduling():
     window_days = config.constants.WINDOW_DAYS
     linespeed_period = config.constants.LINESPEED_PERIOD
     yield_period = config.constants.YIELD_PERIOD
-    buffer_days = config.constants.BUFFER_DAYS
 
     # === Excel 파일 로딩 ===
     try:
         print("Excel 파일 로딩 중...")
-        input_file = "data/input/생산계획 필요기준정보 내역-Ver4.xlsx"
+        input_file = "data/input/생산계획 입력정보.xlsx"
 
         # 각 시트에서 데이터 읽기
-        order_df = pd.read_excel(input_file, sheet_name="PO정보", skiprows=1)
-        gitem_sitem_df = pd.read_excel(input_file, sheet_name="제품군-GITEM-SITEM", skiprows=2)
-        linespeed_df = pd.read_excel(input_file, sheet_name="라인스피드-GITEM등", skiprows=5)
-        operation_df = pd.read_excel(input_file, sheet_name="GITEM-공정-순서", skiprows=1)
-        yield_df = pd.read_excel(input_file, sheet_name="수율-GITEM등", skiprows=5)
-        mixture_df = pd.read_excel(input_file, sheet_name="배합액정보", skiprows=5)
-        operation_delay_df = pd.read_excel(input_file, sheet_name="공정교체시간", skiprows=1)
-        width_change_df = pd.read_excel(input_file, sheet_name="폭변경", skiprows=1)
+        order_df = pd.read_excel(input_file, sheet_name="tb_polist")
+        gitem_sitem_df = pd.read_excel(input_file, sheet_name="tb_itemspec")
+        linespeed_df = pd.read_excel(input_file, sheet_name="tb_linespeed")
+        operation_df = pd.read_excel(input_file, sheet_name="tb_itemproc")
+        yield_df = pd.read_excel(input_file, sheet_name="tb_productionyield")
+        chemical_df = pd.read_excel(input_file, sheet_name="tb_chemical")
+        operation_delay_df = pd.read_excel(input_file, sheet_name="tb_changetime")
+        width_change_df = pd.read_excel(input_file, sheet_name="tb_changewidth")
+
+        aging_df = pd.read_excel(input_file, sheet_name="tb_agingtime_gitem")
 
         print("Excel 파일 로딩 완료!")
 
@@ -56,15 +57,14 @@ def run_level4_scheduling():
         linespeed_df=linespeed_df,
         operation_df=operation_df,
         yield_df=yield_df,
-        mixture_df=mixture_df,
+        chemical_df=chemical_df,
         operation_delay_df=operation_delay_df,
         width_change_df=width_change_df,
         gitem_sitem_df=gitem_sitem_df,
         linespeed_period=linespeed_period,
         yield_period=yield_period,
-        buffer_days=buffer_days,
         validate=True,
-        save_output=False
+        save_output=True
     )
 
     # 전처리된 데이터 추출
@@ -73,7 +73,7 @@ def run_level4_scheduling():
     operation_seperated_sequence = processed_data['operation_sequence']
     yield_data = processed_data['yield_data']
     machine_master_info = processed_data['machine_master_info']
-    mixture_data = processed_data['mixture_data']
+    chemical_data = processed_data['chemical_data']
     operation_delay_df = processed_data['operation_delay']
     width_change_df = processed_data['width_change']
     machine_limit = processed_data['machine_limit']
@@ -93,7 +93,7 @@ def run_level4_scheduling():
 
     # === 2단계: 주문 시퀀스 생성 (Order Sequencing) ===
     sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = generate_order_sequences(
-        order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed, mixture_data)
+        order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed, chemical_data)
 
     print("sequence_seperated_order 정보!!!!!!!")
     print(sequence_seperated_order.columns)
@@ -104,58 +104,34 @@ def run_level4_scheduling():
         yield_data, sequence_seperated_order
     )
 
-    # === 4단계: DAG 생성 ===
+    # === 4단계: DAG 생성 (내부에서 aging_map 자동 생성) ===
     print("[40%] DAG 시스템 생성 중...")
     dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
-        sequence_seperated_order, linespeed, machine_master_info)
+        sequence_seperated_order, linespeed, machine_master_info, aging_df=aging_df)
     print(f"[50%] DAG 시스템 생성 완료 - 노드: {len(dag_df)}개, 기계: {len(machine_dict)}개")
     
+    print("+++++++++sequence_seperated_order")
+    sequence_seperated_order.to_excel('sequence_seperated_order.xlsx', index=False)
+    print(sequence_seperated_order)
 
     # === 5단계: 스케줄링 실행 ===
     print("[60%] 스케줄링 알고리즘 초기화 중...")
     try:
-        # 스케줄링 준비
-        from src.scheduler.delay_dict import DelayProcessor
-        from src.scheduler.scheduler import Scheduler
-        from src.scheduler.dispatch_rules import create_dispatch_rule
-        
-        # 디스패치 룰 생성
-        print("[65%] 디스패치 규칙 생성 중...")
-        dispatch_rule_ans, dag_df = create_dispatch_rule(dag_df, sequence_seperated_order)
-        
-        # 스케줄러 초기화
-        print("[70%] 스케줄러 초기화 및 자원 할당 중...")
-        print("machine rest")
-        print(width_change_df[config.columns.MACHINE_CODE].values.tolist())
-        print(width_change_df.columns)
-        print(width_change_df)
+        # 스케줄링 준비 및 실행 모듈 호출
+        from src.scheduler import run_scheduler_pipeline
 
-        # MACHINE_CODE → MACHINE_INDEX dict 생성 후 공정교체시간 존재하는 기계인덱스만 가져옴
-        code_to_index = dict(zip(machine_master_info[config.columns.MACHINE_CODE],
-                                machine_master_info[config.columns.MACHINE_INDEX]))
-        machine_index_list = width_change_df[config.columns.MACHINE_CODE].map(code_to_index).tolist() # 공정교체시간 존재하는기계인덱스 리스ㅌ
-
-        width_change_df = pd.merge(width_change_df, machine_master_info, on = config.columns.MACHINE_CODE, how = 'left')
-        delay_processor = DelayProcessor(opnode_dict, operation_delay_df, width_change_df, machine_index_list)
-
-        scheduler = Scheduler(machine_dict, delay_processor)
-        scheduler.allocate_resources()
-
-        print("machine rest")
-        machine_rest = pd.merge(machine_rest, machine_master_info, on = config.columns.MACHINE_CODE, how = 'left')
-        print(machine_rest.columns)
-        scheduler.allocate_machine_downtime(machine_rest, base_date)
-        print("[스케줄러] 기계 자원 할당 완료, 기계 중단시간 설정 완료")
-        
-        # 전략 실행 (가장 시간이 오래 걸리는 단계)
-        print("[75%] 스케줄링 알고리즘 실행 중...")
-        strategy = DispatchPriorityStrategy()
-        result = strategy.execute(
-            dag_manager=manager,
-            scheduler=scheduler,
+        result, scheduler = run_scheduler_pipeline(
             dag_df=dag_df,
-            priority_order=dispatch_rule_ans,
-            window_days=window_days
+            sequence_seperated_order=sequence_seperated_order,
+            width_change_df=width_change_df,
+            machine_master_info=machine_master_info,
+            opnode_dict=opnode_dict,
+            operation_delay_df=operation_delay_df,
+            machine_dict=machine_dict,
+            machine_rest=machine_rest,
+            base_date=base_date,
+            manager=manager,
+            window_days=window_days,
         )
         print("[85%] 스케줄링 알고리즘 실행 완료!")
 
@@ -205,27 +181,27 @@ def run_level4_scheduling():
         print(f"[저장] 가공된 결과를 '{processed_filename}'에 저장 완료")
         
         # === 6단계 완료: JSON 저장 (지각 정보만) ===
-        stage6_data = {
-            "stage": "results", 
-            "data": {
-                "late_days_sum": final_results['late_days_sum'],
-                "late_products_count": len(final_results['late_products']),
-                "late_po_numbers": final_results['late_po_numbers']
-            }
-        }
+        # stage6_data = {
+        #     "stage": "results", 
+        #     "data": {
+        #         "late_days_sum": final_results['late_days_sum'],
+        #         "late_products_count": len(final_results['late_products']),
+        #         "late_po_numbers": final_results['late_po_numbers']
+        #     }
+        # }
         
-        with open("data/output/stage6_results.json", "w", encoding="utf-8") as f:
-            json.dump(stage6_data, f, ensure_ascii=False, default=str)
-        print("[단계6] JSON 저장 완료: data/output/stage6_results.json")
+        # with open("data/output/stage6_results.json", "w", encoding="utf-8") as f:
+        #     json.dump(stage6_data, f, ensure_ascii=False, default=str)
+        # print("[단계6] JSON 저장 완료: data/output/stage6_results.json")
         
         # 최종 완료
         print("[100%] 스케줄링 완료! 모든 결과 파일 저장 완료")
 
         # 배합액 선택 통계
-        mixture_selected_count = sum(1 for node_info in opnode_dict.values()
-                                     if node_info.get('SELECTED_MIXTURE') is not None)
-        mixture_none_count = len(opnode_dict) - mixture_selected_count
-        print(f"\n[배합액] 선택된 노드: {mixture_selected_count}개, None인 노드: {mixture_none_count}개")
+        chemical_selected_count = sum(1 for node_info in opnode_dict.values()
+                                     if node_info.get('SELECTED_CHEMICAL') is not None)
+        chemical_none_count = len(opnode_dict) - chemical_selected_count
+        print(f"\n[배합액] 선택된 노드: {chemical_selected_count}개, None인 노드: {chemical_none_count}개")
 
 
     except Exception as e:

@@ -25,7 +25,7 @@ class DataValidator:
         operation_df: pd.DataFrame,
         yield_df: pd.DataFrame,
         linespeed_df: pd.DataFrame,
-        mixture_df: pd.DataFrame
+        chemical_df: pd.DataFrame
     ) -> Dict:
         """
         전체 데이터 유효성 검사 실행
@@ -36,7 +36,7 @@ class DataValidator:
             operation_df: GITEM-공정-순서 테이블
             yield_df: 수율-GITEM등 테이블
             linespeed_df: 라인스피드-GITEM등 테이블
-            mixture_df: 배합액정보 테이블
+            chemical_df: 배합액정보 테이블
 
         Returns:
             Dict: 검증 결과 딕셔너리
@@ -61,7 +61,7 @@ class DataValidator:
         self._validate_linespeed_data(linespeed_df)
 
         # 5. 배합액정보 테이블 검증
-        self._validate_mixture_data(mixture_df)
+        self._validate_chemical_data(chemical_df)
 
         # 결과 요약
         result = {
@@ -82,12 +82,12 @@ class DataValidator:
 
         # order_df의 (GItemNo, Spec) 조합 생성
         order_combinations = set(
-            zip(order_df[config.columns.GITEM], order_df['Spec'])
+            zip(order_df[config.columns.GITEM], order_df[config.columns.SPEC])
         )
 
         # gitem_sitem_df의 (GitemNo, Spec) 조합 생성 (소문자 i)
         gitem_sitem_combinations = set(
-            zip(gitem_sitem_df[config.columns.GITEM], gitem_sitem_df['Spec'])
+            zip(gitem_sitem_df[config.columns.GITEM], gitem_sitem_df[config.columns.SPEC])
         )
 
         # 존재하지 않는 조합 찾기
@@ -229,7 +229,7 @@ class DataValidator:
         if not missing_pairs and not duplicate_pairs:
             print(f"✓ 검증 통과: 모든 (제품코드, 공정코드) 쌍이 라인스피드-GITEM등 테이블에 정확히 1개씩 존재합니다.")
 
-    def _validate_mixture_data(self, mixture_df: pd.DataFrame):
+    def _validate_chemical_data(self, chemical_df: pd.DataFrame):
         """5. 배합액정보 테이블 검증"""
         print("\n[검증 5/5] 배합액정보 테이블")
         print("-" * 80)
@@ -244,11 +244,11 @@ class DataValidator:
         duplicate_pairs = []
 
         for gitem, proccode in self.gitem_proccode_pairs:
-            mixture_rows = mixture_df[
-                (mixture_df[config.columns.GITEM] == gitem) &
-                (mixture_df[config.columns.OPERATION_CODE] == proccode)
+            chemical_rows = chemical_df[
+                (chemical_df[config.columns.GITEM] == gitem) &
+                (chemical_df[config.columns.OPERATION_CODE] == proccode)
             ]
-            row_count = len(mixture_rows)
+            row_count = len(chemical_rows)
 
             if row_count == 0:
                 warning_msg = f"[배합액정보] (제품코드={gitem}, 공정코드={proccode})가 배합액정보 테이블에 존재하지 않습니다. (배합액이 필요 없는 공정일 수 있음)"
@@ -359,7 +359,7 @@ class DataValidator:
         operation_df: pd.DataFrame,
         yield_df: pd.DataFrame,
         linespeed_df: pd.DataFrame,
-        mixture_df: pd.DataFrame
+        chemical_df: pd.DataFrame
     ) -> Tuple[Dict[str, pd.DataFrame], Dict]:
         """
         데이터 검증 및 정제 (통합 메서드)
@@ -370,7 +370,7 @@ class DataValidator:
             operation_df: GITEM-공정-순서
             yield_df: 수율-GITEM등
             linespeed_df: 라인스피드-GITEM등
-            mixture_df: 배합액정보
+            chemical_df: 배합액정보
 
         Returns:
             tuple: (정제된 데이터 딕셔너리, 검증 결과)
@@ -382,7 +382,7 @@ class DataValidator:
             operation_df=operation_df,
             yield_df=yield_df,
             linespeed_df=linespeed_df,
-            mixture_df=mixture_df
+            chemical_df=chemical_df
         )
 
         # 2. 중복 제거
@@ -397,7 +397,7 @@ class DataValidator:
             'linespeed_df': linespeed_cleaned,
             'yield_df': yield_cleaned,
             'operation_df': operation_df,
-            'mixture_df': mixture_df
+            'chemical_df': chemical_df
         }
 
         return self.cleaned_data, validation_result

@@ -61,17 +61,10 @@ def create_results(
     late_processor = LateProcessor(base_date)
     late_results = late_processor.process(result_cleaned, merged_df, original_order)
 
-    # 추후 삭제 예정
-    late_results['new_output_final_result'].to_csv("지각작업처리결과.csv", encoding = 'utf-8-sig')
-    
     # 3. 주문-공정 병합 처리
     print("[89%] 주문-공정 병합 처리 중...")
     merge_processor = MergeProcessor()
     merge_results = merge_processor.process(merged_df, original_order, sequence_seperated_order)
-
-    # 추후 삭제 예정
-    merge_results['merged_result'].to_csv("merged_result.csv", encoding = 'utf-8-sig')
-    merge_results['order_info'].to_csv("order_info.csv", encoding = 'utf-8-sig')
 
     
     # 4. 기계 기준 정보 처리 (gap_analyzer 없이 먼저)

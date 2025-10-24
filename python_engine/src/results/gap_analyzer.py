@@ -87,7 +87,7 @@ class ScheduleGapAnalyzer:
                 'long_to_short': False,
                 'short_to_long': False,
                 'same_type': True,
-                'same_mixture': True,
+                'same_chemical': True,
                 'setup_key': 'system_downtime'
             }
             result.update(system_details)
@@ -152,7 +152,7 @@ class ScheduleGapAnalyzer:
                 'long_to_short': False,
                 'short_to_long': False,
                 'same_type': True,
-                'same_mixture': True,
+                'same_chemical': True,
                 'setup_key': 'no_setup_machine'
             }
         
@@ -175,19 +175,19 @@ class ScheduleGapAnalyzer:
         except KeyError as e:
             raise KeyError(f"[간격분석] 필수 필드 누락: {e}. prev_info 키: {prev_info.keys()}, next_info 키: {next_info.keys()}")
 
-        # SELECTED_MIXTURE는 None일 수 있음 (배합액 없는 공정)
-        earlier_mixture = prev_info.get("SELECTED_MIXTURE")
-        later_mixture = next_info.get("SELECTED_MIXTURE")
+        # SELECTED_CHEMICAL는 None일 수 있음 (배합액 없는 공정)
+        earlier_chemical = prev_info.get("SELECTED_CHEMICAL")
+        later_chemical = next_info.get("SELECTED_CHEMICAL")
         
         # 조건 계산
         long_to_short = earlier_width > later_width
         short_to_long = earlier_width < later_width
         same_type = earlier_operation_type == later_operation_type
-        same_mixture = earlier_mixture == later_mixture
+        same_chemical = earlier_chemical == later_chemical
         
         # DelayProcessor가 실제로 사용하는 키 생성
         setup_key = (machine_index, earlier_operation_type, later_operation_type, 
-                    long_to_short, short_to_long, same_type, same_mixture)
+                    long_to_short, short_to_long, same_type, same_chemical)
         
         return {
             'machine_index': machine_index,
@@ -196,7 +196,7 @@ class ScheduleGapAnalyzer:
             'long_to_short': long_to_short,
             'short_to_long': short_to_long,
             'same_type': same_type,
-            'same_mixture': same_mixture,
+            'same_chemical': same_chemical,
             'setup_key': str(setup_key)
         }
     

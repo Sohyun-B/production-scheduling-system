@@ -53,7 +53,7 @@ class SchedulingCore:
             node: DAGNode 인스턴스
             
         Returns:
-            float: 최조 시작 가능 시간 (부모 노드들의 최대 종료 시간)
+            float: 최조 시작 가능 시간 (부모 노드들의 최대 종료 시간 + aging_time)
         """
         # 어트리뷰트나 값이 존재하지 않으면 0(바로 시작 가능)
         if not hasattr(node, 'parent_node_end') or not node.parent_node_end:
@@ -63,8 +63,15 @@ class SchedulingCore:
         valid_end_times = [t for t in node.parent_node_end if t is not None]
         if not valid_end_times:
             return 0.0
-            
-        return max(valid_end_times)
+        
+        # 부모 노드들의 최대 종료 시간
+        base_earliest_start = max(valid_end_times)
+        
+        # aging_time이 0보다 크면 추가 (0이면 대기 시간 없음)
+        if hasattr(node, 'aging_time') and node.aging_time > 0:
+            return base_earliest_start + node.aging_time
+        
+        return base_earliest_start
     
     @staticmethod
     def update_node_state(node, machine_index: int, start_time: float, processing_time: float):
@@ -211,9 +218,9 @@ class HighLevelSchedulingStrategy(ABC):
         pass
 
 
-def find_best_mixture(first_node_dict, window_nodes, dag_manager):
+def find_best_chemical(first_node_dict, window_nodes, dag_manager):
     """
-    첫 노드의 MIXTURE_LIST에서 최적 배합액 선택
+    첫 노드의 CHEMICAL_LIST에서 최적 배합액 선택
 
     Args:
         first_node_dict: 첫 노드의 opnode_dict 정보
@@ -224,32 +231,32 @@ def find_best_mixture(first_node_dict, window_nodes, dag_manager):
         str or None: 가장 많이 사용 가능한 배합액 (없으면 None)
 
     로직:
-        1. 첫 노드의 MIXTURE_LIST 확인
+        1. 첫 노드의 CHEMICAL_LIST 확인
         2. 각 배합액에 대해 윈도우 내 사용 가능한 노드 수 카운트
         3. 가장 많이 사용 가능한 배합액 반환
     """
-    mixture_list = first_node_dict["MIXTURE_LIST"]
+    chemical_list = first_node_dict["CHEMICAL_LIST"]
 
     # 배합액이 없는 경우
-    if not mixture_list or mixture_list == ():
+    if not chemical_list or chemical_list == ():
         return None
 
     # 각 배합액별 사용 가능한 노드 수 카운트
-    mixture_counts = {}
-    for mixture in mixture_list:
+    chemical_counts = {}
+    for chemical in chemical_list:
         count = 0
         for node_id in window_nodes:
             node_dict = dag_manager.opnode_dict.get(node_id)
-            if node_dict and mixture in node_dict["MIXTURE_LIST"]:
+            if node_dict and chemical in node_dict["CHEMICAL_LIST"]:
                 count += 1
-        mixture_counts[mixture] = count
+        chemical_counts[chemical] = count
 
     # 가장 많이 사용 가능한 배합액 반환 (동수일 경우 첫 번째)
-    if not mixture_counts:
+    if not chemical_counts:
         return None
 
-    best_mixture = max(mixture_counts, key=mixture_counts.get)
-    return best_mixture
+    best_chemical = max(chemical_counts, key=chemical_counts.get)
+    return best_chemical
 
 
 class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
@@ -287,41 +294,41 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
                                 if dag_manager.opnode_dict.get(gene)["OPERATION_CODE"] == operation_name]
 
         # 첫 노드의 최적 배합액 결정
-        best_mixture = find_best_mixture(first_node_dict, same_operation_nodes, dag_manager)
-        dag_manager.opnode_dict[start_id]["SELECTED_MIXTURE"] = best_mixture
+        best_chemical = find_best_chemical(first_node_dict, same_operation_nodes, dag_manager)
+        dag_manager.opnode_dict[start_id]["SELECTED_CHEMICAL"] = best_chemical
 
         # 3. 같은 배합액 사용 가능한 노드들 그룹화
-        same_mixture_queue = []
+        same_chemical_queue = []
         remaining_operation_queue = []
 
         for gene in same_operation_nodes:
             gene_dict = dag_manager.opnode_dict.get(gene)
-            if best_mixture and best_mixture in gene_dict["MIXTURE_LIST"]:
-                same_mixture_queue.append(gene)
+            if best_chemical and best_chemical in gene_dict["CHEMICAL_LIST"]:
+                same_chemical_queue.append(gene)
             else:
                 remaining_operation_queue.append(gene)
 
-        # 4. 같은 배합액 그룹 너비 정렬 및 SELECTED_MIXTURE 설정
-        same_mixture_queue = sorted(
-            same_mixture_queue,
+        # 4. 같은 배합액 그룹 너비 정렬 및 SELECTED_CHEMICAL 설정
+        same_chemical_queue = sorted(
+            same_chemical_queue,
             key=lambda gene: dag_manager.opnode_dict.get(gene)["FABRIC_WIDTH"],
             reverse=True
         )
 
-        for gene in same_mixture_queue:
-            dag_manager.opnode_dict[gene]["SELECTED_MIXTURE"] = best_mixture
+        for gene in same_chemical_queue:
+            dag_manager.opnode_dict[gene]["SELECTED_CHEMICAL"] = best_chemical
 
         # 5. 같은 배합액 그룹 스케줄링
         used_ids = [start_id]
-        for same_mixture_id in same_mixture_queue:
-            node = dag_manager.nodes[same_mixture_id]
+        for same_chemical_id in same_chemical_queue:
+            node = dag_manager.nodes[same_chemical_id]
             strategy = ForcedMachineStrategy(ideal_machine_index, use_machine_window=False)
             success = SchedulingCore.schedule_single_node(node, scheduler, strategy)
             if success:
-                used_ids.append(same_mixture_id)
+                used_ids.append(same_chemical_id)
             else:
                 # 스케줄링 실패 시 remaining으로 이동
-                remaining_operation_queue.append(same_mixture_id)
+                remaining_operation_queue.append(same_chemical_id)
 
         # 6. 남은 노드들을 배합액별로 반복 처리
         while remaining_operation_queue:
@@ -330,38 +337,38 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
             leader_dict = dag_manager.opnode_dict.get(leader_id)
 
             # 6-2. 리더의 최적 배합액 선택
-            leader_best_mixture = find_best_mixture(leader_dict, remaining_operation_queue, dag_manager)
-            dag_manager.opnode_dict[leader_id]["SELECTED_MIXTURE"] = leader_best_mixture
+            leader_best_chemical = find_best_chemical(leader_dict, remaining_operation_queue, dag_manager)
+            dag_manager.opnode_dict[leader_id]["SELECTED_CHEMICAL"] = leader_best_chemical
 
             # 6-3. 같은 배합액 사용 가능한 노드들 그룹화
-            current_mixture_group = [leader_id]
+            current_chemical_group = [leader_id]
             next_remaining = []
 
             for gene in remaining_operation_queue[1:]:
                 gene_dict = dag_manager.opnode_dict.get(gene)
-                if leader_best_mixture and leader_best_mixture in gene_dict["MIXTURE_LIST"]:
-                    current_mixture_group.append(gene)
-                    dag_manager.opnode_dict[gene]["SELECTED_MIXTURE"] = leader_best_mixture
+                if leader_best_chemical and leader_best_chemical in gene_dict["CHEMICAL_LIST"]:
+                    current_chemical_group.append(gene)
+                    dag_manager.opnode_dict[gene]["SELECTED_CHEMICAL"] = leader_best_chemical
                 else:
                     next_remaining.append(gene)
 
             # 6-4. 현재 그룹 너비 정렬
-            current_mixture_group = sorted(
-                current_mixture_group,
+            current_chemical_group = sorted(
+                current_chemical_group,
                 key=lambda gene: dag_manager.opnode_dict.get(gene)["FABRIC_WIDTH"],
                 reverse=True
             )
 
             # 6-5. 현재 그룹 스케줄링
-            for mixture_id in current_mixture_group:
-                node = dag_manager.nodes[mixture_id]
+            for chemical_id in current_chemical_group:
+                node = dag_manager.nodes[chemical_id]
                 strategy = ForcedMachineStrategy(ideal_machine_index, use_machine_window=False)
                 success = SchedulingCore.schedule_single_node(node, scheduler, strategy)
                 if success:
-                    used_ids.append(mixture_id)
+                    used_ids.append(chemical_id)
                 else:
                     # 스케줄링 실패 시 next_remaining에 추가
-                    next_remaining.append(mixture_id)
+                    next_remaining.append(chemical_id)
 
             # 6-6. 다음 반복을 위해 remaining 업데이트
             remaining_operation_queue = next_remaining

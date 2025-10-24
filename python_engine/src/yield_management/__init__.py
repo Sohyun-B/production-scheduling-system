@@ -14,7 +14,7 @@ def yield_prediction(yield_data, sequence_seperated_order):
     
     
     sequence_seperated_order_yield = pd.merge(sequence_seperated_order, yield_data, on = config.columns.GITEM, how = 'left')
-    sequence_seperated_order_yield['product_ratio'] = 1 / sequence_seperated_order_yield['yield']
+    sequence_seperated_order_yield['product_ratio'] = 100 / sequence_seperated_order_yield['yield']
     sequence_seperated_order_yield.rename(columns = {"production_length" : "original_production_length"}, inplace = True)
     sequence_seperated_order_yield['production_length'] = sequence_seperated_order_yield['original_production_length'] * sequence_seperated_order_yield['product_ratio']
     sequence_seperated_order_yield.drop(columns = {'yield', 'product_ratio'}, inplace = True)

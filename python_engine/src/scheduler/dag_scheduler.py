@@ -37,48 +37,48 @@
 #         ideal_machine_index = node.machine
 
 #         # 첫번째 공정의 배합액과 공정명 추출 (셋업 시간 최소화를 위한 그룹화)
-#         mixture_name = self.dag_manager.opnode_dict.get(start_id)[4]
+#         chemical_name = self.dag_manager.opnode_dict.get(start_id)[4]
 #         operation_name = self.dag_manager.opnode_dict.get(start_id)[1]
         
-#         same_mixture_queue = []
+#         same_chemical_queue = []
 #         same_operation_queue = []
 #         for gene in window:
-#             if self.dag_manager.opnode_dict.get(gene)[4] == mixture_name: # 배합액이 동일한 경우
-#                 same_mixture_queue.append(gene)
+#             if self.dag_manager.opnode_dict.get(gene)[4] == chemical_name: # 배합액이 동일한 경우
+#                 same_chemical_queue.append(gene)
 #             elif self.dag_manager.opnode_dict.get(gene)[1] == operation_name: # 배합액은 달라도 공정이 동일한 경우
 #                 same_operation_queue.append(gene)
 
 #         # 같은 배합액 내에서 너비 기준 내림차순 정렬
-#         same_mixture_queue = sorted(
-#             same_mixture_queue,
+#         same_chemical_queue = sorted(
+#             same_chemical_queue,
 #             key=lambda gene: self.dag_manager.opnode_dict.get(gene)[3],
 #             reverse=True
 #         ) 
 
 #         # 같은 공정 내에서 특정 배합액의 등장순서대로 배합액 기준 정렬
-#         mixture_groups = OrderedDict()
+#         chemical_groups = OrderedDict()
 #         for gene in same_operation_queue:
-#             mixture_name = self.dag_manager.opnode_dict.get(gene)[4]  # 배합액 이름 추출
-#             if mixture_name not in mixture_groups:   # 처음 등장한 배합액이면
-#                 mixture_groups[mixture_name] = []
-#             mixture_groups[mixture_name].append(gene)
+#             chemical_name = self.dag_manager.opnode_dict.get(gene)[4]  # 배합액 이름 추출
+#             if chemical_name not in chemical_groups:   # 처음 등장한 배합액이면
+#                 chemical_groups[chemical_name] = []
+#             chemical_groups[chemical_name].append(gene)
         
 #         # 등장순서대로 그룹을 합침. 이때 그룹 내에서는 너비 기준으로 
 #         sorted_same_operation_queue = []
-#         for group in mixture_groups.values():
+#         for group in chemical_groups.values():
 #             group = sorted(group, key=lambda gene: self.dag_manager.opnode_dict.get(gene)[3], reverse=True)
 #             sorted_same_operation_queue.extend(group)
         
 
 #         used_ids = [start_id]
-#         for queue in [same_mixture_queue, sorted_same_operation_queue]:
-#             for same_mixture_id in queue:
-#                 node = self.dag_manager.nodes[same_mixture_id]
+#         for queue in [same_chemical_queue, sorted_same_operation_queue]:
+#             for same_chemical_id in queue:
+#                 node = self.dag_manager.nodes[same_chemical_id]
 #                 # 동일 기계에 강제 할당
 #                 strategy = ForcedMachineStrategy(ideal_machine_index, use_machine_window=False)
 #                 success = SchedulingCore.schedule_single_node(node, self.scheduler, strategy)
 #                 if success: 
-#                     used_ids.append(same_mixture_id)
+#                     used_ids.append(same_chemical_id)
                 
 
 #         # 이번에 window 내에서 사용한 것들을 반환해야함

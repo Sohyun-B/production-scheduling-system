@@ -15,13 +15,12 @@ def preprocess_production_data(
     linespeed_df: pd.DataFrame,
     operation_df: pd.DataFrame,
     yield_df: pd.DataFrame,
-    mixture_df: pd.DataFrame,
+    chemical_df: pd.DataFrame,
     operation_delay_df: pd.DataFrame,
     width_change_df: pd.DataFrame,
     gitem_sitem_df: pd.DataFrame = None,
     linespeed_period: str = '6_months',
     yield_period: str = '6_months',
-    buffer_days: int = 7,
     validate: bool = True,
     save_output: bool = False,
     output_file: str = "data/input/python_input.xlsx"
@@ -34,13 +33,12 @@ def preprocess_production_data(
         linespeed_df (pd.DataFrame): 라인스피드-GITEM등 시트
         operation_df (pd.DataFrame): GITEM-공정-순서 시트
         yield_df (pd.DataFrame): 수율-GITEM등 시트
-        mixture_df (pd.DataFrame): 배합액정보 시트
+        chemical_df (pd.DataFrame): 배합액정보 시트
         operation_delay_df (pd.DataFrame): 공정교체시간 시트
         width_change_df (pd.DataFrame): 폭변경 시트
         gitem_sitem_df (pd.DataFrame): 제품군-GITEM-SITEM 시트 (검증용)
         linespeed_period (str): 라인스피드 기간 설정 ('6_months', '1_year', '3_months')
         yield_period (str): 수율 기간 설정 ('6_months', '1_year', '3_months')
-        buffer_days (int): 납기 여유일자 (디폴트 7일)
         validate (bool): 데이터 유효성 검사 수행 여부
         save_output (bool): 중간 결과를 python_input.xlsx로 저장할지 여부
         output_file (str): 저장할 파일 경로 (save_output=True일 때만 사용)
@@ -53,7 +51,7 @@ def preprocess_production_data(
             - 'operation_sequence': 공정 순서 정보
             - 'yield_data': 수율 정보
             - 'machine_master_info': 설비 마스터 정보
-            - 'mixture_data': 배합액 정보
+            - 'chemical_data': 배합액 정보
             - 'operation_delay': 공정교체시간
             - 'width_change': 폭변경 정보
             - 'machine_limit': 기계 제한 정보
@@ -74,7 +72,7 @@ def preprocess_production_data(
             operation_df=operation_df,
             yield_df=yield_df,
             linespeed_df=linespeed_df,
-            mixture_df=mixture_df
+            chemical_df=chemical_df
         )
 
         # 검증 결과 요약 출력
@@ -94,7 +92,7 @@ def preprocess_production_data(
             'linespeed_df': linespeed_df,
             'yield_df': yield_df,
             'operation_df': operation_df,
-            'mixture_df': mixture_df
+            'chemical_df': chemical_df
         }
 
     # === 2단계: 데이터 변환 (ProductionDataPreprocessor) ===
@@ -103,12 +101,12 @@ def preprocess_production_data(
     preprocessor = ProductionDataPreprocessor()
 
     # 각 데이터 전처리 (검증 및 정제된 데이터 사용)
-    order_data = preprocessor.preprocess_order_data(cleaned_data['order_df'], buffer_days=buffer_days)
+    order_data = preprocessor.preprocess_order_data(cleaned_data['order_df'])
     linespeed, linespeed_pivot = preprocessor.preprocess_linespeed_data(cleaned_data['linespeed_df'], linespeed_period)
     operation_types, operation_sequence = preprocessor.preprocess_operation_data(cleaned_data['operation_df'])
     yield_info = preprocessor.preprocess_yield_data(cleaned_data['yield_df'], yield_period)
     machine_master_info = preprocessor.preprocess_machine_master_info(cleaned_data['linespeed_df'])
-    mixture_data = preprocessor.preprocess_mixture_data(cleaned_data['mixture_df'])
+    chemical_data = preprocessor.preprocess_chemical_data(cleaned_data['chemical_df'])
     machine_limit, machine_allocate, machine_rest = preprocessor.create_empty_dataframes()
 
     print("[Validation] 데이터 변환 완료. 결과 정리 중...")
@@ -121,7 +119,7 @@ def preprocess_production_data(
         'operation_sequence': operation_sequence,
         'yield_data': yield_info,
         'machine_master_info': machine_master_info,
-        'mixture_data': mixture_data,
+        'chemical_data': chemical_data,
         'operation_delay': operation_delay_df,
         'width_change': width_change_df,
         'machine_limit': machine_limit,
@@ -135,7 +133,8 @@ def preprocess_production_data(
         print(f"[Validation] 중간 결과를 {output_file}에 저장 중...")
         with pd.ExcelWriter(output_file, engine="openpyxl") as writer:
             for sheet_name, df in processed_data.items():
-                df.to_excel(writer, sheet_name=sheet_name, index=False)
+                if type(df) == pd.DataFrame: # 데이터프레임 타입만 저장. 이때 validation_result는 딕셔너리이므로 저장하지 않음  
+                    df.to_excel(writer, sheet_name=sheet_name, index=False)
         print(f"[Validation] 저장 완료: {output_file}")
 
     print("[Validation] 전처리 완료!")
