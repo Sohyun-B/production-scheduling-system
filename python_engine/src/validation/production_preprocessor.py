@@ -217,20 +217,6 @@ class ProductionDataPreprocessor:
 
         return chemical_data
 
-    def create_empty_dataframes(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-        """
-        빈 데이터프레임 생성
-
-        Returns:
-            tuple: (machine_limit, machine_allocate, machine_rest)
-        """
-        machine_limit = pd.DataFrame(columns=[config.columns.OPERATION_CODE, config.columns.MACHINE_CODE])
-        machine_allocate = pd.DataFrame(columns=[config.columns.OPERATION_CODE, config.columns.MACHINE_CODE])
-        machine_rest = pd.DataFrame(columns=[config.columns.MACHINE_CODE, 'dt_start', 'dt_end'])
-
-        return machine_limit, machine_allocate, machine_rest
-
-
 # def main(excel_file_path: str = "생산계획 필요기준정보 내역-Ver4.xlsx", 
 #          output_file: str = "python_input.xlsx",
 #          linespeed_period: str = '6_months',

@@ -76,9 +76,8 @@ class ColumnNames:
     AGING_TIME: str = "aging_time" # "에이징시간"
     
     # Machine scheduling related
-    START_TIME_SCHEDULE: str = "dt_start" # "시작시간"
-    END_TIME_SCHEDULE: str = "dt_end" # "종료시간"
-
+    MACHINE_REST_START: str = "rest_start" # 기계 휴기 시작 시간
+    MACHINE_REST_END: str = "rest_end" # 기계 휴기 종료 시간
 
 @dataclass
 class BusinessConstants:

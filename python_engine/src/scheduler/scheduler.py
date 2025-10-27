@@ -240,34 +240,36 @@ class Scheduler:
         return pd.DataFrame(data)
     
     
+    # def allocate_machine_downtime(self, machine_rest, base_date):
+    #     """
+    #     기계 휴식 시간을 DOWNTIME 가짜 공정으로 차단
+        
+    #     Args:
+    #         machine_rest: DataFrame with columns [기계인덱스, 시작시간, 종료시간]
+    #         base_date: 스케줄링 기준 날짜
+    #     """
+    #     return self.allocate_unable_machine_info(machine_rest, base_date)
+    
     def allocate_machine_downtime(self, machine_rest, base_date):
         """
         기계 휴식 시간을 DOWNTIME 가짜 공정으로 차단
-        
-        Args:
-            machine_rest: DataFrame with columns [기계인덱스, 시작시간, 종료시간]
-            base_date: 스케줄링 기준 날짜
-        """
-        return self.allocate_unable_machine_info(machine_rest, base_date)
-    
-    def allocate_unable_machine_info(self, machine_limit, base_date):
-        """
-        machine_limit: 기계인덱스, 기계, 불가능한 공정, 시작시간, 종료시간
+
+        machine_machine_restlimit: 기계인덱스, 기계, 불가능한 공정, 시작시간, 종료시간
         불가능한 공정이 비어있는 경우 모든 공정을 사용 못하는 상태로 판단
         """
         
         # 시작시간 미존재시, 전체 스케줄 시작 시간으로 
-        machine_limit[config.columns.START_TIME_SCHEDULE].fillna(base_date)
+        machine_rest[config.columns.MACHINE_REST_START].fillna(base_date)
         # 종료시간이 없는 경우, 고려 X
-        machine_limit = machine_limit[ ~ machine_limit[config.columns.END_TIME_SCHEDULE].isna() ]
+        machine_rest = machine_rest[ ~ machine_rest[config.columns.MACHINE_REST_END].isna() ]
         
-        machine_limit[config.columns.START_TIME_SCHEDULE] = ((pd.to_datetime(machine_limit[config.columns.START_TIME_SCHEDULE]) - pd.to_datetime(base_date)).dt.total_seconds() // 1800).astype(int)
-        machine_limit[config.columns.END_TIME_SCHEDULE] = ((pd.to_datetime(machine_limit[config.columns.END_TIME_SCHEDULE]) - pd.to_datetime(base_date)).dt.total_seconds() // 1800).astype(int)
+        machine_rest[config.columns.MACHINE_REST_START] = ((pd.to_datetime(machine_rest[config.columns.MACHINE_REST_START]) - pd.to_datetime(base_date)).dt.total_seconds() // 1800).astype(int)
+        machine_rest[config.columns.MACHINE_REST_END] = ((pd.to_datetime(machine_rest[config.columns.MACHINE_REST_END]) - pd.to_datetime(base_date)).dt.total_seconds() // 1800).astype(int)
             
-        for idx, row in machine_limit.iterrows():
+        for idx, row in machine_rest.iterrows():
             machine_index = row[config.columns.MACHINE_INDEX]
-            start_time = row[config.columns.START_TIME_SCHEDULE]
-            end_time = row[config.columns.END_TIME_SCHEDULE]
+            start_time = row[config.columns.MACHINE_REST_START]
+            end_time = row[config.columns.MACHINE_REST_END]
             self.Machines[machine_index].force_Input(-1, "DOWNTIME 기계 사용 불가 시간", start_time, end_time)   
         
 

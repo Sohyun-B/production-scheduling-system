@@ -107,7 +107,6 @@ def preprocess_production_data(
     yield_info = preprocessor.preprocess_yield_data(cleaned_data['yield_df'], yield_period)
     machine_master_info = preprocessor.preprocess_machine_master_info(cleaned_data['linespeed_df'])
     chemical_data = preprocessor.preprocess_chemical_data(cleaned_data['chemical_df'])
-    machine_limit, machine_allocate, machine_rest = preprocessor.create_empty_dataframes()
 
     print("[Validation] 데이터 변환 완료. 결과 정리 중...")
 
@@ -122,9 +121,6 @@ def preprocess_production_data(
         'chemical_data': chemical_data,
         'operation_delay': operation_delay_df,
         'width_change': width_change_df,
-        'machine_limit': machine_limit,
-        'machine_allocate': machine_allocate,
-        'machine_rest': machine_rest,
         'validation_result': validation_result
     }
 

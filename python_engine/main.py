@@ -17,7 +17,7 @@ from src.validation import preprocess_production_data
 from src.order_sequencing import generate_order_sequences
 from src.yield_management import yield_prediction
 from src.dag_management import create_complete_dag_system
-from src.scheduler.scheduling_core import DispatchPriorityStrategy
+from src.scheduler import run_scheduler_pipeline
 from src.results import create_results
 
 def run_level4_scheduling():
@@ -42,7 +42,18 @@ def run_level4_scheduling():
         operation_delay_df = pd.read_excel(input_file, sheet_name="tb_changetime")
         width_change_df = pd.read_excel(input_file, sheet_name="tb_changewidth")
 
-        aging_df = pd.read_excel(input_file, sheet_name="tb_agingtime_gitem")
+
+        aging_gitem = pd.read_excel(input_file, sheet_name="tb_agingtime_gitem")
+        aging_gbn = pd.read_excel(input_file, sheet_name="tb_agingtime_gbn")
+
+        # grp2_name 기준으로 gitem_sitem_df와 aging_gbn을 조인하여
+        # 각 grp2_name에 속한 모든 gitemno에 aging_gbn 컬럼을 부여
+        aging_df = gitem_sitem_df[[config.columns.GRP2_NAME, config.columns.GITEM]].merge(
+            aging_gbn, how="inner",
+            left_on=config.columns.GRP2_NAME,
+            right_on=config.columns.GRP2_NAME
+        )
+        aging_df.to_excel("aging_df.xlsx", index=False)
 
         print("Excel 파일 로딩 완료!")
 
@@ -76,18 +87,22 @@ def run_level4_scheduling():
     chemical_data = processed_data['chemical_data']
     operation_delay_df = processed_data['operation_delay']
     width_change_df = processed_data['width_change']
-    machine_limit = processed_data['machine_limit']
-    machine_allocate = processed_data['machine_allocate']
-    machine_rest = processed_data['machine_rest']
     order = processed_data['order_data']
+
+
+    
+    machine_limit = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_limit")
+    machine_allocate = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_allocate")
+    machine_rest = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_rest")
+    
 
     # 날짜 컬럼을 datetime으로 변환
     if config.columns.DUE_DATE in order.columns:
         order[config.columns.DUE_DATE] = pd.to_datetime(order[config.columns.DUE_DATE])
-    if 'dt_start' in machine_rest.columns:
-        machine_rest['dt_start'] = pd.to_datetime(machine_rest['dt_start'])
-    if 'dt_end' in machine_rest.columns:
-        machine_rest['dt_end'] = pd.to_datetime(machine_rest['dt_end'])
+    if config.columns.MACHINE_REST_START in machine_rest.columns:
+        machine_rest[config.columns.MACHINE_REST_START] = pd.to_datetime(machine_rest[config.columns.MACHINE_REST_START])
+    if config.columns.MACHINE_REST_END in machine_rest.columns:
+        machine_rest[config.columns.MACHINE_REST_END] = pd.to_datetime(machine_rest[config.columns.MACHINE_REST_END])
 
     print("[30%] Validation 완료!")
 
@@ -118,7 +133,6 @@ def run_level4_scheduling():
     print("[60%] 스케줄링 알고리즘 초기화 중...")
     try:
         # 스케줄링 준비 및 실행 모듈 호출
-        from src.scheduler import run_scheduler_pipeline
 
         result, scheduler = run_scheduler_pipeline(
             dag_df=dag_df,
