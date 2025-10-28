@@ -239,6 +239,7 @@ def find_best_chemical(first_node_dict, window_nodes, dag_manager):
 
     # 배합액이 없는 경우
     if not chemical_list or chemical_list == ():
+        print("[LOG] find_best_chemical: CHEMICAL_LIST empty for first node; window_nodes=", len(window_nodes))
         return None
 
     # 각 배합액별 사용 가능한 노드 수 카운트
@@ -253,9 +254,11 @@ def find_best_chemical(first_node_dict, window_nodes, dag_manager):
 
     # 가장 많이 사용 가능한 배합액 반환 (동수일 경우 첫 번째)
     if not chemical_counts:
+        print("[LOG] find_best_chemical: no chemical_counts built; window_nodes=", len(window_nodes))
         return None
 
     best_chemical = max(chemical_counts, key=chemical_counts.get)
+    print("[LOG] find_best_chemical: selected=", best_chemical, " candidates=", len(chemical_counts))
     return best_chemical
 
 
@@ -284,14 +287,18 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
 
         # 할당된 기계 인덱스 가져오기
         ideal_machine_index = node.machine
+        print("[LOG] SetupMinimizedStrategy: start_id=", start_id, " machine=", ideal_machine_index)
 
         # 2. 첫 노드의 최적 배합액 선택
         first_node_dict = dag_manager.opnode_dict.get(start_id)
         operation_name = first_node_dict["OPERATION_CODE"]
 
-        # 윈도우 내 같은 공정 노드들만 추출
-        same_operation_nodes = [gene for gene in window
-                                if dag_manager.opnode_dict.get(gene)["OPERATION_CODE"] == operation_name]
+        # 윈도우 내 같은 공정 노드들만 추출 (ready 필터 적용)
+        same_operation_nodes = [
+            gene for gene in window
+            if dag_manager.opnode_dict.get(gene)["OPERATION_CODE"] == operation_name
+            and SchedulingCore.validate_ready_node(dag_manager.nodes[gene])
+        ]
 
         # 첫 노드의 최적 배합액 결정
         best_chemical = find_best_chemical(first_node_dict, same_operation_nodes, dag_manager)
@@ -303,7 +310,9 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
 
         for gene in same_operation_nodes:
             gene_dict = dag_manager.opnode_dict.get(gene)
-            if best_chemical and best_chemical in gene_dict["CHEMICAL_LIST"]:
+            if (best_chemical
+                and best_chemical in gene_dict["CHEMICAL_LIST"]
+                and SchedulingCore.validate_ready_node(dag_manager.nodes[gene])):
                 same_chemical_queue.append(gene)
             else:
                 remaining_operation_queue.append(gene)
@@ -319,6 +328,11 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
             dag_manager.opnode_dict[gene]["SELECTED_CHEMICAL"] = best_chemical
 
         # 5. 같은 배합액 그룹 스케줄링
+        print(
+            "[LOG] SetupMinimizedStrategy: same_operation=", len(same_operation_nodes),
+            " same_chemical=", len(same_chemical_queue),
+            " remaining_op=", len(remaining_operation_queue)
+        )
         used_ids = [start_id]
         for same_chemical_id in same_chemical_queue:
             node = dag_manager.nodes[same_chemical_id]
@@ -331,7 +345,20 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
                 remaining_operation_queue.append(same_chemical_id)
 
         # 6. 남은 노드들을 배합액별로 반복 처리
+        iter_count = 0
         while remaining_operation_queue:
+            iter_count += 1
+            if iter_count > 50:
+                print("[LOG][WARN] SetupMinimizedStrategy: iteration cap reached (50); breaking loop")
+                break
+            # 매 반복마다 ready가 아닌 노드는 제거
+            remaining_operation_queue = [
+                g for g in remaining_operation_queue
+                if SchedulingCore.validate_ready_node(dag_manager.nodes[g])
+            ]
+            if not remaining_operation_queue:
+                print("[LOG] SetupMinimizedStrategy: no ready nodes remaining; return")
+                break
             # 6-1. 남은 노드 중 첫 번째를 리더로 선정
             leader_id = remaining_operation_queue[0]
             leader_dict = dag_manager.opnode_dict.get(leader_id)
@@ -346,7 +373,9 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
 
             for gene in remaining_operation_queue[1:]:
                 gene_dict = dag_manager.opnode_dict.get(gene)
-                if leader_best_chemical and leader_best_chemical in gene_dict["CHEMICAL_LIST"]:
+                if (leader_best_chemical
+                    and leader_best_chemical in gene_dict["CHEMICAL_LIST"]
+                    and SchedulingCore.validate_ready_node(dag_manager.nodes[gene])):
                     current_chemical_group.append(gene)
                     dag_manager.opnode_dict[gene]["SELECTED_CHEMICAL"] = leader_best_chemical
                 else:
@@ -360,8 +389,19 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
             )
 
             # 6-5. 현재 그룹 스케줄링
+            leader_parent_cnt = getattr(dag_manager.nodes[leader_id], "parent_node_count", None)
+            print(
+                "[LOG] SetupMinimizedStrategy: loop leader=", leader_id,
+                " parent_node_count=", leader_parent_cnt,
+                " best_chemical=", leader_best_chemical,
+                " group_size=", len(current_chemical_group)
+            )
             for chemical_id in current_chemical_group:
                 node = dag_manager.nodes[chemical_id]
+                # 안전망: 직전 단계에서 ready였어도 바로 전 노드 스케줄링으로 상태가 변할 수 있음
+                if not SchedulingCore.validate_ready_node(node):
+                    next_remaining.append(chemical_id)
+                    continue
                 strategy = ForcedMachineStrategy(ideal_machine_index, use_machine_window=False)
                 success = SchedulingCore.schedule_single_node(node, scheduler, strategy)
                 if success:
@@ -371,8 +411,13 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
                     next_remaining.append(chemical_id)
 
             # 6-6. 다음 반복을 위해 remaining 업데이트
+            if len(next_remaining) == len(remaining_operation_queue):
+                print("[LOG][WARN] SetupMinimizedStrategy: no progress in iteration; remaining=", len(remaining_operation_queue))
+                # 진행 없음이면 상위로 반환하여 상태 전환 기회를 제공
+                break
             remaining_operation_queue = next_remaining
-
+        
+        print("[LOG] SetupMinimizedStrategy: final used_ids=", len(used_ids))
         return used_ids
 
 
@@ -437,11 +482,13 @@ class DispatchPriorityStrategy(HighLevelSchedulingStrategy):
                 item[0] for item in result 
                 if np.abs((item[1] - base_date) / np.timedelta64(1, 'D')) <= window_days
             ]
+            print("[LOG] DispatchPriorityStrategy: window_size=", len(window_result))
             
             # 셋업 최소화 전략으로 윈도우 내 노드들 스케줄링
             used_ids = setup_strategy.execute(
                 dag_manager, scheduler, window_result[0], window_result[1:]
             )
+            print("[LOG] DispatchPriorityStrategy: used_ids=", len(used_ids))
             
             # 사용된 노드들을 제거
             if used_ids:

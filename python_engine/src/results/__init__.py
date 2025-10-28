@@ -98,7 +98,7 @@ def create_results(
     print("[96%] 주문 생산 요약본 생성 중...")
     order_summary = late_results['new_output_final_result'].copy()
     if config.columns.END_TIME in order_summary.columns:
-        order_summary = order_summary[[config.columns.PO_NO, '1_PROCCODE', '2_PROCCODE', '3_PROCCODE', '4_PROCCODE', config.columns.GITEM, config.columns.DUE_DATE, config.columns.END_DATE, config.columns.LATE_DAYS]]
+        order_summary = order_summary[[config.columns.PO_NO, '1_proccode', '2_proccode', '3_proccode', '4_proccode', config.columns.GITEM, config.columns.DUE_DATE, config.columns.END_DATE, config.columns.LATE_DAYS]]
     
     # === 8단계: 데이터 검증 및 최종 정리 ===
     print("[97%] 데이터 검증 중...")

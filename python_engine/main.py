@@ -33,7 +33,7 @@ def run_level4_scheduling():
         input_file = "data/input/생산계획 입력정보.xlsx"
 
         # 각 시트에서 데이터 읽기
-        order_df = pd.read_excel(input_file, sheet_name="tb_polist")
+        order_df = pd.read_excel("data/input/filtered_order.xlsx") # 주문정보 수정
         gitem_sitem_df = pd.read_excel(input_file, sheet_name="tb_itemspec")
         linespeed_df = pd.read_excel(input_file, sheet_name="tb_linespeed")
         operation_df = pd.read_excel(input_file, sheet_name="tb_itemproc")
@@ -56,6 +56,42 @@ def run_level4_scheduling():
         aging_df.to_excel("aging_df.xlsx", index=False)
 
         print("Excel 파일 로딩 완료!")
+
+        # ################
+        # # 수율/라인스피드 누락 gitem 통합 목록 생성 및 주문 필터링 저장
+        # try:
+        #     g_col = config.columns.GITEM
+        #     # 주문에 등장하는 gitem 집합
+        #     order_gitems = set(order_df[g_col].dropna().unique()) if g_col in order_df.columns else set()
+
+        #     # 각 원천에서의 gitem 컬럼 존재 여부 확인
+        #     ls_has_gitem = g_col in linespeed_df.columns
+        #     yd_has_gitem = g_col in yield_df.columns
+
+        #     missing_linespeed_gitems = set()
+        #     missing_yield_gitems = set()
+
+        #     if ls_has_gitem:
+        #         ls_gitems = set(linespeed_df[g_col].dropna().unique())
+        #         missing_linespeed_gitems = order_gitems - ls_gitems
+        #     if yd_has_gitem:
+        #         yd_gitems = set(yield_df[g_col].dropna().unique())
+        #         missing_yield_gitems = order_gitems - yd_gitems
+
+        #     combined_missing_gitems = sorted(missing_linespeed_gitems.union(missing_yield_gitems))
+
+        #     if combined_missing_gitems and (g_col in order_df.columns):
+        #         filtered_order_df = order_df[~order_df[g_col].isin(combined_missing_gitems)].copy()
+        #         filtered_path = "data/output/filtered_order.xlsx"
+        #         filtered_order_df.to_excel(filtered_path, index=False)
+        #         print(f"[Validation] 수율/라인스피드 누락 gitem(통합) 수: {len(combined_missing_gitems)}")
+        #         print(f"[Validation] 누락 gitem(통합) 목록: {combined_missing_gitems}")
+        #         print(f"[Validation] filtered_order 저장: {filtered_path} (행: {len(filtered_order_df)})")
+        #     else:
+        #         print("[Validation] 통합 누락 gitem 없음 또는 gitem 컬럼을 찾을 수 없어 filtered_order를 생성하지 않았습니다.")
+        # except Exception as e:
+        #     print(f"[Validation] filtered_order 생성 중 오류: {e}")
+        # #######################
 
     except FileNotFoundError as e:
         print(f"오류: 파일을 찾을 수 없습니다 - {e}")
@@ -123,6 +159,9 @@ def run_level4_scheduling():
     print("[40%] DAG 시스템 생성 중...")
     dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
         sequence_seperated_order, linespeed, machine_master_info, aging_df=aging_df)
+
+    print("machine_dict 정보")
+    print(machine_dict)
     print(f"[50%] DAG 시스템 생성 완료 - 노드: {len(dag_df)}개, 기계: {len(machine_dict)}개")
     
     print("+++++++++sequence_seperated_order")
@@ -147,7 +186,7 @@ def run_level4_scheduling():
             manager=manager,
             window_days=window_days,
         )
-        print("[85%] 스케줄링 알고리즘 실행 완료!")
+
 
         # === 6단계: 결과 후처리 (모든 후처리 로직을 create_results에서 처리) ===
         print(f"[80%] 스케줄링 완료! 결과 후처리 시작...")
