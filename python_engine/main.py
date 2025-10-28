@@ -33,7 +33,7 @@ def run_level4_scheduling():
         input_file = "data/input/생산계획 입력정보.xlsx"
 
         # 각 시트에서 데이터 읽기
-        order_df = pd.read_excel("data/input/filtered_order.xlsx") # 주문정보 수정
+        order_df = pd.read_excel(input_file, sheet_name="tb_polist") # 주문정보 수정
         gitem_sitem_df = pd.read_excel(input_file, sheet_name="tb_itemspec")
         linespeed_df = pd.read_excel(input_file, sheet_name="tb_linespeed")
         operation_df = pd.read_excel(input_file, sheet_name="tb_itemproc")
@@ -53,8 +53,30 @@ def run_level4_scheduling():
             left_on=config.columns.GRP2_NAME,
             right_on=config.columns.GRP2_NAME
         )
+        # aging_df에서 grp2_name 컬럼 삭제 후 aging_gitem과 하나의 데이터프레임으로 합침
+        aging_df = aging_df.drop(columns=[config.columns.GRP2_NAME])
         aging_df.to_excel("aging_df.xlsx", index=False)
+        
+        # global_machine_limit 
+        global_machine_limit = pd.read_excel("data/input/글로벌_제약조건_블랙리스트.xlsx")
 
+        # grp2name -> gitem 변경
+        global_machine_limit = global_machine_limit.merge(gitem_sitem_df[[config.columns.GRP2_NAME, config.columns.GITEM]], on=[config.columns.GRP2_NAME], how="inner")
+        global_machine_limit = global_machine_limit.drop_duplicates(keep='first')
+
+        # gitem, procgbn 기준으로 proccode 추가
+        global_machine_limit = global_machine_limit.merge(
+            operation_df[[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION, config.columns.OPERATION_CODE]], 
+            on=[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION], 
+            how="left")
+        global_machine_limit.drop(columns = {config.columns.GRP2_NAME, config.columns.OPERATION_CLASSIFICATION})
+        global_machine_limit = global_machine_limit.drop_duplicates(keep='first')
+
+
+        
+ 
+        
+        global_machine_limit.to_excel("global_machine_limit.xlsx", index=False)
         print("Excel 파일 로딩 완료!")
 
         # ################
@@ -127,7 +149,7 @@ def run_level4_scheduling():
 
 
     
-    machine_limit = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_limit")
+    local_machine_limit = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_limit")
     machine_allocate = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_allocate")
     machine_rest = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_rest")
     
@@ -144,7 +166,7 @@ def run_level4_scheduling():
 
     # === 2단계: 주문 시퀀스 생성 (Order Sequencing) ===
     sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = generate_order_sequences(
-        order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed, chemical_data)
+        order, operation_seperated_sequence, operation_types, local_machine_limit, global_machine_limit, machine_allocate, linespeed, chemical_data)
 
     print("sequence_seperated_order 정보!!!!!!!")
     print(sequence_seperated_order.columns)

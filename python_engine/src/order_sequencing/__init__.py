@@ -5,7 +5,7 @@ from .order_preprocessing import seperate_order_by_month, same_order_groupby
 from .sequence_preprocessing import process_operations_by_category, create_sequence_seperated_order
 from .operation_machine_limit import operation_machine_limit, operation_machine_exclusive
 
-def generate_order_sequences(order, operation_seperated_sequence, operation_types, machine_limit, machine_allocate, linespeed, chemical_data):
+def generate_order_sequences(order, operation_seperated_sequence, operation_types, local_machine_limit, global_machine_limit, machine_allocate, linespeed, chemical_data):
     """
     order -> 월별 분리 -> 동일 주문 병합 -> 시퀀스 주문 생성 -> 공정 타입 병합 + 컬럼 타입 변환
     한 번에 처리하는 파이프라인 함수
@@ -48,7 +48,7 @@ def generate_order_sequences(order, operation_seperated_sequence, operation_type
     # unable_details: GITEM과 해당 불가능한 공정명 정보
 
 
-    linespeed, unable_gitems, unable_details = operation_machine_limit(linespeed, machine_limit)
+    linespeed, unable_gitems, unable_details = operation_machine_limit(linespeed, local_machine_limit, global_machine_limit)
     linespeed = operation_machine_exclusive(linespeed, machine_allocate)
 
     print(f"unable gitems: {len(unable_gitems)}개")
