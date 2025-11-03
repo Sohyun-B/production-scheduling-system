@@ -7,6 +7,7 @@ Excel에서 읽은 데이터프레임들을 스케줄링에 필요한 형태로 
 from .production_preprocessor import ProductionDataPreprocessor
 from .validator import DataValidator
 import pandas as pd
+import json
 from typing import Dict
 
 
@@ -85,6 +86,22 @@ def preprocess_production_data(
             print("\n" + "="*80)
             print("✅ 데이터 검증 완료: 모든 검증 통과!")
             print("="*80 + "\n")
+        
+        # JSON 검증 결과 저장
+        if validation_result and 'validation_issues' in validation_result:
+            json_output = {
+                "validation_summary": {
+                    "is_valid": validation_result['is_valid'],
+                    "total_errors": len(validation_result['errors']),
+                    "total_warnings": len(validation_result['warnings'])
+                },
+                "issues": validation_result['validation_issues']
+            }
+            
+            json_file_path = "data/output/validation_result.json"
+            with open(json_file_path, 'w', encoding='utf-8') as f:
+                json.dump(json_output, f, ensure_ascii=False, indent=2)
+            print(f"[Validation] JSON 검증 결과 저장: {json_file_path}")
     else:
         # 검증 스킵 시 원본 데이터 사용
         cleaned_data = {
