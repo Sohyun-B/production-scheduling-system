@@ -386,6 +386,80 @@ chemical_df:
 - 검증 2가 실패한 경우, 이 검증은 건너뜀
 - 배합액 누락은 오류가 아닌 경고로 처리 (배합액이 필요 없는 공정 존재 가능)
 
+**JSON 결과 형식**:
+
+누락된 경우 (미존재 - 경고):
+```json
+{
+  "table_name": "tb_chemical",
+  "severity": "warning",
+  "columns": ["gitemno", "proccode"],
+  "constraint": "existence",
+  "issue_type": "missing",
+  "values": {
+    "gitemno": "31600",
+    "proccode": "20902"
+  },
+  "action_taken": "none"
+}
+```
+
+중복된 경우 (오류):
+```json
+{
+  "table_name": "tb_chemical",
+  "severity": "error",
+  "columns": ["gitemno", "proccode"],
+  "constraint": "uniqueness",
+  "issue_type": "duplicate",
+  "duplicate_count": 3,
+  "values": {
+    "gitemno": "31600",
+    "proccode": "20902"
+  },
+  "action_taken": "none"
+}
+```
+
+전체 검증 결과 구조:
+```json
+{
+  "validation_summary": {
+    "table_name": "tb_chemical",
+    "is_valid": false,
+    "total_errors": 2,
+    "total_warnings": 5
+  },
+  "issues": [
+    {
+      "table_name": "tb_chemical",
+      "severity": "warning",
+      "columns": ["gitemno", "proccode"],
+      "constraint": "existence",
+      "issue_type": "missing",
+      "values": {
+        "gitemno": "31600",
+        "proccode": "20902"
+      },
+      "action_taken": "none"
+    },
+    {
+      "table_name": "tb_chemical",
+      "severity": "error",
+      "columns": ["gitemno", "proccode"],
+      "constraint": "uniqueness",
+      "issue_type": "duplicate",
+      "duplicate_count": 3,
+      "values": {
+        "gitemno": "25000",
+        "proccode": "20500"
+      },
+      "action_taken": "none"
+    }
+  ]
+}
+```
+
 ---
 
 ## 5. 중복 데이터 제거

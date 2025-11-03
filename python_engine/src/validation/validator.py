@@ -286,10 +286,40 @@ class DataValidator:
                 warning_msg = f"[배합액정보] (제품코드={gitem}, 공정코드={proccode})가 배합액정보 테이블에 존재하지 않습니다. (배합액이 필요 없는 공정일 수 있음)"
                 self.warnings.append(warning_msg)
                 missing_pairs.append((gitem, proccode))
+                
+                # JSON 이슈 추가 (누락은 경고)
+                self.validation_issues.append({
+                    "table_name": "tb_chemical",
+                    "severity": "warning",
+                    "columns": ["gitemno", "proccode"],
+                    "constraint": "existence",
+                    "issue_type": "missing",
+                    "values": {
+                        "gitemno": str(gitem),
+                        "proccode": str(proccode)
+                    },
+                    "action_taken": "none"
+                })
+                
             elif row_count > 1:
                 error_msg = f"[배합액정보] (제품코드={gitem}, 공정코드={proccode})가 배합액정보 테이블에 {row_count}개 행으로 중복 존재합니다."
                 self.errors.append(error_msg)
                 duplicate_pairs.append((gitem, proccode, row_count))
+                
+                # JSON 이슈 추가 (중복은 오류)
+                self.validation_issues.append({
+                    "table_name": "tb_chemical",
+                    "severity": "error",
+                    "columns": ["gitemno", "proccode"],
+                    "constraint": "uniqueness",
+                    "issue_type": "duplicate",
+                    "duplicate_count": row_count,
+                    "values": {
+                        "gitemno": str(gitem),
+                        "proccode": str(proccode)
+                    },
+                    "action_taken": "none"
+                })
 
         if missing_pairs:
             print(f"⚠️  경고: 배합액 데이터가 없는 (제품코드, 공정코드) 쌍 ({len(missing_pairs)}건)")
