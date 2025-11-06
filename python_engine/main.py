@@ -180,7 +180,7 @@ def run_level4_scheduling():
     # === 4단계: DAG 생성 (내부에서 aging_map 자동 생성) ===
     print("[40%] DAG 시스템 생성 중...")
     dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
-        sequence_seperated_order, linespeed, machine_master_info, aging_df=aging_df)
+        sequence_seperated_order, linespeed, machine_master_info)
 
     print("machine_dict 정보")
     print(machine_dict)

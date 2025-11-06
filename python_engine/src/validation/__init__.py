@@ -87,17 +87,53 @@ def preprocess_production_data(
             print("✅ 데이터 검증 완료: 모든 검증 통과!")
             print("="*80 + "\n")
         
-        # JSON 검증 결과 저장
+        # JSON 검증 결과 저장 (테이블 단위 요약 구조)
         if validation_result and 'validation_issues' in validation_result:
+            issues = validation_result['validation_issues']
+
+            # 테이블별로 이슈 그룹화
+            table_to_issues = {}
+            for issue in issues:
+                table_name = issue.get('table_name', 'unknown')
+                # 개별 이슈 항목에서 table_name 제거 (상위 블록에서 제공)
+                issue_entry = {k: v for k, v in issue.items() if k != 'table_name'}
+                table_to_issues.setdefault(table_name, []).append(issue_entry)
+
+            # 테이블별 summary 계산
+            tables_output = []
+            total_errors = 0
+            total_warnings = 0
+            tables_valid = 0
+
+            for table_name, table_issues in table_to_issues.items():
+                err_count = sum(1 for it in table_issues if it.get('severity') == 'error')
+                warn_count = sum(1 for it in table_issues if it.get('severity') == 'warning')
+                total_errors += err_count
+                total_warnings += warn_count
+                is_valid_table = err_count == 0
+                if is_valid_table:
+                    tables_valid += 1
+
+                tables_output.append({
+                    "table_name": table_name,
+                    "validation_summary": {
+                        "is_valid": is_valid_table,
+                        "total_errors": err_count,
+                        "total_warnings": warn_count
+                    },
+                    "issues": table_issues
+                })
+
             json_output = {
-                "validation_summary": {
-                    "is_valid": validation_result['is_valid'],
-                    "total_errors": len(validation_result['errors']),
-                    "total_warnings": len(validation_result['warnings'])
+                "overall_summary": {
+                    "total_tables": len(tables_output),
+                    "tables_valid": tables_valid,
+                    "total_errors": total_errors,
+                    "total_warnings": total_warnings
                 },
-                "issues": validation_result['validation_issues']
+                "tables": tables_output
             }
-            
+
             json_file_path = "data/output/validation_result.json"
             with open(json_file_path, 'w', encoding='utf-8') as f:
                 json.dump(json_output, f, ensure_ascii=False, indent=2)

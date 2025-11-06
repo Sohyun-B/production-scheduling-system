@@ -100,6 +100,21 @@ class DataValidator:
             for gitem, spec in missing_combinations:
                 warning_msg = f"[제품군-GITEM-SITEM] PO정보의 (제품코드={gitem}, 규격={spec}) 조합이 제품군-GITEM-SITEM 테이블에 존재하지 않습니다."
                 self.warnings.append(warning_msg)
+                
+                # JSON 이슈 추가
+                self.validation_issues.append({
+                    "table_name": "tb_itemspec",
+                    "severity": "warning",
+                    "columns": ["gitemno", "spec"],
+                    "constraint": "existence",
+                    "issue_type": "missing",
+                    "values": {
+                        "gitemno": str(gitem),
+                        "spec": str(spec)
+                    },
+                    "action_taken": "none"
+                })
+                
                 print(f"  - 제품코드: {gitem}, 규격: {spec}")
         else:
             print(f"✓ 검증 통과: PO정보의 모든 (제품코드, 규격) 조합이 존재합니다.")
@@ -119,6 +134,20 @@ class DataValidator:
             for gitem in missing_gitems:
                 error_msg = f"[GITEM-공정-순서] PO정보의 제품코드={gitem}가 GITEM-공정-순서 테이블에 존재하지 않습니다."
                 self.errors.append(error_msg)
+                
+                # JSON 이슈 추가
+                self.validation_issues.append({
+                    "table_name": "tb_itemproc",
+                    "severity": "error",
+                    "columns": ["gitemno"],
+                    "constraint": "existence",
+                    "issue_type": "missing",
+                    "values": {
+                        "gitemno": str(gitem)
+                    },
+                    "action_taken": "none"
+                })
+                
                 print(f"  - 제품코드: {gitem}")
 
         # 각 GitemNo별 PROCSEQ 연속성 확인
@@ -136,6 +165,19 @@ class DataValidator:
                 error_msg = f"[GITEM-공정-순서] 제품코드={gitem}의 공정순서(PROCSEQ)가 연속적이지 않습니다. 현재: {procseq_values}, 예상: {expected_seq}"
                 self.errors.append(error_msg)
                 seq_errors.append((gitem, procseq_values, expected_seq))
+                
+                # JSON 이슈 추가
+                self.validation_issues.append({
+                    "table_name": "tb_itemproc",
+                    "severity": "error",
+                    "columns": ["gitemno"],
+                    "constraint": "sequence_continuity",
+                    "issue_type": "invalid_sequence",
+                    "values": {
+                        "gitemno": str(gitem)
+                    },
+                    "action_taken": "none"
+                })
             else:
                 # 정상이면 (GitemNo, PROCCODE) 쌍 저장
                 for _, row in gitem_operations.iterrows():
@@ -168,10 +210,38 @@ class DataValidator:
                 error_msg = f"[수율-GITEM등] PO정보의 제품코드={gitem}가 수율-GITEM등 테이블에 존재하지 않습니다."
                 self.errors.append(error_msg)
                 missing_gitems.append(gitem)
+                
+                # JSON 이슈 추가
+                self.validation_issues.append({
+                    "table_name": "tb_productionyield",
+                    "severity": "error",
+                    "columns": ["gitemno"],
+                    "constraint": "existence",
+                    "issue_type": "missing",
+                    "values": {
+                        "gitemno": str(gitem)
+                    },
+                    "action_taken": "none"
+                })
+                
             elif row_count > 1:
                 warning_msg = f"[수율-GITEM등] 제품코드={gitem}가 수율-GITEM등 테이블에 {row_count}개 행으로 중복 존재합니다. (전처리에서 첫 번째 행만 유지)"
                 self.warnings.append(warning_msg)
                 duplicate_gitems.append((gitem, row_count))
+                
+                # JSON 이슈 추가
+                self.validation_issues.append({
+                    "table_name": "tb_productionyield",
+                    "severity": "warning",
+                    "columns": ["gitemno"],
+                    "constraint": "uniqueness",
+                    "issue_type": "duplicate",
+                    "duplicate_count": row_count,
+                    "values": {
+                        "gitemno": str(gitem)
+                    },
+                    "action_taken": "keep_first"
+                })
 
         if missing_gitems:
             print(f"❌ 오류: 수율 데이터가 없는 제품코드 ({len(missing_gitems)}건)")

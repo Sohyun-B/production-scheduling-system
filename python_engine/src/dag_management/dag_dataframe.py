@@ -96,7 +96,6 @@ class DAGNode:
         self.node_start = None               # 실제 시작 시간
         self.node_end = None                 # 실제 종료 시간 (주의: node_start + processing_time과 일치해야 함)
         self.parent_node_end = [0]           # 부모들의 종료 시간 리스트
-        self.aging_time = 0                  # 공정 후 대기 시간 (aging time, 기본값 0)
 
 
     def save_initial_state(self):

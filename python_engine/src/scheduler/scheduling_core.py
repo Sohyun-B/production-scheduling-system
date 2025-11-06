@@ -53,7 +53,7 @@ class SchedulingCore:
             node: DAGNode 인스턴스
             
         Returns:
-            float: 최조 시작 가능 시간 (부모 노드들의 최대 종료 시간 + aging_time)
+            float: 최조 시작 가능 시간 (부모 노드들의 최대 종료 시간)
         """
         # 어트리뷰트나 값이 존재하지 않으면 0(바로 시작 가능)
         if not hasattr(node, 'parent_node_end') or not node.parent_node_end:
@@ -67,9 +67,9 @@ class SchedulingCore:
         # 부모 노드들의 최대 종료 시간
         base_earliest_start = max(valid_end_times)
         
-        # aging_time이 0보다 크면 추가 (0이면 대기 시간 없음)
-        if hasattr(node, 'aging_time') and node.aging_time > 0:
-            return base_earliest_start + node.aging_time
+        # # aging_time이 0보다 크면 추가 (0이면 대기 시간 없음)
+        # if hasattr(node, 'aging_time') and node.aging_time > 0:
+        #     return base_earliest_start + node.aging_time
         
         return base_earliest_start
     

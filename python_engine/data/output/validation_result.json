@@ -1,442 +1,435 @@
 {
-  "validation_summary": {
-    "is_valid": true,
+  "overall_summary": {
+    "total_tables": 2,
+    "tables_valid": 2,
     "total_errors": 0,
     "total_warnings": 28
   },
-  "issues": [
+  "tables": [
     {
       "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "31600",
-        "proccode": "20902"
+      "validation_summary": {
+        "is_valid": true,
+        "total_errors": 0,
+        "total_warnings": 13
       },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "32363",
-        "proccode": "20500"
-      },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "26300",
-        "proccode": "20700"
-      },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "32265",
-        "proccode": "20500"
-      },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "30234",
-        "proccode": "20902"
-      },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "32267",
-        "proccode": "20500"
-      },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "25441",
-        "proccode": "20300"
-      },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "32265",
-        "proccode": "20902"
-      },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "31739",
-        "proccode": "20902"
-      },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "30260",
-        "proccode": "20902"
-      },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "32267",
-        "proccode": "20902"
-      },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "32016",
-        "proccode": "20902"
-      },
-      "action_taken": "keep_first"
-    },
-    {
-      "table_name": "tb_linespeed",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "uniqueness",
-      "issue_type": "duplicate",
-      "duplicate_count": 2,
-      "values": {
-        "gitemno": "31602",
-        "proccode": "20902"
-      },
-      "action_taken": "keep_first"
+      "issues": [
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "31600",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32363",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "26300",
+            "proccode": "20700"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32265",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "30234",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32267",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "25441",
+            "proccode": "20300"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32265",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "31739",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "30260",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32267",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32016",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "31602",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        }
+      ]
     },
     {
       "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "32363",
-        "proccode": "20906"
+      "validation_summary": {
+        "is_valid": true,
+        "total_errors": 0,
+        "total_warnings": 15
       },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "32019",
-        "proccode": "20906"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "32017",
-        "proccode": "20906"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "30234",
-        "proccode": "20906"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "32265",
-        "proccode": "20906"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "31739",
-        "proccode": "20906"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "25296",
-        "proccode": "20700"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "32267",
-        "proccode": "20906"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "32016",
-        "proccode": "20906"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "30260",
-        "proccode": "20906"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "31602",
-        "proccode": "20906"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "31600",
-        "proccode": "20906"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "32018",
-        "proccode": "20906"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "32017",
-        "proccode": "20706"
-      },
-      "action_taken": "none"
-    },
-    {
-      "table_name": "tb_chemical",
-      "severity": "warning",
-      "columns": [
-        "gitemno",
-        "proccode"
-      ],
-      "constraint": "existence",
-      "issue_type": "missing",
-      "values": {
-        "gitemno": "27870",
-        "proccode": "20700"
-      },
-      "action_taken": "none"
+      "issues": [
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "32363",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "32019",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "32017",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "30234",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "32265",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "31739",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "25296",
+            "proccode": "20700"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "32267",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "32016",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "30260",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "31602",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "31600",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "32018",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "32017",
+            "proccode": "20706"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "27870",
+            "proccode": "20700"
+          },
+          "action_taken": "none"
+        }
+      ]
     }
   ]
 }

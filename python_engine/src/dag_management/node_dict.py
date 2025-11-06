@@ -2,20 +2,10 @@ import pandas as pd
 import numpy as np
 from config import config
 
-def create_opnode_dict(sequence_seperated_order, aging_map=None):
+def create_opnode_dict(sequence_seperated_order):
     opnode_dict = {}
 
-    print("========================OPNODE 생성 시작======================== ")
-
-    # aging_map이 None이거나 빈 딕셔너리면 모든 aging_time을 0으로 설정
-    if aging_map is None or not aging_map:
-        sequence_seperated_order['aging_time'] = 0
-    else:
-        # 각 노드에 에이징 시간 추가. 해당 aging 시간은 해당 공정이 시작되기 '전'에 수행되어야함
-        # aging_map에 없는 경우는 0으로 설정
-        sequence_seperated_order['aging_time'] = list(map(lambda t: aging_map.get(t, 0), 
-            zip(sequence_seperated_order[config.columns.GITEM], sequence_seperated_order[config.columns.OPERATION_CLASSIFICATION])))
-    
+    print("========================OPNODE 생성 시작======================== ")    
     print("sequence_seperated_order")
     sequence_seperated_order.to_csv("data/output/sequence_seperated_order.csv", encoding='utf-8-sig', index=False)
     print(sequence_seperated_order)
@@ -31,11 +21,6 @@ def create_opnode_dict(sequence_seperated_order, aging_map=None):
             # 'A|B' -> ('A','B'), 'A' -> ('A',)
             chemical_tuple = tuple(chemical_str.split("|"))
         
-        # aging_time 처리: pandas nan을 0으로 변환 (aging이 없으면 대기 시간 0)
-        aging_time_value = row['aging_time']
-        if pd.isna(aging_time_value):
-            aging_time_value = 0
-        
         opnode_dict[row[config.columns.ID]] = {
             "OPERATION_ORDER": row[config.columns.OPERATION_ORDER],
             "OPERATION_CODE": row[config.columns.OPERATION_CODE],
@@ -44,8 +29,6 @@ def create_opnode_dict(sequence_seperated_order, aging_map=None):
             "CHEMICAL_LIST": chemical_tuple,
             "PRODUCTION_LENGTH": row[config.columns.PRODUCTION_LENGTH],
             "SELECTED_CHEMICAL": None,  # 초기값
-            "AGING_TIME": aging_time_value
-            
         }
     
     return opnode_dict
