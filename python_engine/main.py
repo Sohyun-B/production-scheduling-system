@@ -55,6 +55,14 @@ def run_level4_scheduling():
         )
         # aging_df에서 grp2_name 컬럼 삭제 후 aging_gitem과 하나의 데이터프레임으로 합침
         aging_df = aging_df.drop(columns=[config.columns.GRP2_NAME])
+        print(aging_df.columns)
+        aging_df = aging_df.merge(
+            operation_df[[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION, config.columns.OPERATION_CODE]],
+            how = 'inner',
+            left_on = [config.columns.GITEM, 'prev_procgbn'],
+            right_on = [config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION]
+        )
+        aging_df = aging_df.drop_duplicates(keep='first')
         aging_df.to_excel("aging_df.xlsx", index=False)
         
         # global_machine_limit 
@@ -181,6 +189,8 @@ def run_level4_scheduling():
     print("[40%] DAG 시스템 생성 중...")
     dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
         sequence_seperated_order, linespeed, machine_master_info)
+    
+    dag_df.to_csv("dagdf.csv", encoding='utf-8-sig')
 
     print("machine_dict 정보")
     print(machine_dict)

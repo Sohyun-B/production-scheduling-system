@@ -43,9 +43,10 @@ def create_complete_dag_system(sequence_seperated_order, linespeed, machine_mast
     Returns:
         tuple: (dag_df, opnode_dict, manager, machine_dict, merged_df)
     """
+    sequence_seperated_order.to_csv("sequence_seperated_order.csv", encoding='utf-8-sig', index=False)
 
     merged_df = make_process_table(sequence_seperated_order)
-
+    merged_df.to_csv("merged_df.csv", encoding='utf-8-sig', index=False)
     print("merged_df")
     print(merged_df.columns)
     hierarchy = sorted(
