@@ -93,24 +93,49 @@ class SchedulingCore:
     def update_dependencies(node):
         """
         후속 작업 의존성 업데이트
-        
+
         Args:
             node: 완료된 DAGNode 인스턴스
         """
         for child in node.children:
             child.parent_node_count -= 1
             child.parent_node_end.append(node.node_end)
-    
+
+    @staticmethod
+    def schedule_ready_aging_children(node, scheduler):
+        """
+        완료된 노드의 자식 중 스케줄 가능한 Aging 노드를 자동 스케줄링
+
+        책임: Aging 노드 자동 스케줄링
+        호출 시점: schedule_single_node()에서 의존성 업데이트 직후
+
+        Args:
+            node: 완료된 DAGNode 인스턴스
+            scheduler: Scheduler 인스턴스
+        """
+        for child in node.children:
+            if child.parent_node_count == 0:  # 스케줄 가능
+                machine_info = scheduler.machine_dict.get(child.id)
+                is_aging = machine_info and set(machine_info.keys()) == {-1}
+
+                if is_aging:
+                    print(f"[INFO] Aging 노드 {child.id} 자동 스케줄링 (parent {node.id} 완료)")
+                    SchedulingCore.schedule_single_node(
+                        child,
+                        scheduler,
+                        AgingMachineStrategy()
+                    )
+
     @staticmethod
     def schedule_single_node(node, scheduler, machine_assignment_strategy) -> bool:
         """
         단일 노드 완전 스케줄링 - 모든 패턴 통합
-        
+
         Args:
             node: 스케줄링할 DAGNode 인스턴스
             scheduler: Scheduler 인스턴스
             machine_assignment_strategy: 기계 할당 전략
-            
+
         Returns:
             bool: 스케줄링 성공 여부
         """
@@ -118,32 +143,44 @@ class SchedulingCore:
             # 1. 선행 작업 완료 검증
             if not SchedulingCore.validate_ready_node(node):
                 return False
-                
+
             # 2. 최초 시작 가능 시간 계산
             earliest_start = SchedulingCore.calculate_start_time(node)
             node.earliest_start = earliest_start
-            
-            # 3. 기계 할당 (전략 패턴 적용)
-            assignment_result = machine_assignment_strategy.assign(
-                scheduler, node, earliest_start
-            )
-            
+
+            # NEW: 3. Aging 노드 감지 및 전략 선택
+            machine_info = scheduler.machine_dict.get(node.id)
+            is_aging = machine_info and set(machine_info.keys()) == {-1}
+
+            if is_aging:
+                # Aging 노드는 AgingMachineStrategy 사용
+                strategy = AgingMachineStrategy()
+                assignment_result = strategy.assign(scheduler, node, earliest_start)
+            else:
+                # 일반 노드는 전달받은 전략 사용
+                assignment_result = machine_assignment_strategy.assign(
+                    scheduler, node, earliest_start
+                )
+
             if not assignment_result.success:
                 return False
-                
+
             # 4. 노드 상태 업데이트
             SchedulingCore.update_node_state(
-                node, 
+                node,
                 assignment_result.machine_index,
                 assignment_result.start_time,
                 assignment_result.processing_time
             )
-            
+
             # 5. 후속 작업 의존성 업데이트
             SchedulingCore.update_dependencies(node)
-            
+
+            # 6. Aging 자식 노드 자동 스케줄링
+            SchedulingCore.schedule_ready_aging_children(node, scheduler)
+
             return True
-            
+
         except Exception as e:
             print(f"Error in schedule_single_node for node {getattr(node, 'id', 'unknown')}: {e}")
             return False
@@ -170,11 +207,11 @@ class MachineAssignmentStrategy(ABC):
 
 class OptimalMachineStrategy(MachineAssignmentStrategy):
     """최적 기계 자동 선택 전략"""
-    
+
     def assign(self, scheduler, node, earliest_start: float) -> AssignmentResult:
         """
         스케줄러가 최적 기계를 자동 선택하여 할당
-        
+
         기존 코드: scheduler.assign_operation(earliest_start, node_id, depth)
         """
         try:
@@ -188,6 +225,55 @@ class OptimalMachineStrategy(MachineAssignmentStrategy):
                 processing_time=processing_time
             )
         except Exception as e:
+            return AssignmentResult(
+                success=False,
+                machine_index=None,
+                start_time=None,
+                processing_time=None
+            )
+
+
+class AgingMachineStrategy(MachineAssignmentStrategy):
+    """Aging 전용 기계 할당 전략 (NEW)"""
+
+    def assign(self, scheduler, node, earliest_start: float) -> AssignmentResult:
+        """
+        Aging 노드를 aging_machine에 즉시 할당
+
+        Args:
+            scheduler: Scheduler 인스턴스
+            node: Aging DAGNode 인스턴스
+            earliest_start: 최초 시작 가능 시간
+
+        Returns:
+            AssignmentResult: 할당 결과 (machine_index=-1)
+        """
+        try:
+            machine_info = scheduler.machine_dict.get(node.id)
+
+            # Aging 노드 검증
+            if not machine_info or set(machine_info.keys()) != {-1}:
+                raise ValueError(f"Node {node.id} is not an aging node")
+
+            processing_time = machine_info[-1]
+            start_time = earliest_start  # 즉시 시작
+
+            # Aging 기계에 할당
+            scheduler.aging_machine._Input(
+                node.depth,
+                node.id,
+                start_time,
+                processing_time
+            )
+
+            return AssignmentResult(
+                success=True,
+                machine_index=-1,
+                start_time=start_time,
+                processing_time=processing_time
+            )
+        except Exception as e:
+            print(f"[ERROR] AgingMachineStrategy.assign for node {node.id}: {e}")
             return AssignmentResult(
                 success=False,
                 machine_index=None,
@@ -248,6 +334,7 @@ def find_best_chemical(first_node_dict, window_nodes, dag_manager):
         count = 0
         for node_id in window_nodes:
             node_dict = dag_manager.opnode_dict.get(node_id)
+            # NEW: Aging 노드는 opnode_dict에 없으므로 자동 제외됨 (추가 체크)
             if node_dict and chemical in node_dict["CHEMICAL_LIST"]:
                 count += 1
         chemical_counts[chemical] = count
@@ -293,10 +380,11 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
         first_node_dict = dag_manager.opnode_dict.get(start_id)
         operation_name = first_node_dict["OPERATION_CODE"]
 
-        # 윈도우 내 같은 공정 노드들만 추출 (ready 필터 적용)
+        # NEW: 윈도우 내 같은 공정 노드들만 추출 (ready 필터 + aging 제외)
         same_operation_nodes = [
             gene for gene in window
-            if dag_manager.opnode_dict.get(gene)["OPERATION_CODE"] == operation_name
+            if dag_manager.opnode_dict.get(gene)  # Aging 노드는 opnode_dict에 없으므로 제외됨
+            and dag_manager.opnode_dict.get(gene)["OPERATION_CODE"] == operation_name
             and SchedulingCore.validate_ready_node(dag_manager.nodes[gene])
         ]
 
@@ -448,7 +536,21 @@ class DispatchPriorityStrategy(HighLevelSchedulingStrategy):
             if sequence_seperated_order is None:
                 raise ValueError("priority_order가 None인 경우 sequence_seperated_order가 필요합니다")
             priority_order, dag_df = create_dispatch_rule(dag_df, sequence_seperated_order)
-        
+
+        # Aging 노드 필터링 (Aging은 parent 완료 시 자동 스케줄링됨)
+        filtered_priority = []
+        aging_nodes = []
+        for node_id in priority_order:
+            machine_info = scheduler.machine_dict.get(node_id)
+            is_aging = machine_info and set(machine_info.keys()) == {-1}
+            if is_aging:
+                aging_nodes.append(node_id)
+            else:
+                filtered_priority.append(node_id)
+
+        print(f"[INFO] Priority order: 전체 {len(priority_order)}개 노드 중 일반 {len(filtered_priority)}개, Aging {len(aging_nodes)}개")
+        priority_order = filtered_priority  # 일반 노드만 처리
+
         # priority_order와 납기일을 결합
         # DUE_DATE 컬럼이 없으면 sequence_seperated_order에서 가져오기
         if config.columns.DUE_DATE not in dag_df.columns:
@@ -493,7 +595,11 @@ class DispatchPriorityStrategy(HighLevelSchedulingStrategy):
             # 사용된 노드들을 제거
             if used_ids:
                 result = [item for item in result if item[0] not in used_ids]
-        
+            else:
+                # 무한루프 방지: 아무것도 스케줄링되지 않았으면 첫 번째 노드 강제 제거
+                print(f"[WARNING] 노드가 스케줄링되지 않음. 첫 번째 노드 {result[0][0]} 제거")
+                result = result[1:]
+
         return dag_manager.to_dataframe()
 
 

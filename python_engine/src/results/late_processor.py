@@ -8,49 +8,37 @@ from config import config
 
 
 class LateOrderCalculator:
-    """지각 주문 계산 및 분석 (기존 late_order.py의 로직)"""
-    
-    def __init__(self, final_result_df, merged_df, original_order):
+    """지각 주문 계산 및 분석 (긴 형식 기반)"""
+
+    def __init__(self, final_result_df, process_detail_df, original_order):
         """
         :param final_result_df: 전체 작업 완료 시간 결과 (id, node_end 등)
-        :param merged_df: 공정별 정보가 포함된 병합된 주문 데이터프레임
+        :param process_detail_df: Aging 포함 긴 형식 DataFrame
         :param original_order: 원본 주문 데이터 (납기일 등 포함)
         """
         self.final_result_df = final_result_df
-        self.merged_df = merged_df.copy()
+        self.process_detail_df = process_detail_df
         self.original_order = original_order
         self.calculated_df = None
         self.late_days_sum = None
 
     def calculate_late_order(self):
-        """지각 주문 계산 (기존 로직 유지)"""
-        id2end = dict(zip(self.final_result_df['id'], self.final_result_df[config.columns.NODE_END]))
+        """지각 주문 계산 (긴 형식 기반)"""
+        # Aging 제외하고 각 주문의 마지막 공정 종료시간 찾기
+        non_aging_df = self.process_detail_df[self.process_detail_df['is_aging'] == False].copy()
 
-        # 공정ID 컬럼 순서
-        unique_depth_values = self.final_result_df[config.columns.DEPTH].unique()
-        
-        id_cols = [f"{val}{config.columns.PROCESS_ID_SUFFIX}" for val in unique_depth_values]
-        
-        def get_end_time(row):
-            # 마지막 공정의 종료시간을 반환해야 함 (역순으로 탐색)
-            max_end_time = np.nan
-            for col in reversed(id_cols):  # 역순으로 탐색하여 마지막 공정 우선
-                key = row.get(col, None)
-                if pd.notna(key) and key in id2end:
-                    current_end_time = id2end[key]
-                    if np.isnan(max_end_time) or current_end_time > max_end_time:
-                        max_end_time = current_end_time
-            return max_end_time
+        # 각 주문별 마지막 종료시간 찾기
+        order_end_times = non_aging_df.groupby(config.columns.PO_NO)[config.columns.NODE_END].max().reset_index()
+        order_end_times.columns = [config.columns.PO_NO, config.columns.END_TIME]
 
-        self.merged_df[config.columns.END_TIME] = self.merged_df.apply(get_end_time, axis=1)
-
-        # 병합 후 납기일도 포함한 결과 생성
+        # 원본 주문 정보와 병합
         self.calculated_df = pd.merge(
-            self.merged_df,
+            order_end_times,
             self.original_order[[config.columns.PO_NO, config.columns.GITEM, config.columns.DUE_DATE]],
             on=config.columns.PO_NO,
             how='left'
         )
+
         return self.calculated_df
 
     def calc_late_days(self, df, base_date, end_col=None, due_col=None):
@@ -84,15 +72,15 @@ class LateProcessor:
         """
         self.base_date = base_date
     
-    def process(self, result_cleaned, merged_df, original_order):
+    def process(self, result_cleaned, process_detail_df, original_order):
         """
         지각 작업 처리 파이프라인 실행
-        
+
         Args:
             result_cleaned (pd.DataFrame): 정리된 스케줄링 결과
-            merged_df (pd.DataFrame): 병합된 주문 데이터
+            process_detail_df (pd.DataFrame): Aging 포함 긴 형식 결과
             original_order (pd.DataFrame): 원본 주문 데이터
-            
+
         Returns:
             dict: {
                 'new_output_final_result': pd.DataFrame,  # 지각 계산 완료된 결과
@@ -102,10 +90,10 @@ class LateProcessor:
             }
         """
         print("[지각처리] 지각 작업 처리 시작...")
-        
-        # 지각 계산기 초기화
-        late_calc = LateOrderCalculator(result_cleaned, merged_df, original_order)
-        
+
+        # 지각 계산기 초기화 (긴 형식 사용)
+        late_calc = LateOrderCalculator(result_cleaned, process_detail_df, original_order)
+
         # 지각 계산 실행
         new_output_final_result = late_calc.calculate_late_order()
         new_output_final_result, late_days_sum = late_calc.calc_late_days(

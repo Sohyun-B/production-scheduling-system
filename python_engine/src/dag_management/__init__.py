@@ -1,4 +1,4 @@
-from .dag_dataframe import make_process_table, Create_dag_dataframe
+from .dag_dataframe import make_process_table, Create_dag_dataframe, insert_aging_nodes_to_dag
 from .node_dict import create_opnode_dict, create_machine_dict
 from .dag_manager import DAGGraphManager
 from .dag_visualizer import DAGVisualizer
@@ -30,20 +30,19 @@ def run_dag_pipeline(merged_df, hierarchy, sequence_seperated_order, linespeed, 
     return dag_df, opnode_dict, manager, machine_dict
 
 
-def create_complete_dag_system(sequence_seperated_order, linespeed, machine_master_info):
+def create_complete_dag_system(sequence_seperated_order, linespeed, machine_master_info, aging_map=None):
     """
     DAG 생성을 위한 전체 파이프라인을 한번에 처리하는 통합 함수
-    
+
     Args:
         sequence_seperated_order: 전처리된 주문 데이터
         linespeed: 라인스피드 데이터
         machine_master_info: 기계 마스터 정보
-        aging_df: AGING내역.xlsx에서 읽은 DataFrame (선택 사항)
-        
+        aging_map: parse_aging_requirements()의 결과 (선택 사항)
+
     Returns:
         tuple: (dag_df, opnode_dict, manager, machine_dict, merged_df)
     """
-    sequence_seperated_order.to_csv("sequence_seperated_order.csv", encoding='utf-8-sig', index=False)
 
     merged_df = make_process_table(sequence_seperated_order)
     merged_df.to_csv("merged_df.csv", encoding='utf-8-sig', index=False)
@@ -57,5 +56,32 @@ def create_complete_dag_system(sequence_seperated_order, linespeed, machine_mast
         merged_df, hierarchy, sequence_seperated_order, linespeed,
         machine_columns=machine_master_info[config.columns.MACHINE_CODE].values.tolist()
     )
-    
+
+    # NEW: aging 노드 처리
+    if aging_map:
+        print("[42%] Aging 노드 DAG에 삽입 중...")
+
+        # 1. dag_df에 aging 노드 추가
+        dag_df = insert_aging_nodes_to_dag(dag_df, aging_map)
+
+        # 2. machine_dict에 aging 노드 추가
+        aging_nodes_dict = {
+            info['aging_node_id']: info['aging_time']
+            for parent_id, info in aging_map.items()
+        }
+        for aging_node_id, aging_time in aging_nodes_dict.items():
+            machine_dict[aging_node_id] = {-1: int(aging_time)}
+
+        # 3. DAGGraphManager 재빌드 (aging 노드 포함)
+        manager = DAGGraphManager(opnode_dict)
+        manager.build_from_dataframe(dag_df)
+
+        # 4. aging 노드에 is_aging 플래그 설정
+        for parent_id, info in aging_map.items():
+            aging_node_id = info['aging_node_id']
+            if aging_node_id in manager.nodes:
+                manager.nodes[aging_node_id].is_aging = True
+
+        print(f"[44%] Aging 노드 DAG 삽입 완료 - {len(aging_map)}개 노드")
+
     return dag_df, opnode_dict, manager, machine_dict, merged_df

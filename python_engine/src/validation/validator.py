@@ -96,7 +96,7 @@ class DataValidator:
         missing_combinations = order_combinations - gitem_sitem_combinations
 
         if missing_combinations:
-            print(f"⚠️  경고: PO정보에는 있지만 제품군-GITEM-SITEM 테이블에 없는 데이터 ({len(missing_combinations)}건)")
+            print(f"[WARNING] PO정보에는 있지만 제품군-GITEM-SITEM 테이블에 없는 데이터 ({len(missing_combinations)}건)")
             for gitem, spec in missing_combinations:
                 warning_msg = f"[제품군-GITEM-SITEM] PO정보의 (제품코드={gitem}, 규격={spec}) 조합이 제품군-GITEM-SITEM 테이블에 존재하지 않습니다."
                 self.warnings.append(warning_msg)
@@ -117,7 +117,7 @@ class DataValidator:
                 
                 print(f"  - 제품코드: {gitem}, 규격: {spec}")
         else:
-            print(f"✓ 검증 통과: PO정보의 모든 (제품코드, 규격) 조합이 존재합니다.")
+            print(f"[PASS] 검증 통과: PO정보의 모든 (제품코드, 규격) 조합이 존재합니다.")
 
     def _validate_operation_sequence(self, unique_gitems: List[str], operation_df: pd.DataFrame):
         """2. GITEM-공정-순서 테이블 검증"""
@@ -130,7 +130,7 @@ class DataValidator:
         # GitemNo 존재 여부 확인
         missing_gitems = set(unique_gitems) - operation_gitems
         if missing_gitems:
-            print(f"❌ 오류: PO정보에는 있지만 GITEM-공정-순서 테이블에 없는 제품코드 ({len(missing_gitems)}건)")
+            print(f"[ERROR] PO정보에는 있지만 GITEM-공정-순서 테이블에 없는 제품코드 ({len(missing_gitems)}건)")
             for gitem in missing_gitems:
                 error_msg = f"[GITEM-공정-순서] PO정보의 제품코드={gitem}가 GITEM-공정-순서 테이블에 존재하지 않습니다."
                 self.errors.append(error_msg)
@@ -184,14 +184,14 @@ class DataValidator:
                     self.gitem_proccode_pairs.add((row[config.columns.GITEM], row[config.columns.OPERATION_CODE]))
 
         if seq_errors:
-            print(f"❌ 오류: 공정순서(PROCSEQ)가 연속적이지 않은 제품코드 ({len(seq_errors)}건)")
+            print(f"[ERROR] 공정순서(PROCSEQ)가 연속적이지 않은 제품코드 ({len(seq_errors)}건)")
             for gitem, current, expected in seq_errors:
                 print(f"  - 제품코드: {gitem}")
                 print(f"    현재 순서: {current}")
                 print(f"    예상 순서: {expected}")
 
         if not missing_gitems and not seq_errors:
-            print(f"✓ 검증 통과: 모든 제품코드의 공정순서가 정상입니다.")
+            print(f"[PASS] 검증 통과: 모든 제품코드의 공정순서가 정상입니다.")
             print(f"  저장된 (제품코드, 공정코드) 쌍: {len(self.gitem_proccode_pairs)}개")
 
     def _validate_yield_data(self, unique_gitems: List[str], yield_df: pd.DataFrame):
@@ -244,18 +244,18 @@ class DataValidator:
                 })
 
         if missing_gitems:
-            print(f"❌ 오류: 수율 데이터가 없는 제품코드 ({len(missing_gitems)}건)")
+            print(f"[ERROR] 수율 데이터가 없는 제품코드 ({len(missing_gitems)}건)")
             for gitem in missing_gitems:
                 print(f"  - 제품코드: {gitem}")
 
         if duplicate_gitems:
-            print(f"⚠️  경고: 수율 데이터가 중복된 제품코드 ({len(duplicate_gitems)}건)")
+            print(f"[WARNING] 수율 데이터가 중복된 제품코드 ({len(duplicate_gitems)}건)")
             print(f"   → 전처리 단계에서 첫 번째 행만 자동으로 유지됩니다.")
             for gitem, count in duplicate_gitems:
                 print(f"  - 제품코드: {gitem} (중복 {count}건)")
 
         if not missing_gitems and not duplicate_gitems:
-            print(f"✓ 검증 통과: 모든 제품코드가 수율-GITEM등 테이블에 정확히 1개씩 존재합니다.")
+            print(f"[PASS] 검증 통과: 모든 제품코드가 수율-GITEM등 테이블에 정확히 1개씩 존재합니다.")
 
     def _validate_linespeed_data(self, linespeed_df: pd.DataFrame):
         """4. 라인스피드-GITEM등 테이블 검증"""
@@ -265,7 +265,7 @@ class DataValidator:
         if not self.gitem_proccode_pairs:
             warning_msg = "GITEM-공정-순서 검증 실패로 인해 라인스피드 검증을 건너뜁니다."
             self.warnings.append(warning_msg)
-            print(f"⚠️  경고: {warning_msg}")
+            print(f"[WARNING] {warning_msg}")
             return
 
         missing_pairs = []
@@ -318,18 +318,18 @@ class DataValidator:
                 })
 
         if missing_pairs:
-            print(f"❌ 오류: 라인스피드 데이터가 없는 (제품코드, 공정코드) 쌍 ({len(missing_pairs)}건)")
+            print(f"[ERROR] 라인스피드 데이터가 없는 (제품코드, 공정코드) 쌍 ({len(missing_pairs)}건)")
             for gitem, proccode in missing_pairs:
                 print(f"  - 제품코드: {gitem}, 공정코드: {proccode}")
 
         if duplicate_pairs:
-            print(f"⚠️  경고: 라인스피드 데이터가 중복된 (제품코드, 공정코드) 쌍 ({len(duplicate_pairs)}건)")
+            print(f"[WARNING] 라인스피드 데이터가 중복된 (제품코드, 공정코드) 쌍 ({len(duplicate_pairs)}건)")
             print(f"   → 전처리 단계에서 첫 번째 행만 자동으로 유지됩니다.")
             for gitem, proccode, count in duplicate_pairs:
                 print(f"  - 제품코드: {gitem}, 공정코드: {proccode} (중복 {count}건)")
 
         if not missing_pairs and not duplicate_pairs:
-            print(f"✓ 검증 통과: 모든 (제품코드, 공정코드) 쌍이 라인스피드-GITEM등 테이블에 정확히 1개씩 존재합니다.")
+            print(f"[PASS] 검증 통과: 모든 (제품코드, 공정코드) 쌍이 라인스피드-GITEM등 테이블에 정확히 1개씩 존재합니다.")
 
     def _validate_chemical_data(self, chemical_df: pd.DataFrame):
         """5. 배합액정보 테이블 검증"""
@@ -339,7 +339,7 @@ class DataValidator:
         if not self.gitem_proccode_pairs:
             warning_msg = "GITEM-공정-순서 검증 실패로 인해 배합액정보 검증을 건너뜁니다."
             self.warnings.append(warning_msg)
-            print(f"⚠️  경고: {warning_msg}")
+            print(f"[WARNING] {warning_msg}")
             return
 
         missing_pairs = []
@@ -392,18 +392,18 @@ class DataValidator:
                 })
 
         if missing_pairs:
-            print(f"⚠️  경고: 배합액 데이터가 없는 (제품코드, 공정코드) 쌍 ({len(missing_pairs)}건)")
+            print(f"[WARNING] 배합액 데이터가 없는 (제품코드, 공정코드) 쌍 ({len(missing_pairs)}건)")
             print(f"   (배합액이 필요 없는 공정일 수 있습니다)")
             for gitem, proccode in missing_pairs:
                 print(f"  - 제품코드: {gitem}, 공정코드: {proccode}")
 
         if duplicate_pairs:
-            print(f"❌ 오류: 배합액 데이터가 중복된 (제품코드, 공정코드) 쌍 ({len(duplicate_pairs)}건)")
+            print(f"[ERROR] 배합액 데이터가 중복된 (제품코드, 공정코드) 쌍 ({len(duplicate_pairs)}건)")
             for gitem, proccode, count in duplicate_pairs:
                 print(f"  - 제품코드: {gitem}, 공정코드: {proccode} (중복 {count}건)")
 
         if not missing_pairs and not duplicate_pairs:
-            print(f"✓ 검증 통과: 모든 (제품코드, 공정코드) 쌍이 배합액정보 테이블에 정확히 1개씩 존재합니다.")
+            print(f"[PASS] 검증 통과: 모든 (제품코드, 공정코드) 쌍이 배합액정보 테이블에 정확히 1개씩 존재합니다.")
 
     def _print_summary(self, result: Dict):
         """검증 결과 요약 출력"""
@@ -412,9 +412,9 @@ class DataValidator:
         print("="*80)
 
         if result['is_valid']:
-            print("✅ 결과: 모든 검증 통과!")
+            print("[PASS] 결과: 모든 검증 통과!")
         else:
-            print(f"❌ 결과: 총 {len(self.errors)}개의 문제 발견")
+            print(f"[FAIL] 결과: 총 {len(self.errors)}개의 문제 발견")
             print(f"   - 오류: {len(self.errors)}개")
 
         if self.warnings:
@@ -462,7 +462,7 @@ class DataValidator:
                 print(f"  중복 {duplicate_count}개 행 발견 → 첫 번째 행만 유지")
         else:
             print(f"\n[1/2] 라인스피드 데이터")
-            print(f"  ✓ 중복 없음")
+            print(f"  [OK] 중복 없음")
 
         # 2. 수율 중복 제거
         before_count = len(yield_df)
@@ -478,7 +478,7 @@ class DataValidator:
             print(f"  중복된 제품코드: {', '.join(map(str, duplicated_gitems))}")
         else:
             print(f"\n[2/2] 수율 데이터")
-            print(f"  ✓ 중복 없음")
+            print(f"  [OK] 중복 없음")
 
         print("="*80 + "\n")
 

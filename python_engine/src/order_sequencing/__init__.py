@@ -61,7 +61,7 @@ def generate_order_sequences(order, operation_seperated_sequence, operation_type
         unable_order = sequence_order[(sequence_order[config.columns.GITEM].isin(unable_gitems))]
         sequence_order = sequence_order[~ (sequence_order[config.columns.GITEM].isin(unable_gitems))]
 
-        unable_order = unable_order[['P/O NO', 'GITEM']] # 생산 불가능한 GITEM과 P/O 정보
+        unable_order = unable_order[[config.columns.PO_NO, config.columns.GITEM]] # 생산 불가능한 GITEM과 P/O 정보
         print(f"unable order: {len(unable_order)}개")
 
         return sequence_order, linespeed, unable_gitems, unable_order, unable_details

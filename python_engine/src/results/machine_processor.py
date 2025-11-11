@@ -39,7 +39,8 @@ class MachineScheduleProcessor:
         self.machine_info = machine_info
         return self.machine_info
 
-    def machine_info_decorate(self, result_df):
+    def machine_info_decorate(self, process_detail_df):
+        """긴 형식 DataFrame 기반 기계 정보 장식"""
         if self.machine_info is None:
             raise RuntimeError("make_readable_result_file() 먼저 실행해야 합니다.")
 
@@ -53,11 +54,20 @@ class MachineScheduleProcessor:
         duedate_list = []
 
         for idx, row in machine_info.iterrows():
-            process_order = row[config.columns.OPERATION_ORDER]
-            
-            process_col = f'{process_order}{config.columns.PROCESS_ID_SUFFIX}'
             machine_id = row[config.columns.ID]
-            filtered_rows = result_df[result_df[process_col] == machine_id]
+
+            # 긴 형식에서 해당 process_id로 필터링
+            filtered_rows = process_detail_df[process_detail_df[config.columns.ID] == machine_id]
+
+            if filtered_rows.empty:
+                # Aging 노드이거나 매칭 실패 시 빈 리스트
+                po_no_list.append([])
+                gitem_list.append([])
+                width_list.append([])
+                length_list.append([])
+                chemical_list.append([])
+                duedate_list.append([])
+                continue
 
             po_nos = filtered_rows[config.columns.PO_NO].tolist()
             po_no_list.append(po_nos)
@@ -65,27 +75,31 @@ class MachineScheduleProcessor:
             gitems = filtered_rows[config.columns.GITEM].tolist()
             gitem_list.append(gitems)
 
-            item_width = filtered_rows[f'{config.columns.FABRIC_WIDTH}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
+            item_width = filtered_rows[config.columns.FABRIC_WIDTH].tolist()
             width_list.append(item_width)
 
-            item_length = filtered_rows[f'{config.columns.PRODUCTION_LENGTH}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
+            item_length = filtered_rows[config.columns.PRODUCTION_LENGTH].tolist()
             length_list.append(item_length)
 
-            chemicals = filtered_rows[f'{config.columns.CHEMICAL_LIST}_{process_order}{config.columns.PROCESS_ID_SUFFIX}'].tolist()
+            chemicals = filtered_rows[config.columns.CHEMICAL_LIST].tolist()
             chemical_list.append(chemicals)
 
             duedates = filtered_rows[config.columns.DUE_DATE].tolist()
             duedate_list.append(duedates)
 
         def unique_or_single(lst):
-            unique_vals = list(dict.fromkeys(lst))  # 순서 유지된 유니크값 추출
+            if not lst:
+                return None
+            unique_vals = list(dict.fromkeys([x for x in lst if pd.notna(x)]))
             if len(unique_vals) == 1:
                 return unique_vals[0]
             else:
-                return unique_vals
+                return unique_vals if unique_vals else None
 
         def timestamps_to_dates(lst):
-            return [ts.strftime('%Y-%m-%d') if isinstance(ts, pd.Timestamp) else str(ts) for ts in lst]
+            if not lst:
+                return []
+            return [ts.strftime('%Y-%m-%d') if isinstance(ts, pd.Timestamp) else str(ts) for ts in lst if pd.notna(ts)]
 
         gitem_list = [unique_or_single(x) for x in gitem_list]
         width_list = [unique_or_single(x) for x in width_list]

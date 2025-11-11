@@ -30,7 +30,7 @@ def process_operations_by_category(merged_df):
                 if not paired_order.empty:
                     paired_order[config.columns.ID] = (
                         str(gitem) + "_" + 
-                        paired_order[config.columns.OPERATION_CODE].round().astype(int).astype(str) + "_" +
+                        paired_order[config.columns.OPERATION_CODE].astype(str) + "_" +
                         paired_order[config.columns.FABRIC_WIDTH].round().astype(int).astype(str) + "_" + 
                         paired_order[config.columns.CHEMICAL_LIST].astype(str) + "_" +
                         paired_order[config.columns.COMBINATION_CLASSIFICATION].astype(str)

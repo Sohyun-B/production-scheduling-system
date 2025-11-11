@@ -79,12 +79,12 @@ def preprocess_production_data(
         # 검증 결과 요약 출력
         if not validation_result['is_valid']:
             print("\n" + "!"*80)
-            print(f"⚠️  데이터 검증에서 {len(validation_result['errors'])}개의 문제가 발견되었습니다.")
-            print("⚠️  아래 문제들을 확인하고 필요시 원본 데이터를 수정하세요.")
+            print(f"[WARNING] 데이터 검증에서 {len(validation_result['errors'])}개의 문제가 발견되었습니다.")
+            print("[WARNING] 아래 문제들을 확인하고 필요시 원본 데이터를 수정하세요.")
             print("!"*80)
         else:
             print("\n" + "="*80)
-            print("✅ 데이터 검증 완료: 모든 검증 통과!")
+            print("[PASS] 데이터 검증 완료: 모든 검증 통과!")
             print("="*80 + "\n")
         
         # JSON 검증 결과 저장 (테이블 단위 요약 구조)

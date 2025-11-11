@@ -5,7 +5,7 @@ from config import config
 # 통합된 모듈들 import
 from .data_cleaner import DataCleaner
 from .late_processor import LateProcessor
-from .merge_processor import MergeProcessor
+from .merge_processor import MergeProcessor, create_process_detail_result
 from .machine_processor import MachineProcessor
 from .gap_analyzer import GapAnalysisProcessor
 from .gantt_chart_generator import GanttChartGenerator
@@ -54,12 +54,20 @@ def create_results(
     machine_schedule_df = cleaned_data['machine_schedule_df']
     
     print(f"[87%] 전처리 완료 - 실제 makespan: {actual_makespan:.1f}, 전체: {total_makespan:.1f}")
-    
+
+    # === 1.5단계: Aging 포함 긴 형식 결과 생성 ===
+    print("[87.5%] Aging 포함 상세 공정 결과 생성 중...")
+    process_detail_df = create_process_detail_result(
+        result_cleaned,
+        sequence_seperated_order,
+        scheduler
+    )
+
     # === 2-4단계: 독립적 처리들 (병렬 가능) ===
     # 2. 지각 작업 처리
     print("[88%] 지각 작업 처리 중...")
     late_processor = LateProcessor(base_date)
-    late_results = late_processor.process(result_cleaned, merged_df, original_order)
+    late_results = late_processor.process(result_cleaned, process_detail_df, original_order)
 
     # 3. 주문-공정 병합 처리
     print("[89%] 주문-공정 병합 처리 중...")
@@ -78,10 +86,10 @@ def create_results(
     
     # 4단계 완료: 기계 기준 정보 (gap_analyzer 포함)
     machine_results = machine_processor.process(
-        machine_schedule_df, 
-        result_cleaned, 
-        machine_master_info, 
-        merge_results['merged_result'],
+        machine_schedule_df,
+        result_cleaned,
+        machine_master_info,
+        process_detail_df,  # ← 새로운 긴 형식 사용
         original_order,
         gap_results['gap_analyzer']
     )
@@ -97,9 +105,7 @@ def create_results(
     # === 7단계: 주문 생산 요약본 생성 ===
     print("[96%] 주문 생산 요약본 생성 중...")
     order_summary = late_results['new_output_final_result'].copy()
-    if config.columns.END_TIME in order_summary.columns:
-        order_summary = order_summary[[config.columns.PO_NO, '1_proccode', '2_proccode', '3_proccode', '4_proccode', config.columns.GITEM, config.columns.DUE_DATE, config.columns.END_DATE, config.columns.LATE_DAYS]]
-    
+
     # === 8단계: 데이터 검증 및 최종 정리 ===
     print("[97%] 데이터 검증 중...")
     print(f"[검증] 원본 결과 행 수: {len(result_cleaned)}")

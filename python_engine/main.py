@@ -17,6 +17,7 @@ from src.validation import preprocess_production_data
 from src.order_sequencing import generate_order_sequences
 from src.yield_management import yield_prediction
 from src.dag_management import create_complete_dag_system
+from src.dag_management.dag_dataframe import parse_aging_requirements
 from src.scheduler import run_scheduler_pipeline
 from src.results import create_results
 
@@ -32,19 +33,21 @@ def run_level4_scheduling():
         print("Excel 파일 로딩 중...")
         input_file = "data/input/생산계획 입력정보.xlsx"
 
-        # 각 시트에서 데이터 읽기
-        order_df = pd.read_excel(input_file, sheet_name="tb_polist") # 주문정보 수정
-        gitem_sitem_df = pd.read_excel(input_file, sheet_name="tb_itemspec")
-        linespeed_df = pd.read_excel(input_file, sheet_name="tb_linespeed")
-        operation_df = pd.read_excel(input_file, sheet_name="tb_itemproc")
-        yield_df = pd.read_excel(input_file, sheet_name="tb_productionyield")
-        chemical_df = pd.read_excel(input_file, sheet_name="tb_chemical")
-        operation_delay_df = pd.read_excel(input_file, sheet_name="tb_changetime")
+        # 각 시트에서 데이터 읽기 (GITEM과 OPERATION_CODE는 문자열로 고정)
+        order_df = pd.read_excel(input_file, sheet_name="tb_polist", dtype={config.columns.GITEM: str})
+        gitem_sitem_df = pd.read_excel(input_file, sheet_name="tb_itemspec", dtype={config.columns.GITEM: str})
+        linespeed_df = pd.read_excel(input_file, sheet_name="tb_linespeed", dtype={config.columns.GITEM: str, config.columns.OPERATION_CODE: str})
+        operation_df = pd.read_excel(input_file, sheet_name="tb_itemproc", dtype={config.columns.GITEM: str, config.columns.OPERATION_CODE: str})
+        yield_df = pd.read_excel(input_file, sheet_name="tb_productionyield", dtype={config.columns.GITEM: str})
+        chemical_df = pd.read_excel(input_file, sheet_name="tb_chemical", dtype={config.columns.GITEM: str, config.columns.OPERATION_CODE: str})
+        operation_delay_df = pd.read_excel(input_file, sheet_name="tb_changetime", dtype={config.columns.OPERATION_CODE: str})
         width_change_df = pd.read_excel(input_file, sheet_name="tb_changewidth")
 
 
-        aging_gitem = pd.read_excel(input_file, sheet_name="tb_agingtime_gitem")
+        aging_gitem = pd.read_excel(input_file, sheet_name="tb_agingtime_gitem", dtype={config.columns.GITEM: str})
         aging_gbn = pd.read_excel(input_file, sheet_name="tb_agingtime_gbn")
+
+        
 
         # grp2_name 기준으로 gitem_sitem_df와 aging_gbn을 조인하여
         # 각 grp2_name에 속한 모든 gitemno에 aging_gbn 컬럼을 부여
@@ -56,6 +59,10 @@ def run_level4_scheduling():
         # aging_df에서 grp2_name 컬럼 삭제 후 aging_gitem과 하나의 데이터프레임으로 합침
         aging_df = aging_df.drop(columns=[config.columns.GRP2_NAME])
         print(aging_df.columns)
+
+        aging_df = pd.concat([aging_gitem, aging_df])
+
+        aging_df.to_excel("aging_df1.xlsx", index=False)
         aging_df = aging_df.merge(
             operation_df[[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION, config.columns.OPERATION_CODE]],
             how = 'inner',
@@ -63,6 +70,9 @@ def run_level4_scheduling():
             right_on = [config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION]
         )
         aging_df = aging_df.drop_duplicates(keep='first')
+
+        aging_df = aging_df[['gitemno', 'proccode', 'aging_time']].astype({'gitemno': str, 'proccode': str})
+
         aging_df.to_excel("aging_df.xlsx", index=False)
         
         # global_machine_limit 
@@ -86,42 +96,6 @@ def run_level4_scheduling():
         
         global_machine_limit.to_excel("global_machine_limit.xlsx", index=False)
         print("Excel 파일 로딩 완료!")
-
-        # ################
-        # # 수율/라인스피드 누락 gitem 통합 목록 생성 및 주문 필터링 저장
-        # try:
-        #     g_col = config.columns.GITEM
-        #     # 주문에 등장하는 gitem 집합
-        #     order_gitems = set(order_df[g_col].dropna().unique()) if g_col in order_df.columns else set()
-
-        #     # 각 원천에서의 gitem 컬럼 존재 여부 확인
-        #     ls_has_gitem = g_col in linespeed_df.columns
-        #     yd_has_gitem = g_col in yield_df.columns
-
-        #     missing_linespeed_gitems = set()
-        #     missing_yield_gitems = set()
-
-        #     if ls_has_gitem:
-        #         ls_gitems = set(linespeed_df[g_col].dropna().unique())
-        #         missing_linespeed_gitems = order_gitems - ls_gitems
-        #     if yd_has_gitem:
-        #         yd_gitems = set(yield_df[g_col].dropna().unique())
-        #         missing_yield_gitems = order_gitems - yd_gitems
-
-        #     combined_missing_gitems = sorted(missing_linespeed_gitems.union(missing_yield_gitems))
-
-        #     if combined_missing_gitems and (g_col in order_df.columns):
-        #         filtered_order_df = order_df[~order_df[g_col].isin(combined_missing_gitems)].copy()
-        #         filtered_path = "data/output/filtered_order.xlsx"
-        #         filtered_order_df.to_excel(filtered_path, index=False)
-        #         print(f"[Validation] 수율/라인스피드 누락 gitem(통합) 수: {len(combined_missing_gitems)}")
-        #         print(f"[Validation] 누락 gitem(통합) 목록: {combined_missing_gitems}")
-        #         print(f"[Validation] filtered_order 저장: {filtered_path} (행: {len(filtered_order_df)})")
-        #     else:
-        #         print("[Validation] 통합 누락 gitem 없음 또는 gitem 컬럼을 찾을 수 없어 filtered_order를 생성하지 않았습니다.")
-        # except Exception as e:
-        #     print(f"[Validation] filtered_order 생성 중 오류: {e}")
-        # #######################
 
     except FileNotFoundError as e:
         print(f"오류: 파일을 찾을 수 없습니다 - {e}")
@@ -185,20 +159,21 @@ def run_level4_scheduling():
         yield_data, sequence_seperated_order
     )
 
-    # === 4단계: DAG 생성 (내부에서 aging_map 자동 생성) ===
-    print("[40%] DAG 시스템 생성 중...")
+    # === 4단계: DAG 생성 ===
+    # NEW: aging 요구사항 파싱
+    print("[38%] Aging 요구사항 파싱 중...")
+    aging_map = parse_aging_requirements(aging_df, sequence_seperated_order)
+    print(f"[INFO] {len(aging_map)}개의 aging 노드 생성 예정")
+
+    # DAG 생성 (aging_map 전달)
     dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
-        sequence_seperated_order, linespeed, machine_master_info)
+        sequence_seperated_order, linespeed, machine_master_info, aging_map=aging_map)
     
     dag_df.to_csv("dagdf.csv", encoding='utf-8-sig')
 
     print("machine_dict 정보")
     print(machine_dict)
     print(f"[50%] DAG 시스템 생성 완료 - 노드: {len(dag_df)}개, 기계: {len(machine_dict)}개")
-    
-    print("+++++++++sequence_seperated_order")
-    sequence_seperated_order.to_excel('sequence_seperated_order.xlsx', index=False)
-    print(sequence_seperated_order)
 
     # === 5단계: 스케줄링 실행 ===
     print("[60%] 스케줄링 알고리즘 초기화 중...")
@@ -264,20 +239,6 @@ def run_level4_scheduling():
             final_results['machine_summary'].to_excel(writer, sheet_name="지연시간호기요약", index=False)
         
         print(f"[저장] 가공된 결과를 '{processed_filename}'에 저장 완료")
-        
-        # === 6단계 완료: JSON 저장 (지각 정보만) ===
-        # stage6_data = {
-        #     "stage": "results", 
-        #     "data": {
-        #         "late_days_sum": final_results['late_days_sum'],
-        #         "late_products_count": len(final_results['late_products']),
-        #         "late_po_numbers": final_results['late_po_numbers']
-        #     }
-        # }
-        
-        # with open("data/output/stage6_results.json", "w", encoding="utf-8") as f:
-        #     json.dump(stage6_data, f, ensure_ascii=False, default=str)
-        # print("[단계6] JSON 저장 완료: data/output/stage6_results.json")
         
         # 최종 완료
         print("[100%] 스케줄링 완료! 모든 결과 파일 저장 완료")
