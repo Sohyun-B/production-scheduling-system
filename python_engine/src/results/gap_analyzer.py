@@ -294,16 +294,6 @@ class GapAnalysisProcessor:
 
             # 상세 간격 분석 결과 저장
             detailed_gaps, machine_summary = processor.create_gap_analysis_report()
-            
-            # Excel 파일 저장
-            if detailed_gaps is not None:
-                detailed_gaps.to_excel("data/output/schedule_gaps_detailed.xlsx", index=False)
-                print("[간격분석] 상세 간격 분석 결과 저장: schedule_gaps_detailed.xlsx")
-            
-            if machine_summary is not None:
-                machine_summary.to_excel("data/output/machine_gap_summary.xlsx", index=False)
-                print("[간격분석] 기계별 간격 요약 저장: machine_gap_summary.xlsx")
-            
             print("[간격분석] 완료")
             
         except Exception as gap_error:

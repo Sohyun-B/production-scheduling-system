@@ -146,7 +146,7 @@ class GanttChartGenerator:
                 file_size = os.path.getsize(save_path)
                 print(f"[간트차트] 생성 완료: {save_path} ({file_size} bytes)")
                 if gap_analyzer:
-                    print("[차트] 📍 빨간색: 셋업시간, 회색: 대기시간으로 표시됨")
+                    print("[차트] [PIN] Red: Setup Time, Gray: Wait Time")
                 return save_path
             else:
                 print("[WARNING] 간트차트 파일이 생성되지 않았습니다")

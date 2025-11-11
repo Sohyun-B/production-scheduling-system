@@ -5,12 +5,6 @@ from config import config
 def create_opnode_dict(sequence_seperated_order):
     opnode_dict = {}
 
-    print("========================OPNODE 생성 시작======================== ")    
-    print("sequence_seperated_order")
-    print(sequence_seperated_order)
-
-    print("=============================================================== ")
-    
     for _, row in sequence_seperated_order.iterrows():
         # CHEMICAL_LIST 문자열을 튜플로 변환
         chemical_str = str(row[config.columns.CHEMICAL_LIST])

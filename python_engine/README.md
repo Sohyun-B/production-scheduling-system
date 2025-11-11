@@ -1,7 +1,13 @@
 # 제조업 생산 스케줄링 시스템
 
 ## 개요
-제약 조건을 고려한 유연 작업장 스케줄링 문제(FJSP) 해결 시스템입니다. 기계별 처리 속도, 수율 예측, 배합액 최적화, 셋업 시간, 기계 제약 등을 종합적으로 고려하여 최적 생산 스케줄을 생성합니다.
+제약 조건을 고려한 유연 작업장 스케줄링 문제(FJSP) 해결 시스템입니다. 기계별 처리 속도, 수율 예측, 배합액 최적화, 셋업 시간, 에이징(aging) 공정, 기계 제약 등을 종합적으로 고려하여 최적 생산 스케줄을 생성합니다.
+
+## 핵심 특징
+- **에이징 공정 처리**: 특정 공정 후 필수 대기 시간(에이징)을 자동으로 삽입
+- **배합액 최적화**: 동적 배합액 선택 및 셋업 시간 최소화
+- **윈도우 기반 동적 스케줄링**: 고정 윈도우 크기로 준비된 작업만 스케줄링
+- **DAG 기반 의존성 관리**: 공정 간 선후 관계를 정확히 추적
 
 ## 시스템 구조
 
@@ -123,43 +129,52 @@
 **메인 실행**: `main.py`의 `run_level4_scheduling()`
 
 ```
-1. Excel 파일 로딩
-   └─ "생산계획 필요기준정보 내역-Ver4.xlsx" 로드
-      (PO정보, 라인스피드, GITEM-공정-순서, 수율, 배합액정보, 공정교체시간, 폭변경 등)
+1. Excel 파일 로딩 (main.py:31-98)
+   ├─ "생산계획 입력정보.xlsx" 로드 (8개 시트)
+   │   (tb_polist, tb_linespeed, tb_itemproc, tb_productionyield, tb_chemical 등)
+   ├─ Aging 데이터 로드 및 병합
+   │   (tb_agingtime_gitem, tb_agingtime_gbn)
+   └─ Global 기계 제약조건 로드
 
-2. Validation (10-30%)
+2. Validation (10-30%) - main.py:105-147
    └─ preprocess_production_data()
       ├─ DataValidator: 데이터 유효성 검사 및 중복 제거
       └─ ProductionDataPreprocessor: 표준 형식 변환
 
-3. Order Sequencing (30-35%)
+3. Order Sequencing (30-35%) - main.py:150-151
    └─ generate_order_sequences()
       ├─ 월별 주문 분리 및 통합
       ├─ 공정 시퀀스 생성
       ├─ 기계 제약 및 강제 할당 처리
       └─ 폭 조합 로직 적용
 
-4. Yield Prediction (35%)
+4. Yield Prediction (35%) - main.py:157-160
    └─ yield_prediction()
       └─ 수율 기반 생산길이 조정
 
-5. DAG Creation (40-50%)
+5. Aging 요구사항 파싱 (38%) - main.py:164-166 ⭐ NEW
+   └─ parse_aging_requirements()
+      └─ Aging 맵 생성 (에이징 노드 자동 생성 준비)
+
+6. DAG Creation (40-50%) - main.py:169-170
    └─ create_complete_dag_system()
-      ├─ DAG 데이터프레임 생성
-      ├─ opnode_dict 생성 (CHEMICAL_LIST 포함)
+      ├─ DAG 데이터프레임 생성 (에이징 노드 포함)
+      ├─ opnode_dict 생성 (CHEMICAL_LIST, AGING_TIME 포함)
       ├─ DAG 그래프 구축
       └─ 기계 딕셔너리 생성
 
-6. Scheduling (60-85%)
-   └─ DispatchPriorityStrategy.execute()
+7. Scheduling (60-85%) - main.py:183-195
+   └─ run_scheduler_pipeline()
       ├─ 디스패치 규칙 생성 (납기일, depth, 너비 기준)
       ├─ DelayProcessor 초기화 (공정교체, 폭변경, 배합액 지연시간)
       ├─ 스케줄러 초기화 및 자원 할당
       ├─ 기계 다운타임 적용
       └─ 윈도우 기반 동적 스케줄링 실행
-         └─ SetupMinimizedStrategy: 배합액 최적화 및 셋업 최소화
+         ├─ DispatchPriorityStrategy: 우선순위 기반 디스패치
+         ├─ SetupMinimizedStrategy: 배합액 최적화 및 셋업 최소화
+         └─ AgingMachineStrategy: 에이징 노드 특별 처리
 
-7. Results Processing (85-100%)
+8. Results Processing (80-100%) - main.py:202-210
    └─ create_results()
       ├─ 가짜 작업 제거 및 makespan 계산
       ├─ 지각 작업 처리
@@ -167,9 +182,9 @@
       ├─ 간격 분석 (공정교체, 폭변경, 배합액교체 지연시간)
       └─ 간트차트 생성
 
-8. 파일 저장
+9. 파일 저장 (100%) - main.py:227-244
    ├─ result.xlsx: 원본 스케줄링 결과
-   ├─ 0829 스케줄링결과.xlsx: 가공된 결과
+   ├─ 0829 스케줄링결과.xlsx: 가공된 결과 (5개 시트)
    │   ├─ 주문_생산_요약본
    │   ├─ 주문_생산_정보
    │   ├─ 호기_정보
@@ -181,13 +196,17 @@
 ## 주요 기능
 
 ### 핵심 알고리즘
+- **에이징 노드 자동 삽입**: 특정 공정 후 필수 대기 시간을 DAG에 자동 삽입
+  - 에이징 노드는 특별한 기계(machine_index=-1)에 할당
+  - 에이징 중 다른 공정과 병렬 처리 가능
 - **윈도우 기반 동적 스케줄링**: 고정 윈도우 크기로 준비된 작업만 스케줄링
 - **배합액 최적화**: 같은 공정 내에서 사용 빈도 기반 배합액 선택 및 그룹화
 - **셋업 최소화**: 배합액별 작업 연속 배치로 교체 시간 최소화
 - **우선순위 기반 디스패치**: 납기일, depth, 너비 기준 작업 우선순위 결정
 
 ### 제약 조건 처리
-- **기계 제한**: 특정 공정을 수행할 수 없는 기계 제약
+- **에이징 시간**: 특정 공정 후 필수 대기 시간 (자동으로 DAG에 삽입)
+- **기계 제한**: 특정 공정을 수행할 수 없는 기계 제약 (local, global)
 - **강제 할당**: 특정 GITEM을 특정 기계에 강제 할당
 - **공정 교체 시간**: 이전 공정 타입과 다음 공정 타입 간 셋업 시간
 - **폭 변경 시간**: 작업 간 너비 차이에 따른 조정 시간
@@ -205,32 +224,50 @@
 ## 입력 데이터
 
 ### 필수 입력 파일
-**`data/input/생산계획 필요기준정보 내역-Ver4.xlsx`** - 모든 입력 데이터를 포함하는 통합 Excel 파일
 
-#### 시트 구성:
-1. **PO정보** (skiprows=1): 주문 정보
-   - 필수 컬럼: PoNo, GitemNo, IpgmQty, DUEDATE, Length, Width 등
+#### 1. 메인 입력 파일
+**`data/input/생산계획 입력정보.xlsx`** - 모든 입력 데이터를 포함하는 통합 Excel 파일
 
-2. **제품군-GITEM-SITEM** (skiprows=2): 제품군-제품 매핑 (검증용)
-   - 필수 컬럼: 제품군, GitemNo, SITEM 등
+**시트 구성:**
+1. **tb_polist**: 주문 정보
+   - 필수 컬럼: gitemno, ponumber, ipgm_qty, duedate, length, width 등
 
-3. **라인스피드-GITEM등** (skiprows=5): 기계별 처리 속도
-   - 필수 컬럼: GitemNo, PROCCODE, MachineNo, 라인스피드, 기간 등
+2. **tb_itemspec**: 제품군-GITEM-SITEM 매핑 (검증용)
+   - 필수 컬럼: grp2_name, gitemno, sitem 등
 
-4. **GITEM-공정-순서** (skiprows=1): 제품별 공정 순서
-   - 필수 컬럼: GitemNo, PROCSEQ, PROCNAME, PROCCODE, ProcGbn 등
+3. **tb_linespeed**: 기계별 처리 속도
+   - 필수 컬럼: gitemno, proccode, machineno, line_speed 등
 
-5. **수율-GITEM등** (skiprows=5): 수율 데이터
-   - 필수 컬럼: GitemNo, yield, 기간 등
+4. **tb_itemproc**: 제품별 공정 순서
+   - 필수 컬럼: gitemno, procseq, procname, proccode, procgbn 등
 
-6. **배합액정보** (skiprows=5): 공정별 사용 가능 배합액
-   - 필수 컬럼: GitemNo, PROCCODE, Che1, Che2 등
+5. **tb_productionyield**: 수율 데이터
+   - 필수 컬럼: gitemno, yield 등
 
-7. **공정교체시간** (skiprows=1): 공정 타입 간 교체 시간
-   - 필수 컬럼: prev_operation_type, next_operation_type, type_change_time
+6. **tb_chemical**: 공정별 사용 가능 배합액
+   - 필수 컬럼: gitemno, proccode, che1, che2 등
 
-8. **폭변경** (skiprows=1): 너비 변경에 따른 지연시간
-   - 필수 컬럼: MachineNo, long_to_short, short_to_long
+7. **tb_changetime**: 공정 타입 간 교체 시간
+   - 필수 컬럼: prev_proccode, next_proccode, change_time 등
+
+8. **tb_changewidth**: 너비 변경에 따른 지연시간
+   - 필수 컬럼: machineno, long_to_short, short_to_long 등
+
+9. **tb_agingtime_gitem**: GITEM별 에이징 시간 ⭐ NEW
+   - 필수 컬럼: gitemno, prev_procgbn, aging_time 등
+
+10. **tb_agingtime_gbn**: 제품군별 에이징 시간 ⭐ NEW
+   - 필수 컬럼: grp2_name, prev_procgbn, aging_time 등
+
+#### 2. 시나리오 파일 (선택 사항)
+**`data/input/시나리오_공정제약조건.xlsx`**
+- **machine_limit**: 공정별 기계 제약 (local)
+- **machine_allocate**: 강제 할당 조건
+- **machine_rest**: 기계 중단 시간
+
+#### 3. Global 제약조건 파일 (선택 사항)
+**`data/input/글로벌_제약조건_블랙리스트.xlsx`**
+- 제품군별 기계 제외 조건 (Global Machine Limit)
 
 ### 설정 파라미터 (`config.py`)
 ```python
@@ -328,10 +365,21 @@ python_engine/
 
 ## 주요 개선 사항 (최신 버전)
 
+### v3.0 주요 변경사항 (에이징 기능 추가) ⭐
+1. **에이징 공정 자동화**: parse_aging_requirements() 함수로 aging_map 자동 생성
+   - Aging 데이터를 DAG에 자동으로 에이징 노드 삽입
+   - 에이징 노드는 특별한 기계(machine_index=-1)에 할당
+   - AgingMachineStrategy로 겹치는 에이징 처리
+2. **입력 파일 구조 변경**: "생산계획 필요기준정보 내역-Ver4.xlsx" → "생산계획 입력정보.xlsx"
+   - Aging 관련 시트 추가 (tb_agingtime_gitem, tb_agingtime_gbn)
+   - 시트명 변경 (한글 → 영문 접두사)
+3. **Global 제약조건 통합**: 글로벌_제약조건_블랙리스트.xlsx 자동 처리
+4. **opnode_dict 확장**: AGING_TIME 컬럼 추가
+
 ### v2.0 주요 변경사항
-1. **통합 입력 파일**: 여러 Excel 파일 → 단일 Ver4 파일로 통합
+1. **통합 입력 파일**: 여러 Excel 파일 → 단일 파일로 통합
 2. **Validation 모듈 추가**: 데이터 유효성 검사 및 중복 제거 자동화
-3. **배합액 최적화**: 동적 배합액 선택 및 셋업 최소화 알고리즘 추가
+3. **배합액 최적화**: 동적 배합액 선택 및 셋업 최소화 알고리즘
 4. **모듈 재구성**: preprocessing → validation + order_sequencing으로 분리
 5. **간격 분석 강화**: 대기, 공정교체, 폭변경, 배합액교체 세부 분류
 
@@ -344,7 +392,18 @@ python_engine/
   3. 같은 배합액 사용 노드를 연속 스케줄링
   4. 배합액 교체 시 지연시간 적용
 
-상세 알고리즘은 `src/scheduler/CHEMICAL_LOGIC.md` 참조
+### 에이징 공정 처리 로직
+- **AGING_TIME**: 각 노드의 에이징 시간 (시간 단위)
+- **에이징 노드 자동 생성**:
+  1. parse_aging_requirements()가 aging_map 생성
+  2. create_complete_dag_system()에서 에이징 노드 자동 삽입
+  3. 에이징 노드는 부모-자식 관계로 DAG에 통합
+- **에이징 노드 스케줄링**:
+  1. AgingMachineStrategy로 특별한 기계(machine_index=-1)에 할당
+  2. 에이징 기계에서는 작업이 겹치는 것을 허용
+  3. 에이징 완료 후 다음 공정이 자동으로 스케줄됨
+
+상세 알고리즘은 `src/dag_management/dag_dataframe.py:parse_aging_requirements()` 참조
 
 ## 라이선스
 Proprietary - 내부 사용 전용

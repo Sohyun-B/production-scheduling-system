@@ -53,9 +53,8 @@ class DAGGraphManager:
                 # aging_time = node_info.get('AGING_TIME', 0) if isinstance(node_info, dict) else 0
                 # node.aging_time = aging_time if aging_time is not None else 0
             else:
-                # opnode_dict에 없는 노드는 aging_time을 0으로 유지]\
-                print(f"opnode_dict에 없는 노드: {node_id}")
-                # node.aging_time = 0
+                # opnode_dict에 없는 노드는 aging_time을 0으로 유지
+                pass
             self.nodes[row['ID']] = node
 
         # 관계 설정: CHILDREN 컬럼 기준

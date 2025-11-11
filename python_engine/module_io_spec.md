@@ -61,7 +61,7 @@ buffer_days = config.constants.BUFFER_DAYS
 
 ### 위치
 `src/validation/__init__.py:13`
-`main.py:54-70` (호출)
+`main.py:105-147` (호출)
 
 ### 입력
 ```python
@@ -131,7 +131,7 @@ preprocess_production_data(
 
 ### 위치
 `src/order_sequencing/__init__.py:8`
-`main.py:97-98` (호출)
+`main.py:150-151` (호출)
 
 ### 입력
 ```python
@@ -191,7 +191,7 @@ generate_order_sequences(
 
 ### 위치
 `src/yield_management/__init__.py:4`
-`main.py:105-107` (호출)
+`main.py:157-160` (호출)
 
 ### 입력
 ```python
@@ -221,6 +221,42 @@ yield_prediction(
 
 ---
 
+## 3.5. Aging 요구사항 파싱 - NEW
+
+### 함수명
+`parse_aging_requirements()`
+
+### 위치
+`src/dag_management/dag_dataframe.py`
+`main.py:164-166` (호출)
+
+### 입력
+```python
+parse_aging_requirements(
+    aging_df,                   # Aging 데이터 (gitemno, proccode, aging_time 포함)
+    sequence_seperated_order    # 주문 공정 분리 데이터
+)
+```
+
+### 처리 과정
+1. **Aging Map 생성**: Aging 데이터에서 맵 생성
+2. **형식**: `{(GitemNo, ProcGbn): aging_time * 2}` 딕셔너리
+3. **에이징 시간**: 특정 공정 완료 후 다음 공정 시작 전 필수 대기 시간
+
+### 출력
+```python
+aging_map = {
+    (GitemNo1, ProcGbn1): aging_time1,
+    (GitemNo2, ProcGbn2): aging_time2,
+    ...
+}
+```
+
+### 비고
+- aging_df=None 또는 빈 DataFrame 전달 시 빈 딕셔너리 반환 (모든 노드의 AGING_TIME=0)
+
+---
+
 ## 4. DAG Creation - DAG 시스템 생성
 
 ### 함수명
@@ -228,7 +264,7 @@ yield_prediction(
 
 ### 위치
 `src/dag_management/__init__.py:75`
-`main.py:111-112` (호출)
+`main.py:169-170` (호출)
 
 ### 입력
 ```python
@@ -236,16 +272,15 @@ create_complete_dag_system(
     sequence_seperated_order,  # yield_prediction() 출력
     linespeed,                 # processed_data['linespeed']
     machine_master_info,       # processed_data['machine_master_info']
-    aging_df=aging_df          # AGING내역.xlsx에서 읽은 DataFrame (선택 사항, None이면 모든 aging_time=0)
+    aging_map=aging_map        # parse_aging_requirements() 출력 (선택 사항, None이면 모든 aging_time=0)
 )
 ```
 
 ### 처리 과정
-0. **Aging Map 생성** (aging_df가 제공된 경우)
-   - `create_aging_map()`: AGING 데이터에서 에이징 시간 맵 생성
-   - `{(GitemNo, next_ProcGbn): aging_time * 2}` 딕셔너리 생성
-   - 에이징 시간: 특정 공정 완료 후 다음 공정 시작 전 필수 대기 시간
-   - aging_df=None이면 빈 딕셔너리 생성되어 모든 노드의 AGING_TIME=0
+0. **Aging Map 활용** (aging_map이 제공된 경우)
+   - parse_aging_requirements()에서 생성된 aging_map 직접 전달
+   - `{(GitemNo, ProcGbn): aging_time}` 형식
+   - aging_map=None이면 빈 딕셔너리로 처리되어 모든 노드의 AGING_TIME=0
 
 1. **DAGDataFrameCreator**: DAG 데이터프레임 생성
    - `create_full_dag()`: 전체 DAG 구조 생성 (depth, children 계산)
@@ -299,7 +334,7 @@ create_complete_dag_system(
 
 ### 위치
 `src/scheduler/__init__.py:89`
-`main.py:122-136` (호출)
+`main.py:183-195` (호출)
 
 ### 입력
 ```python
@@ -371,7 +406,7 @@ result, scheduler = run_scheduler_pipeline(
 
 ### 위치
 `src/results/__init__.py:14`
-`main.py:143-151` (호출)
+`main.py:202-210` (호출)
 
 ### 입력
 ```python
@@ -464,17 +499,17 @@ create_results(
 ## 7. 파일 저장 (Final Output)
 
 ### 위치
-`main.py:167-182`
+`main.py:227-244`
 
-### 저장되는 파일
+### 저장되는 파일 (main.py:227-244 참조)
 
 #### 7-1. 원본 결과
-**`data/output/result.xlsx`**
+**`data/output/result.xlsx`** (Line 227-229)
 - `result` DataFrame 그대로 저장
 - 모든 노드의 스케줄링 상세 정보
 
 #### 7-2. 최종 결과 Excel
-**`data/output/0829 스케줄링결과.xlsx`**
+**`data/output/0829 스케줄링결과.xlsx`** (Line 233-241)
 ```python
 with pd.ExcelWriter(processed_filename, engine="openpyxl") as writer:
     final_results['order_summary'].to_excel(writer, sheet_name="주문_생산_요약본", index=False)
@@ -486,7 +521,7 @@ with pd.ExcelWriter(processed_filename, engine="openpyxl") as writer:
 
 #### 7-3. 간트차트
 **`data/output/level4_gantt.png`**
-- GanttChartGenerator에서 자동 생성
+- GanttChartGenerator에서 자동 생성 (final_results['gantt_filename'] 참조)
 
 ---
 

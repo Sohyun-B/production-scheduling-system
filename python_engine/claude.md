@@ -2,6 +2,7 @@
 
 ## 🎯 프로젝트 개요
 생산 스케줄링 시스템: 주문(Order) → 공정(Operation) → 기계(Machine) 할당을 최적화하는 DAG 기반 스케줄러
+에이징 공정, 배합액 최적화, 셋업 시간 최소화를 종합적으로 고려합니다.
 
 ---
 
@@ -9,35 +10,65 @@
 
 ### 1. 데이터 로딩 및 전처리
 ```
-main.py:124 → src/validation/preprocess_production_data()
+main.py:31-98 → Excel 파일 로딩 + Aging 데이터 처리
+main.py:105-147 → src/validation/preprocess_production_data()
 ```
 - 원본 엑셀 데이터 로딩 및 검증
+- Aging 요구사항 데이터 병합 (aging_gitem, aging_gbn)
+- Global 기계 제약조건 처리
 - 출력: linespeed, operation_types, yield_data, order 등
 
 ### 2. 주문 시퀀스 생성
 ```
-main.py:168 → src/order_sequencing/generate_order_sequences()
+main.py:150-151 → src/order_sequencing/generate_order_sequences()
 ```
 - 각 주문을 공정별로 분리
+- 기계 제약조건 및 강제 할당 처리
 - 출력: `sequence_seperated_order` (각 행 = 하나의 공정)
 
-### 3. DAG 시스템 생성 ⭐
+### 3. 수율 예측
 ```
-main.py:182 → src/dag_management/create_complete_dag_system()
+main.py:157-160 → src/yield_management/yield_prediction()
 ```
-**핵심 4개 객체 생성:**
-- `opnode_dict`: 노드 메타데이터
-- `machine_dict`: 기계별 소요시간
+- 수율 기반 생산길이 조정
+- 출력: 수율 반영된 `sequence_seperated_order`
+
+### 4. Aging 요구사항 파싱 ⭐ (NEW)
+```
+main.py:164-166 → src/dag_management/dag_dataframe:parse_aging_requirements()
+```
+- Aging 데이터에서 에이징 맵 생성
+- `{(GitemNo, ProcGbn): aging_time}` 딕셔너리 생성
+- 에이징 노드 자동 생성 예정 정보 출력
+
+### 5. DAG 시스템 생성 ⭐
+```
+main.py:169-170 → src/dag_management/create_complete_dag_system()
+```
+**핵심 5개 객체 생성:**
+- `dag_df`: DAG 데이터프레임 (에이징 노드 포함)
+  - **Depth 정규화**: 모든 depth는 unique하고 topological order 유지
+  - **Aging 노드**: sequential insertion으로 depth 중복 제거 (v3.0.1+)
+- `opnode_dict`: 노드 메타데이터 (AGING_TIME 포함)
 - `manager` (DAGGraphManager): DAG 구조 관리
 - `machine_dict`: 기계별 처리시간 딕셔너리
+- `merged_df`: 주문-공정 병합 테이블
 
-### 4. 스케줄링 실행 ⭐⭐⭐
+### 6. 스케줄링 실행 ⭐⭐⭐
 ```
-main.py:198 → src/scheduler/run_scheduler_pipeline()
+main.py:183-195 → src/scheduler/run_scheduler_pipeline()
   └─> DispatchPriorityStrategy.execute()
       └─> SetupMinimizedStrategy.execute()
           └─> SchedulingCore.schedule_single_node()
 ```
+
+### 7. 결과 후처리
+```
+main.py:202-210 → src/results/create_results()
+```
+- 스케줄링 결과 분석 및 가공
+- 간트차트 생성
+- 최종 Excel 파일 저장
 
 ---
 
