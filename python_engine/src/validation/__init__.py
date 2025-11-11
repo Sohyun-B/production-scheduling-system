@@ -20,6 +20,9 @@ def preprocess_production_data(
     operation_delay_df: pd.DataFrame,
     width_change_df: pd.DataFrame,
     gitem_sitem_df: pd.DataFrame = None,
+    aging_gitem_df: pd.DataFrame = None,
+    aging_gbn_df: pd.DataFrame = None,
+    global_machine_limit_df: pd.DataFrame = None,
     linespeed_period: str = '6_months',
     yield_period: str = '6_months',
     validate: bool = True,
@@ -27,7 +30,7 @@ def preprocess_production_data(
     output_file: str = "data/input/python_input.xlsx"
 ) -> Dict[str, pd.DataFrame]:
     """
-    Ver4 원본 데이터 전처리
+    Ver4 원본 데이터 전처리 (Aging & Global Constraint 포함)
 
     Args:
         order_df (pd.DataFrame): PO정보 시트
@@ -38,6 +41,9 @@ def preprocess_production_data(
         operation_delay_df (pd.DataFrame): 공정교체시간 시트
         width_change_df (pd.DataFrame): 폭변경 시트
         gitem_sitem_df (pd.DataFrame): 제품군-GITEM-SITEM 시트 (검증용)
+        aging_gitem_df (pd.DataFrame): GITEM별 에이징 시간 시트 (선택)
+        aging_gbn_df (pd.DataFrame): 제품군별 에이징 시간 시트 (선택)
+        global_machine_limit_df (pd.DataFrame): 제품군별 기계 제외 조건 시트 (선택)
         linespeed_period (str): 라인스피드 기간 설정 ('6_months', '1_year', '3_months')
         yield_period (str): 수율 기간 설정 ('6_months', '1_year', '3_months')
         validate (bool): 데이터 유효성 검사 수행 여부
@@ -55,9 +61,8 @@ def preprocess_production_data(
             - 'chemical_data': 배합액 정보
             - 'operation_delay': 공정교체시간
             - 'width_change': 폭변경 정보
-            - 'machine_limit': 기계 제한 정보
-            - 'machine_allocate': 기계 할당 정보
-            - 'machine_rest': 기계 중단시간 정보
+            - 'aging_data': Aging 데이터 (aging_gitem_df/aging_gbn_df 제공 시)
+            - 'global_machine_limit': 글로벌 기계 제약조건 (global_machine_limit_df 제공 시)
             - 'validation_result': 검증 결과 (validate=True인 경우)
     """
 
@@ -163,6 +168,29 @@ def preprocess_production_data(
 
     print("[Validation] 데이터 변환 완료. 결과 정리 중...")
 
+    # === 3단계: Aging 데이터 전처리 ===
+    aging_data = None
+    if aging_gitem_df is not None and aging_gbn_df is not None and gitem_sitem_df is not None:
+        print("[Validation] Aging 데이터 전처리 중...")
+        aging_data = preprocessor.preprocess_aging_data(
+            aging_gitem_df,
+            aging_gbn_df,
+            gitem_sitem_df,
+            operation_df
+        )
+        print(f"[Validation] Aging 데이터 전처리 완료 - {len(aging_data)}개 레코드")
+
+    # === 4단계: Global 기계 제약조건 전처리 ===
+    global_machine_limit = None
+    if global_machine_limit_df is not None and gitem_sitem_df is not None:
+        print("[Validation] Global 기계 제약조건 전처리 중...")
+        global_machine_limit = preprocessor.preprocess_global_machine_limit(
+            global_machine_limit_df,
+            gitem_sitem_df,
+            operation_df
+        )
+        print(f"[Validation] Global 기계 제약조건 전처리 완료 - {len(global_machine_limit)}개 레코드")
+
     # 결과를 딕셔너리로 정리
     processed_data = {
         'order_data': order_data,
@@ -174,6 +202,8 @@ def preprocess_production_data(
         'chemical_data': chemical_data,
         'operation_delay': operation_delay_df,
         'width_change': width_change_df,
+        'aging_data': aging_data,
+        'global_machine_limit': global_machine_limit,
         'validation_result': validation_result
     }
 

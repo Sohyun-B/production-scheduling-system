@@ -46,50 +46,8 @@ def run_level4_scheduling():
 
         aging_gitem = pd.read_excel(input_file, sheet_name="tb_agingtime_gitem", dtype={config.columns.GITEM: str})
         aging_gbn = pd.read_excel(input_file, sheet_name="tb_agingtime_gbn")
+        global_machine_limit_raw = pd.read_excel("data/input/글로벌_제약조건_블랙리스트.xlsx")
 
-        
-
-        # grp2_name 기준으로 gitem_sitem_df와 aging_gbn을 조인하여
-        # 각 grp2_name에 속한 모든 gitemno에 aging_gbn 컬럼을 부여
-        aging_df = gitem_sitem_df[[config.columns.GRP2_NAME, config.columns.GITEM]].merge(
-            aging_gbn, how="inner",
-            left_on=config.columns.GRP2_NAME,
-            right_on=config.columns.GRP2_NAME
-        )
-        # aging_df에서 grp2_name 컬럼 삭제 후 aging_gitem과 하나의 데이터프레임으로 합침
-        aging_df = aging_df.drop(columns=[config.columns.GRP2_NAME])
-        print(aging_df.columns)
-
-        aging_df = pd.concat([aging_gitem, aging_df])
-        aging_df = aging_df.merge(
-            operation_df[[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION, config.columns.OPERATION_CODE]],
-            how = 'inner',
-            left_on = [config.columns.GITEM, 'prev_procgbn'],
-            right_on = [config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION]
-        )
-        aging_df = aging_df.drop_duplicates(keep='first')
-
-        aging_df = aging_df[['gitemno', 'proccode', 'aging_time']].astype({'gitemno': str, 'proccode': str})
-        
-        # global_machine_limit 
-        global_machine_limit = pd.read_excel("data/input/글로벌_제약조건_블랙리스트.xlsx")
-
-        # grp2name -> gitem 변경
-        global_machine_limit = global_machine_limit.merge(gitem_sitem_df[[config.columns.GRP2_NAME, config.columns.GITEM]], on=[config.columns.GRP2_NAME], how="inner")
-        global_machine_limit = global_machine_limit.drop_duplicates(keep='first')
-
-        # gitem, procgbn 기준으로 proccode 추가
-        global_machine_limit = global_machine_limit.merge(
-            operation_df[[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION, config.columns.OPERATION_CODE]], 
-            on=[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION], 
-            how="left")
-        global_machine_limit.drop(columns = {config.columns.GRP2_NAME, config.columns.OPERATION_CLASSIFICATION})
-        global_machine_limit = global_machine_limit.drop_duplicates(keep='first')
-
-
-        
- 
-        
         print("Excel 파일 로딩 완료!")
 
     except FileNotFoundError as e:
@@ -107,6 +65,9 @@ def run_level4_scheduling():
         operation_delay_df=operation_delay_df,
         width_change_df=width_change_df,
         gitem_sitem_df=gitem_sitem_df,
+        aging_gitem_df=aging_gitem,
+        aging_gbn_df=aging_gbn,
+        global_machine_limit_df=global_machine_limit_raw,
         linespeed_period=linespeed_period,
         yield_period=yield_period,
         validate=True,
@@ -123,9 +84,10 @@ def run_level4_scheduling():
     operation_delay_df = processed_data['operation_delay']
     width_change_df = processed_data['width_change']
     order = processed_data['order_data']
+    aging_df = processed_data['aging_data']
+    global_machine_limit = processed_data['global_machine_limit']
 
-
-    
+    # 시나리오 파일 로딩 (Local 제약조건 + 기계 할당)
     local_machine_limit = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_limit")
     machine_allocate = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_allocate")
     machine_rest = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_rest")
@@ -142,6 +104,7 @@ def run_level4_scheduling():
     print("[30%] Validation 완료!")
 
     # === 2단계: 주문 시퀀스 생성 (Order Sequencing) ===
+    print("[30%] 주문 시퀀스 생성 중...")
     sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = generate_order_sequences(
         order, operation_seperated_sequence, operation_types, local_machine_limit, global_machine_limit, machine_allocate, linespeed, chemical_data)
 

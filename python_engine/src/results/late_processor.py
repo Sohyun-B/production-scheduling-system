@@ -27,9 +27,38 @@ class LateOrderCalculator:
         # Aging 제외하고 각 주문의 마지막 공정 종료시간 찾기
         non_aging_df = self.process_detail_df[self.process_detail_df['is_aging'] == False].copy()
 
+        # PO_NO가 쉼표로 연결된 문자열인지 확인 (예: "PO1, PO2")
+        has_comma_po = non_aging_df[config.columns.PO_NO].astype(str).str.contains(',', na=False).any()
+
+        if has_comma_po:
+            print(f"[DEBUG] PO_NO 쉼표 분리 행 감지 - 문자열을 리스트로 변환 중...")
+            # 쉼표로 연결된 문자열을 리스트로 변환
+            non_aging_df[config.columns.PO_NO] = non_aging_df[config.columns.PO_NO].astype(str).apply(
+                lambda x: [po.strip() for po in x.split(',') if po.strip()]
+            )
+            # 리스트 explode 실행
+            non_aging_df = non_aging_df.explode(config.columns.PO_NO).reset_index(drop=True)
+            print(f"[DEBUG] Explode 후 non_aging_df 행 수: {len(non_aging_df)}")
+        else:
+            # 리스트인 경우 직접 explode
+            has_list_po = non_aging_df[config.columns.PO_NO].apply(
+                lambda x: isinstance(x, list)
+            ).any()
+
+            if has_list_po:
+                print(f"[DEBUG] PO_NO 리스트 행 감지 - explode 처리 중...")
+                non_aging_df = non_aging_df.explode(config.columns.PO_NO).reset_index(drop=True)
+                print(f"[DEBUG] Explode 후 non_aging_df 행 수: {len(non_aging_df)}")
+
         # 각 주문별 마지막 종료시간 찾기
         order_end_times = non_aging_df.groupby(config.columns.PO_NO)[config.columns.NODE_END].max().reset_index()
         order_end_times.columns = [config.columns.PO_NO, config.columns.END_TIME]
+
+        print(f"[DEBUG] order_end_times의 행 수: {len(order_end_times)}")
+        print(f"[DEBUG] order_end_times의 PO_NO: {order_end_times[config.columns.PO_NO].tolist()}")
+        print(f"[DEBUG] original_order의 행 수: {len(self.original_order)}")
+        print(f"[DEBUG] original_order의 PO_NO: {self.original_order[config.columns.PO_NO].tolist()}")
+        print(f"[DEBUG] original_order의 DUE_DATE NaN 개수: {self.original_order[config.columns.DUE_DATE].isna().sum()}")
 
         # 원본 주문 정보와 병합
         self.calculated_df = pd.merge(
@@ -38,6 +67,10 @@ class LateOrderCalculator:
             on=config.columns.PO_NO,
             how='left'
         )
+
+        print(f"[DEBUG] 병합 후 DUE_DATE NaN 개수: {self.calculated_df[config.columns.DUE_DATE].isna().sum()}")
+        if self.calculated_df[config.columns.DUE_DATE].isna().sum() > 0:
+            print(f"[DEBUG] NaN인 행들: {self.calculated_df[self.calculated_df[config.columns.DUE_DATE].isna()][[config.columns.PO_NO, config.columns.END_TIME]].to_string()}")
 
         return self.calculated_df
 

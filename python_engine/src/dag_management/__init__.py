@@ -1,7 +1,6 @@
 from .dag_dataframe import make_process_table, Create_dag_dataframe, insert_aging_nodes_to_dag
 from .node_dict import create_opnode_dict, create_machine_dict
 from .dag_manager import DAGGraphManager
-from .dag_visualizer import DAGVisualizer
 from config import config
 import pandas as pd
 

@@ -488,8 +488,8 @@ def insert_aging_nodes_to_dag(dag_df, aging_map):
     print(f"[INFO] 최종 depth 범위: {result_df['DEPTH'].min()}-{result_df['DEPTH'].max()}")
     print(f"[INFO] 최종 노드 개수: {len(result_df)} (원본: {len(dag_df)}, 추가: {aging_count})")
 
-    # 7. ✅ FIX-3: 최종 안전장치 - depth 정규화 (중복 제거)
-    print(f"\n[INFO] === Phase 3: Depth 정규화 (최종 안전장치) ===")
-    result_df = normalize_depths_post_aging(result_df)
+    # 7. ⚠️ normalize_depths_post_aging() 제거
+    # shift_depths_after_aging()에서 이미 depth를 제대로 설정했으므로 추가 정규화는 불필요
+    # normalize_depths_post_aging()는 source nodes 판별 로직 오류로 depth를 리셋하는 문제 발생
 
     return result_df

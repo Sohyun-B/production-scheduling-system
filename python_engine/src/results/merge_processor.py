@@ -111,6 +111,10 @@ def create_process_detail_result(final_result_df, sequence_seperated_order, sche
     df = df.sort_values([config.columns.PO_NO, 'node_start']).reset_index(drop=True)
 
     print(f"[병합처리] 긴 형식 결과 생성 완료 - 총 {len(df)}행 (Aging 포함: {df['is_aging'].sum()}개)")
+    print(f"[DEBUG] process_detail_df의 빈 PO_NO 개수: {(df[config.columns.PO_NO] == '').sum()}")
+    print(f"[DEBUG] process_detail_df의 NaN PO_NO 개수: {df[config.columns.PO_NO].isna().sum()}")
+    print(f"[DEBUG] process_detail_df의 unique PO_NO: {df[config.columns.PO_NO].nunique()}")
+    print(f"[DEBUG] process_detail_df의 PO 목록: {sorted(df[config.columns.PO_NO].unique())}")
 
     return df
 

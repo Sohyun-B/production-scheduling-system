@@ -217,76 +217,65 @@ class ProductionDataPreprocessor:
 
         return chemical_data
 
-# def main(excel_file_path: str = "생산계획 필요기준정보 내역-Ver4.xlsx", 
-#          output_file: str = "python_input.xlsx",
-#          linespeed_period: str = '6_months',
-#          yield_period: str = '6_months'):
-#     """
-#     메인 실행 함수 - 전체 전처리 및 저장
+    def preprocess_aging_data(self, aging_gitem_df: pd.DataFrame, aging_gbn_df: pd.DataFrame,
+                             gitem_sitem_df: pd.DataFrame, operation_df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Aging 데이터 전처리: GITEM별 + 제품군별 aging을 병합하고 공정정보와 결합
 
-#     Args:
-#         excel_file_path (str): 입력 Excel 파일 경로
-#         output_file (str): 출력 Excel 파일 경로
-#         linespeed_period (str): 라인스피드 기간 설정
-#         yield_period (str): 수율 기간 설정
+        Args:
+            aging_gitem_df (pd.DataFrame): GITEM별 에이징 시간 데이터
+            aging_gbn_df (pd.DataFrame): 제품군별 에이징 시간 데이터
+            gitem_sitem_df (pd.DataFrame): 제품군-GITEM-SITEM 매핑 데이터
+            operation_df (pd.DataFrame): 공정 정보 데이터
 
-#     Returns:
-#         Dict[str, pd.DataFrame]: 전처리된 모든 데이터
-#     """
-#     # Excel 파일에서 데이터 읽기
-#     print("Excel 파일에서 데이터 읽는 중...")
+        Returns:
+            pd.DataFrame: 전처리된 에이징 데이터 (gitemno, proccode, aging_time)
+        """
+        return (
+            pd.concat([
+                aging_gitem_df,
+                gitem_sitem_df[[config.columns.GRP2_NAME, config.columns.GITEM]]
+                .merge(aging_gbn_df, on=config.columns.GRP2_NAME, how="inner")
+                .drop(columns=[config.columns.GRP2_NAME])
+            ], ignore_index=True)
+            .merge(
+                operation_df[[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION, config.columns.OPERATION_CODE]],
+                how='inner',
+                left_on=[config.columns.GITEM, 'prev_procgbn'],
+                right_on=[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION]
+            )
+            .drop(columns=[config.columns.OPERATION_CLASSIFICATION])
+            .drop_duplicates(keep='first')
+            [[config.columns.GITEM, config.columns.OPERATION_CODE, 'aging_time']]
+            .astype({config.columns.GITEM: str, config.columns.OPERATION_CODE: str})
+        )
 
-#     # 각 시트에서 데이터 읽기
-#     order_df = pd.read_excel(excel_file_path, sheet_name="PO정보", skiprows=1)
-#     linespeed_df = pd.read_excel(excel_file_path, sheet_name="라인스피드-GITEM등", skiprows=5)
-#     operation_df = pd.read_excel(excel_file_path, sheet_name="GITEM-공정-순서", skiprows=1)
-#     yield_df = pd.read_excel(excel_file_path, sheet_name="수율-GITEM등", skiprows=5)
-#     chemical_df = pd.read_excel(excel_file_path, sheet_name="배합액정보", skiprows=5)
-#     operation_delay_df = pd.read_excel(excel_file_path, sheet_name="공정교체시간", skiprows=1)
-#     width_change_df = pd.read_excel(excel_file_path, sheet_name="폭변경", skiprows=1)
+    def preprocess_global_machine_limit(self, global_machine_limit_df: pd.DataFrame,
+                                       gitem_sitem_df: pd.DataFrame,
+                                       operation_df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Global 기계 제약조건 전처리: 제품군별 제약을 GITEM별로 확장하고 공정정보와 결합
 
-#     print("데이터 읽기 완료. 전처리 시작...")
+        Args:
+            global_machine_limit_df (pd.DataFrame): 제품군별 기계 제외 조건
+            gitem_sitem_df (pd.DataFrame): 제품군-GITEM-SITEM 매핑 데이터
+            operation_df (pd.DataFrame): 공정 정보 데이터
 
-#     # 전처리기 초기화
-#     preprocessor = ProductionDataPreprocessor()
-
-#     # 각 데이터 전처리
-#     order_data = preprocessor.preprocess_order_data(order_df)
-#     linespeed, linespeed_pivot = preprocessor.preprocess_linespeed_data(linespeed_df, linespeed_period)
-#     operation_types, operation_sequence = preprocessor.preprocess_operation_data(operation_df)
-#     yield_info = preprocessor.preprocess_yield_data(yield_df, yield_period)
-#     machine_master_info = preprocessor.preprocess_machine_master_info(linespeed_df)
-#     chemical_data = preprocessor.preprocess_chemical_data(chemical_df)
-#     machine_limit, machine_allocate, machine_rest = preprocessor.create_empty_dataframes()
-
-#     print("전처리 완료. 결과 정리 중...")
-
-#     # 결과를 딕셔너리로 정리
-#     processed_data = {
-#         'order_data': order_data,
-#         'linespeed': linespeed_pivot,
-#         'operation_types': operation_types,
-#         'operation_sequence': operation_sequence,
-#         'yield_data': yield_info,
-#         'machine_master_info': machine_master_info,
-#         'chemical_data': chemical_data,
-#         'operation_delay': operation_delay_df,
-#         'width_change': width_change_df,
-#         'machine_limit': machine_limit,
-#         'machine_allocate': machine_allocate,
-#         'machine_rest': machine_rest
-#     }
-
-#     # Excel 파일로 저장
-#     print(f"결과를 {output_file}에 저장 중...")
-#     with pd.ExcelWriter(output_file, engine="openpyxl") as writer:
-#         for sheet_name, df in processed_data.items():
-#             df.to_excel(writer, sheet_name=sheet_name, index=False)
-
-#     print(f"전처리 완료! 데이터가 {output_file}에 저장되었습니다.")
-
-#     return processed_data
-
-
-# if __name__ == "__main__":
-#     processed_data = main()
+        Returns:
+            pd.DataFrame: 전처리된 글로벌 기계 제약조건
+        """
+        return (
+            global_machine_limit_df
+            .merge(
+                gitem_sitem_df[[config.columns.GRP2_NAME, config.columns.GITEM]],
+                on=[config.columns.GRP2_NAME],
+                how="inner"
+            )
+            .drop_duplicates(keep='first')
+            .merge(
+                operation_df[[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION, config.columns.OPERATION_CODE]],
+                on=[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION],
+                how="left"
+            )
+            .drop_duplicates(keep='first')
+        )
