@@ -325,7 +325,6 @@ def find_best_chemical(first_node_dict, window_nodes, dag_manager):
 
     # 배합액이 없는 경우
     if not chemical_list or chemical_list == ():
-        print("[LOG] find_best_chemical: CHEMICAL_LIST empty for first node; window_nodes=", len(window_nodes))
         return None
 
     # 각 배합액별 사용 가능한 노드 수 카운트
@@ -341,11 +340,9 @@ def find_best_chemical(first_node_dict, window_nodes, dag_manager):
 
     # 가장 많이 사용 가능한 배합액 반환 (동수일 경우 첫 번째)
     if not chemical_counts:
-        print("[LOG] find_best_chemical: no chemical_counts built; window_nodes=", len(window_nodes))
         return None
 
     best_chemical = max(chemical_counts, key=chemical_counts.get)
-    print("[LOG] find_best_chemical: selected=", best_chemical, " candidates=", len(chemical_counts))
     return best_chemical
 
 
@@ -374,7 +371,6 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
 
         # 할당된 기계 인덱스 가져오기
         ideal_machine_index = node.machine
-        print("[LOG] SetupMinimizedStrategy: start_id=", start_id, " machine=", ideal_machine_index)
 
         # 2. 첫 노드의 최적 배합액 선택
         first_node_dict = dag_manager.opnode_dict.get(start_id)
@@ -445,7 +441,6 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
                 if SchedulingCore.validate_ready_node(dag_manager.nodes[g])
             ]
             if not remaining_operation_queue:
-                print("[LOG] SetupMinimizedStrategy: no ready nodes remaining; return")
                 break
             # 6-1. 남은 노드 중 첫 번째를 리더로 선정
             leader_id = remaining_operation_queue[0]
@@ -504,8 +499,7 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
                 # 진행 없음이면 상위로 반환하여 상태 전환 기회를 제공
                 break
             remaining_operation_queue = next_remaining
-        
-        print("[LOG] SetupMinimizedStrategy: final used_ids=", len(used_ids))
+
         return used_ids
 
 
@@ -581,16 +575,14 @@ class DispatchPriorityStrategy(HighLevelSchedulingStrategy):
             base_date = result[0][1]
             # 윈도우 내 노드들 추출 (첫 번째 노드 기준 ±window_days 이내)
             window_result = [
-                item[0] for item in result 
+                item[0] for item in result
                 if np.abs((item[1] - base_date) / np.timedelta64(1, 'D')) <= window_days
             ]
-            print("[LOG] DispatchPriorityStrategy: window_size=", len(window_result))
-            
+
             # 셋업 최소화 전략으로 윈도우 내 노드들 스케줄링
             used_ids = setup_strategy.execute(
                 dag_manager, scheduler, window_result[0], window_result[1:]
             )
-            print("[LOG] DispatchPriorityStrategy: used_ids=", len(used_ids))
             
             # 사용된 노드들을 제거
             if used_ids:

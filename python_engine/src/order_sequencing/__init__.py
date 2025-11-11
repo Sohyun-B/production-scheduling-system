@@ -18,6 +18,7 @@ def generate_order_sequences(order, operation_seperated_sequence, operation_type
     order_list = [same_order_groupby(groupby_columns, df) for df in order_list]
 
     # 1-C. 시퀀스 주문 생성
+    chemical_data = chemical_data.copy()  # SettingWithCopyWarning 방지
     chemical_data[config.columns.CHEMICAL_LIST] = chemical_data[[config.columns.CHEMICAL_1, config.columns.CHEMICAL_2]].apply(
     lambda row: f"{row[config.columns.CHEMICAL_1]}|{row[config.columns.CHEMICAL_2]}" if pd.notna(row[config.columns.CHEMICAL_2]) else str(row[config.columns.CHEMICAL_1]),
     axis=1

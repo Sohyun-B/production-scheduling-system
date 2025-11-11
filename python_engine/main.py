@@ -61,8 +61,6 @@ def run_level4_scheduling():
         print(aging_df.columns)
 
         aging_df = pd.concat([aging_gitem, aging_df])
-
-        aging_df.to_excel("aging_df1.xlsx", index=False)
         aging_df = aging_df.merge(
             operation_df[[config.columns.GITEM, config.columns.OPERATION_CLASSIFICATION, config.columns.OPERATION_CODE]],
             how = 'inner',
@@ -72,8 +70,6 @@ def run_level4_scheduling():
         aging_df = aging_df.drop_duplicates(keep='first')
 
         aging_df = aging_df[['gitemno', 'proccode', 'aging_time']].astype({'gitemno': str, 'proccode': str})
-
-        aging_df.to_excel("aging_df.xlsx", index=False)
         
         # global_machine_limit 
         global_machine_limit = pd.read_excel("data/input/글로벌_제약조건_블랙리스트.xlsx")
@@ -94,7 +90,6 @@ def run_level4_scheduling():
         
  
         
-        global_machine_limit.to_excel("global_machine_limit.xlsx", index=False)
         print("Excel 파일 로딩 완료!")
 
     except FileNotFoundError as e:
@@ -150,9 +145,6 @@ def run_level4_scheduling():
     sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = generate_order_sequences(
         order, operation_seperated_sequence, operation_types, local_machine_limit, global_machine_limit, machine_allocate, linespeed, chemical_data)
 
-    print("sequence_seperated_order 정보!!!!!!!")
-    print(sequence_seperated_order.columns)
-
     # === 3단계: 수율 예측 ===
     print("[35%] 수율 예측 처리 중...")
     sequence_seperated_order = yield_prediction(
@@ -168,11 +160,7 @@ def run_level4_scheduling():
     # DAG 생성 (aging_map 전달)
     dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
         sequence_seperated_order, linespeed, machine_master_info, aging_map=aging_map)
-    
-    dag_df.to_csv("dagdf.csv", encoding='utf-8-sig')
 
-    print("machine_dict 정보")
-    print(machine_dict)
     print(f"[50%] DAG 시스템 생성 완료 - 노드: {len(dag_df)}개, 기계: {len(machine_dict)}개")
 
     # === 5단계: 스케줄링 실행 ===

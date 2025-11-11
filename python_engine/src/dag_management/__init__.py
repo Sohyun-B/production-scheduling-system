@@ -45,9 +45,6 @@ def create_complete_dag_system(sequence_seperated_order, linespeed, machine_mast
     """
 
     merged_df = make_process_table(sequence_seperated_order)
-    merged_df.to_csv("merged_df.csv", encoding='utf-8-sig', index=False)
-    print("merged_df")
-    print(merged_df.columns)
     hierarchy = sorted(
         [col for col in merged_df.columns if col.endswith(config.columns.PROCESS_ID_SUFFIX)],
         key=lambda x: int(x.replace(config.columns.PROCESS_ID_SUFFIX, ''))
