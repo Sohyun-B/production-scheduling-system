@@ -48,8 +48,3 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Result files (exclude large data files)
-*결과*.xlsx
-*내역*.xlsx
-result.xlsx
-level4_*.xlsx

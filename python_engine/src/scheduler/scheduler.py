@@ -9,7 +9,8 @@ class Scheduler:
         order: 작업 순서 정보 (데이터 구조 자유)
         """
         self.machine_dict = machine_dict # order의 machine부분만 리스트로 변경한것
-        self.Machines = []
+        self.Machines = []  # 일반 기계들 (리스트 유지)
+        self.aging_machine = None  # NEW: aging 전용 기계 (별도 속성)
         # self.machine_numbers = 6
         self.machine_numbers = max(len(v) for v in machine_dict.values())
 
@@ -17,13 +18,29 @@ class Scheduler:
         self.cantfind_id = [] # 주석용. 삭제예정
         self.ratio_overflow = []
 
-    def allocate_resources(self): 
-        # Machine 생성 
-        self.Machines = [Machine_Time_window(Machine_index=i) 
-                       for i in range(self.machine_numbers)]  
+    def allocate_resources(self):
+        # Machine 생성 (일반 기계, 리스트 유지)
+        self.Machines = [Machine_Time_window(Machine_index=i)
+                       for i in range(self.machine_numbers)]
 
+        # NEW: Aging 기계 생성 (별도 속성)
+        self.aging_machine = Machine_Time_window(-1, allow_overlapping=True)
 
-    def earliest_start(self, machine_info, machine_index, node_earliest_start, node_id, machine_window_flag = False):
+    def get_machine(self, machine_index):
+        """
+        NEW: 통합 기계 접근자 (Hybrid Approach)
+
+        Args:
+            machine_index: 기계 인덱스 (0~n-1: 일반, -1: aging)
+
+        Returns:
+            Machine_Time_window 객체
+        """
+        if machine_index == -1:
+            return self.aging_machine
+        return self.Machines[machine_index]
+
+    def machine_earliest_start(self, machine_info, machine_index, node_earliest_start, node_id, machine_window_flag = False):
 ##############
         """
         (node_id, machine_index) 필요 <_ 이걸로 machine_List 접근. -> 공정의 수행시간
@@ -37,11 +54,11 @@ class Scheduler:
         P_t = machine_info[machine_index]  # 해당 공정의 수행 시간
         last_O_end = node_earliest_start  # 작업의 이전 공정 종료시간
         Selected_Machine = machine_index  # 기계 인덱스
-        
-        # 기계 시간 정보 추출
-        target_machine = self.Machines[Selected_Machine]
+
+        # CHANGED: 기계 시간 정보 추출 (get_machine 사용)
+        target_machine = self.get_machine(Selected_Machine)
         M_window = target_machine.Empty_time_window()  # (시작시간, 종료시간, 구간길이)
-        M_Tstart, M_Tend, M_Tlen = M_window         
+        M_Tstart, M_Tend, M_Tlen = M_window
         Machine_end_time = target_machine.End_time  # 기계의 최종 작업 종료시간
 
         # 지연을 구하기 위해 할당된 작업 불러옴
@@ -50,18 +67,19 @@ class Scheduler:
         
         # 타켓 머신의 가장 뒤에 있는 task의 id와 현재 넣으려는 id를 기반으로 맨 뒤에 할당할 경우 지연시간 계산
         if target_machine_task:
-            normal_delay = self.delay_processor.delay_calc_whole_process(node_id, target_machine_task[-1][1], Selected_Machine)
+            normal_delay = self.delay_processor.delay_calc_whole_process(target_machine_task[-1][1], node_id, Selected_Machine)
         else:
             normal_delay = 0
         
         # 기본 최소 시작시간 계산: 작업 이전 종료 vs 기계 최종 종료 + 최종 종료 이전 작업 + 딜레이
-        earliest_start = max(last_O_end, Machine_end_time + normal_delay)
-        
+        machine_earliest_start = max(last_O_end, Machine_end_time + normal_delay)
+    
+
         if machine_window_flag: # 빈 시간대 창을 분석하지 않는 경우
-            End_work_time = earliest_start + P_t
+            End_work_time = machine_earliest_start + P_t
         
             return (
-                earliest_start,     # M_earliest
+                machine_earliest_start,     # M_earliest
                 Selected_Machine,   # machine 번호
                 P_t,                # 수행 시간
                 last_O_end,         # 삽입 전 종료시간
@@ -85,7 +103,7 @@ class Scheduler:
                     later_delay = self.delay_processor.delay_calc_whole_process(node_id, target_machine_task[le_i][1], Selected_Machine)
 
                     if M_Tlen[le_i] >=  earlier_delay + P_t + later_delay: # 실제 지연 시간을 포함한 수행시간보다 빈 창이 더 큰 경우
-                        earliest_start = M_Tstart[le_i] + earlier_delay
+                        machine_earliest_start = M_Tstart[le_i] + earlier_delay
                         break
                 
                 # 2. 빈 창 중간에 작업 종료시간이 포함되는 경우
@@ -102,16 +120,16 @@ class Scheduler:
 
                     # 빈 창 + 시작 지연 시간과 이전 작업 종료 시간 중 더 늦은 시간 계산 후, 실행 시간과 이후 지연시간 더해서 종료예정시각 구함 
                     # 실제 시작 시간 
-                    real_earliest_start = max(M_Tstart[le_i] + earlier_delay, last_O_end)
-                    if (M_Tend[le_i] - real_earliest_start) >= P_t:
-                        earliest_start = real_earliest_start
+                    real_machine_earliest_start = max(M_Tstart[le_i] + earlier_delay, last_O_end)
+                    if (M_Tend[le_i] - real_machine_earliest_start) >= P_t:
+                        machine_earliest_start = real_machine_earliest_start
                         break
         
         # 최종 종료시간 계산
-        End_work_time = earliest_start + P_t
+        End_work_time = machine_earliest_start + P_t
         
         return (
-            earliest_start,     # M_earliest
+            machine_earliest_start,     # M_earliest
             Selected_Machine,   # machine 번호
             P_t,                # 수행 시간
             last_O_end,         # 삽입 전 종료시간
@@ -124,39 +142,52 @@ class Scheduler:
 
         """
         input:
-            machine_info (list): node_id의 node의 machine 별 수행시간을 보여주는 1차원 리스트
+            machine_info (dict): node_id의 node의 machine 별 수행시간을 보여주는 딕셔너리 {machine_index: processing_time}
             node_earliest_start: 해당 node의 parent node가 모두 끝나는 시각
             node_id: 머신에 기록용
-            op3node: 들어오는 데이터가 op3node일 때만 사용되고 이외에는 None이 값. dag._check_middlegroup_operation의 결과값. 
+            op3node: 들어오는 데이터가 op3node일 때만 사용되고 이외에는 None이 값. dag._check_middlegroup_operation의 결과값.
                     [operation_length: 해당 op3node의 길이 중 현재 시행될 max_length 이하의 길이
                     operation_nodes: 해당 op3node의 부모 노드 중 현재 시행될 작업들의 선행 노드
                     node_length: op3node 원본 노드의 길이. 이 노드 길이 대비 현재 길이로 작업 시간 계산 예정
 
         output:
-        
+
         """
-        
+
         machine_info = self.machine_dict.get(node_id)
 
         if not machine_info:
             print(f"Scheduler의 assign_operation에서 문제: {node_id}인 id가 없음")
             return 0
-        
+
+        # NEW: Aging 노드 감지 및 처리
+        is_aging = set(machine_info.keys()) == {-1}
+        if is_aging:
+            # Aging 노드는 aging_machine에 즉시 할당
+            aging_time = machine_info[-1]
+            self.aging_machine._Input(
+                depth,
+                node_id,
+                node_earliest_start,
+                aging_time
+            )
+            return -1, node_earliest_start, aging_time
+
         ideal_machine_index = -1
         ideal_machine_processing_time = float('inf')
         best_earliest_start = float('inf')
 
-        # 모든 기계 후보 탐색
-        for machine_index, machine_processing_time in enumerate(machine_info):
-            if machine_processing_time != 9999: # 0이면 수행하지 않는 기계로 판단]
-                earliest_start = self.earliest_start(machine_info, machine_index, node_earliest_start, node_id)[0]  # 튜플 첫 번째 값이 시작 시간
+        # CHANGED: 모든 기계 후보 탐색 (enumerate → items)
+        for machine_index, machine_processing_time in machine_info.items():
+            if machine_processing_time != 9999: # 9999이면 수행하지 않는 기계로 판단
+                earliest_start = self.machine_earliest_start(machine_info, machine_index, node_earliest_start, node_id)[0]  # 튜플 첫 번째 값이 시작 시간
 
                 # 최적 기계 선정 조건
                 if (earliest_start + machine_processing_time) < (best_earliest_start + ideal_machine_processing_time):
                     ideal_machine_index = machine_index
                     ideal_machine_processing_time = machine_processing_time
                     best_earliest_start = earliest_start
-        
+
 
         # 작업/기계 업데이트
         # 머신 클래스 변경 필요
@@ -196,9 +227,9 @@ class Scheduler:
         if machine_processing_time != 9999: # 0이면 수행하지 않는 기계로 판단]
             
             if machine_window_flag: # machine의 빈 쉬는 시간에 할당하지 않음
-                earliest_start, _, processing_time = self.earliest_start(machine_info, machine_idx, node_earliest_start, node_id, machine_window_flag = True)[0:3]
+                earliest_start, _, processing_time = self.machine_earliest_start(machine_info, machine_idx, node_earliest_start, node_id, machine_window_flag = True)[0:3]
             else:
-                earliest_start, _, processing_time = self.earliest_start(machine_info, machine_idx, node_earliest_start, node_id)[0:3]  # 튜플 첫 번째 값이 시작 시간
+                earliest_start, _, processing_time = self.machine_earliest_start(machine_info, machine_idx, node_earliest_start, node_id)[0:3]  # 튜플 첫 번째 값이 시작 시간
 
         # 작업/기계 업데이트
         # 머신 클래스 변경 필요
@@ -220,7 +251,7 @@ class Scheduler:
     def create_machine_schedule_dataframe(self):
         """
         머신별 스케줄 정보를 데이터프레임으로 변환 (작업 단위로 행 추가)
-        
+
         Returns:
             pandas.DataFrame: 머신 스케줄 정보가 담긴 데이터프레임
         """
@@ -234,39 +265,51 @@ class Scheduler:
                     config.columns.WORK_START_TIME: start_time,
                     config.columns.WORK_END_TIME: end_time
                 })
-        
+
+        # NEW: aging_machine 스케줄 추가
+        if self.aging_machine:
+            for task, start_time, end_time in zip(self.aging_machine.assigned_task, self.aging_machine.O_start, self.aging_machine.O_end):
+                data.append({
+                    config.columns.MACHINE_INDEX: -1,  # aging_machine은 -1
+                    config.columns.ALLOCATED_WORK: task,
+                    config.columns.WORK_START_TIME: start_time,
+                    config.columns.WORK_END_TIME: end_time
+                })
+
         # 데이터프레임 생성
         return pd.DataFrame(data)
     
     
+    # def allocate_machine_downtime(self, machine_rest, base_date):
+    #     """
+    #     기계 휴식 시간을 DOWNTIME 가짜 공정으로 차단
+        
+    #     Args:
+    #         machine_rest: DataFrame with columns [기계인덱스, 시작시간, 종료시간]
+    #         base_date: 스케줄링 기준 날짜
+    #     """
+    #     return self.allocate_unable_machine_info(machine_rest, base_date)
+    
     def allocate_machine_downtime(self, machine_rest, base_date):
         """
         기계 휴식 시간을 DOWNTIME 가짜 공정으로 차단
-        
-        Args:
-            machine_rest: DataFrame with columns [기계인덱스, 시작시간, 종료시간]
-            base_date: 스케줄링 기준 날짜
-        """
-        return self.allocate_unable_machine_info(machine_rest, base_date)
-    
-    def allocate_unable_machine_info(self, machine_limit, base_date):
-        """
-        machine_limit: 기계인덱스, 기계, 불가능한 공정, 시작시간, 종료시간
+
+        machine_machine_restlimit: 기계인덱스, 기계, 불가능한 공정, 시작시간, 종료시간
         불가능한 공정이 비어있는 경우 모든 공정을 사용 못하는 상태로 판단
         """
         
         # 시작시간 미존재시, 전체 스케줄 시작 시간으로 
-        machine_limit[config.columns.START_TIME_SCHEDULE].fillna(base_date)
+        machine_rest[config.columns.MACHINE_REST_START].fillna(base_date)
         # 종료시간이 없는 경우, 고려 X
-        machine_limit = machine_limit[ ~ machine_limit[config.columns.END_TIME_SCHEDULE].isna() ]
+        machine_rest = machine_rest[ ~ machine_rest[config.columns.MACHINE_REST_END].isna() ]
         
-        machine_limit[config.columns.START_TIME_SCHEDULE] = ((pd.to_datetime(machine_limit[config.columns.START_TIME_SCHEDULE]) - pd.to_datetime(base_date)).dt.total_seconds() // 1800).astype(int)
-        machine_limit[config.columns.END_TIME_SCHEDULE] = ((pd.to_datetime(machine_limit[config.columns.END_TIME_SCHEDULE]) - pd.to_datetime(base_date)).dt.total_seconds() // 1800).astype(int)
+        machine_rest[config.columns.MACHINE_REST_START] = ((pd.to_datetime(machine_rest[config.columns.MACHINE_REST_START]) - pd.to_datetime(base_date)).dt.total_seconds() // 1800).astype(int)
+        machine_rest[config.columns.MACHINE_REST_END] = ((pd.to_datetime(machine_rest[config.columns.MACHINE_REST_END]) - pd.to_datetime(base_date)).dt.total_seconds() // 1800).astype(int)
             
-        for idx, row in machine_limit.iterrows():
+        for idx, row in machine_rest.iterrows():
             machine_index = row[config.columns.MACHINE_INDEX]
-            start_time = row[config.columns.START_TIME_SCHEDULE]
-            end_time = row[config.columns.END_TIME_SCHEDULE]
+            start_time = row[config.columns.MACHINE_REST_START]
+            end_time = row[config.columns.MACHINE_REST_END]
             self.Machines[machine_index].force_Input(-1, "DOWNTIME 기계 사용 불가 시간", start_time, end_time)   
         
 

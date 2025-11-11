@@ -1,0 +1,34 @@
+{
+  "overall_summary": {
+    "total_tables": 1,
+    "tables_valid": 1,
+    "total_errors": 0,
+    "total_warnings": 1
+  },
+  "tables": [
+    {
+      "table_name": "tb_itemspec",
+      "validation_summary": {
+        "is_valid": true,
+        "total_errors": 0,
+        "total_warnings": 1
+      },
+      "issues": [
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "spec"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "32409",
+            "spec": "305*1524*15"
+          },
+          "action_taken": "none"
+        }
+      ]
+    }
+  ]
+}

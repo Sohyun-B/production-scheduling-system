@@ -16,17 +16,19 @@ class Machine_Time_window:
             task 순서: 한 기계(machine)에 할당된 공정(operation)의 실행 순서 (가변)
         task는 [job_index, operation_index]의 형태로 저장
     """
-    def __init__(self, Machine_index):
+    def __init__(self, Machine_index, allow_overlapping=False):
         """
         클래스 Machine_Time_window의 초기화 매서드
         Args:
             Machine_index (int): 기계의 인덱스
+            allow_overlapping (bool): overlapping 허용 여부 (aging 전용, 기본값 False)
         """
         self.Machine_index = Machine_index
         self.assigned_task = []  # Records tasks assigned to the machine, including job index and operation index
         self.O_start = []  # Records the start time of each task's operation
         self.O_end = []  # Records the end time of each task's operation
         self.End_time = 0
+        self.allow_overlapping = allow_overlapping  # NEW: Aging 기계용 overlapping 플래그
 
 
 
@@ -98,7 +100,20 @@ class Machine_Time_window:
         if operation_nodes:
             task = [depth, node_id, operation_nodes]
 
-        
+        # NEW: Overlapping 처리 (Aging 기계 전용)
+        if self.allow_overlapping:
+            # overlapping: 빈 시간 체크 없이 바로 추가
+            self.assigned_task.append(task)
+            self.O_start.append(M_Ealiest)
+            self.O_end.append(M_Ealiest + P_t)
+            # 정렬 유지
+            self.O_start.sort()
+            self.O_end.sort()
+            # End_time은 가장 늦게 끝나는 시간으로 업데이트
+            self.End_time = max(self.End_time, M_Ealiest + P_t)
+            return
+
+        # 기존 로직 (overlapping=False인 경우)
         if self.O_end != []: # 기존 작업이 비어있지 않다면
             if self.O_start[-1] > M_Ealiest: # 가장 늦은 시작 시간보다 지금 들어온 시작 가능 시간이 더 빠르면
                 for i in range(len(self.O_end)):
@@ -107,7 +122,7 @@ class Machine_Time_window:
                         self.assigned_task.insert(i, task)
                         break
             else: # 그렇지 않으면 맨 뒤 순서에 append
-                self.assigned_task.append(task) 
+                self.assigned_task.append(task)
         else: # 그렇지 않으면 맨 뒤 순서에 append
             self.assigned_task.append(task)
 
