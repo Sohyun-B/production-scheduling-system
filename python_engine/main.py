@@ -19,7 +19,8 @@ from src.yield_management import yield_prediction
 from src.dag_management import create_complete_dag_system
 from src.dag_management.dag_dataframe import parse_aging_requirements
 from src.scheduler import run_scheduler_pipeline
-from src.results import create_results
+# from src.results import create_results  # 기존 모듈
+from src.new_results import create_new_results  # 신규 모듈
 
 def run_level4_scheduling():
     # 사용자 입력으로 받는 부분
@@ -146,11 +147,11 @@ def run_level4_scheduling():
         )
 
 
-        # === 6단계: 결과 후처리 (모든 후처리 로직을 create_results에서 처리) ===
+        # === 6단계: 결과 후처리 (new_results 모듈 사용) ===
         print(f"[80%] 스케줄링 완료! 결과 후처리 시작...")
-        
-        # create_results 함수로 모든 후처리 위임
-        final_results = create_results(
+
+        # create_new_results 함수로 모든 후처리 위임
+        final_results = create_new_results(
             raw_scheduling_result=result,
             merged_df=merged_df,
             original_order=order,
@@ -161,35 +162,64 @@ def run_level4_scheduling():
         )
         
         # 기본 결과 출력
+        print(f"\n[결과 요약]")
         print(f"order 수 : {len(order)}")
         print(f"실제 수행한 order: {len(order) - len(unable_order)}")
         print(f"사용 불가능한 gitem: {len(unable_gitems)}")
-        print(f"makespan: {final_results['actual_makespan']}")
-        print(f"납기준수율: {1 - (final_results['order_summary'][config.columns.LATE_DAYS] > 0).sum() / len(final_results['order_summary'])}")
-        print(f"지각 주문: {(final_results['order_summary'][config.columns.LATE_DAYS] > 0).sum()}")
-        # print(f"공정교체 횟수: {(final_results['order_summary']['지각일수'] > 0).sum()}")
+        print(f"makespan: {final_results['metadata']['actual_makespan']}")
+
+        # 성과 지표 출력
+        metrics = final_results['performance_metrics']
+        print(f"\n[스케줄링 성과 지표]")
+        print(f"PO제품수: {metrics['po_count']}개")
+        print(f"총 생산시간: {metrics['makespan_hours']:.2f}시간")
+        print(f"납기준수율: {metrics['ontime_delivery_rate']:.2f}%")
+        print(f"장비가동률(평균): {metrics['avg_utilization']:.2f}%")
+
+        # 지각 요약
+        lateness = final_results['lateness_summary']
+        print(f"\n[지각 현황]")
+        print(f"준수 주문: {lateness['ontime_orders']}개, 지각 주문: {lateness['late_orders']}개")
+        if lateness['late_orders'] > 0:
+            print(f"평균 지각일수 (지각 주문만): {lateness['avg_lateness_days']:.2f}일")
 
 
-        # print(f"[98%] 스케줄링 완료! Makespan: {final_results['actual_makespan']:.1f} (총 {final_results['actual_makespan']/48:.1f}일)")
-        # print(f"[결과] 실제 Makespan: {final_results['actual_makespan']} (가짜 공정 제외)")
-        # print(f"[결과] 총 소요시간: {final_results['actual_makespan'] / 48:.2f}일")
-    
         # 원본 결과 저장 (임시)
         excel_filename = "data/output/result.xlsx"
         result.to_excel(excel_filename, index=False)
         print(f"[저장] 원본 결과를 '{excel_filename}'에 저장 완료")
         
-        # 최종 엑셀 파일 저장 (main.ipynb와 동일한 형태)
+        # 최종 엑셀 파일 저장 (new_results 버전 - 5개 시트)
         print("[99%] 최종 Excel 파일 저장 중...")
         processed_filename = "data/output/0829 스케줄링결과.xlsx"
         with pd.ExcelWriter(processed_filename, engine="openpyxl") as writer:
-            final_results['order_summary'].to_excel(writer, sheet_name="주문_생산_요약본", index=False)
-            final_results['order_info'].to_excel(writer, sheet_name="주문_생산_정보", index=False)
-            final_results['machine_info'].to_excel(writer, sheet_name="호기_정보", index=False)
-            final_results['detailed_gaps'].to_excel(writer, sheet_name="지연시간분석", index=False)
-            final_results['machine_summary'].to_excel(writer, sheet_name="지연시간호기요약", index=False)
-        
+            # 1. 스케줄링 성과 지표 (신규)
+            pd.DataFrame(final_results['performance_summary']).to_excel(
+                writer, sheet_name="스케줄링_성과_지표", index=False
+            )
+
+            # 2. 호기_정보 (기존 유지)
+            pd.DataFrame(final_results['machine_info']).to_excel(
+                writer, sheet_name="호기_정보", index=False
+            )
+
+            # 3. 장비별_상세_성과 (신규)
+            pd.DataFrame(final_results['machine_detailed_performance']).to_excel(
+                writer, sheet_name="장비별_상세_성과", index=False
+            )
+
+            # 4. 주문_지각_정보 (신규)
+            pd.DataFrame(final_results['order_lateness_report']).to_excel(
+                writer, sheet_name="주문_지각_정보", index=False
+            )
+
+            # 5. 간격_분석 (기존 detailed_gaps 개선)
+            pd.DataFrame(final_results['gap_analysis']).to_excel(
+                writer, sheet_name="간격_분석", index=False
+            )
+
         print(f"[저장] 가공된 결과를 '{processed_filename}'에 저장 완료")
+        print(f"[저장] 5개 시트: 스케줄링_성과_지표, 호기_정보, 장비별_상세_성과, 주문_지각_정보, 간격_분석")
         
         # 최종 완료
         print("[100%] 스케줄링 완료! 모든 결과 파일 저장 완료")
