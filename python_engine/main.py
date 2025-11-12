@@ -47,7 +47,7 @@ def run_level4_scheduling():
 
         aging_gitem = pd.read_excel(input_file, sheet_name="tb_agingtime_gitem", dtype={config.columns.GITEM: str})
         aging_gbn = pd.read_excel(input_file, sheet_name="tb_agingtime_gbn")
-        global_machine_limit_raw = pd.read_excel("data/input/글로벌_제약조건_블랙리스트.xlsx")
+        global_machine_limit_raw = pd.read_excel("data/input/tb_commomconstraint.xlsx")
 
         print("Excel 파일 로딩 완료!")
 
@@ -129,8 +129,7 @@ def run_level4_scheduling():
     print(f"[INFO] {len(aging_map)}개의 aging 노드 생성 예정")
 
 
-    
-    sequence_seperated_order.to_csv("sequence_seperated_order_dag이후.csv", encoding='utf-8-sig')
+
     # DAG 생성 (aging_map 전달)
     dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
         sequence_seperated_order, linespeed, machine_mapper, aging_map=aging_map)
