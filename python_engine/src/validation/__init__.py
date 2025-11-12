@@ -57,7 +57,6 @@ def preprocess_production_data(
             - 'operation_types': 공정 타입 정보
             - 'operation_sequence': 공정 순서 정보
             - 'yield_data': 수율 정보
-            - 'machine_master_info': 설비 마스터 정보
             - 'chemical_data': 배합액 정보
             - 'operation_delay': 공정교체시간
             - 'width_change': 폭변경 정보
@@ -163,7 +162,6 @@ def preprocess_production_data(
     linespeed, linespeed_pivot = preprocessor.preprocess_linespeed_data(cleaned_data['linespeed_df'], linespeed_period)
     operation_types, operation_sequence = preprocessor.preprocess_operation_data(cleaned_data['operation_df'])
     yield_info = preprocessor.preprocess_yield_data(cleaned_data['yield_df'], yield_period)
-    machine_master_info = preprocessor.preprocess_machine_master_info(cleaned_data['linespeed_df'])
     chemical_data = preprocessor.preprocess_chemical_data(cleaned_data['chemical_df'])
 
     print("[Validation] 데이터 변환 완료. 결과 정리 중...")
@@ -198,7 +196,6 @@ def preprocess_production_data(
         'operation_types': operation_types,
         'operation_sequence': operation_sequence,
         'yield_data': yield_info,
-        'machine_master_info': machine_master_info,
         'chemical_data': chemical_data,
         'operation_delay': operation_delay_df,
         'width_change': width_change_df,

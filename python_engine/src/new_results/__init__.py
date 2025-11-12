@@ -30,7 +30,7 @@ def create_new_results(
     merged_df,
     original_order,
     sequence_seperated_order,
-    machine_master_info,
+    machine_mapper,
     base_date,
     scheduler
 ):
@@ -42,7 +42,7 @@ def create_new_results(
         merged_df (pd.DataFrame): 주문-공정 병합 데이터
         original_order (pd.DataFrame): 원본 주문 데이터
         sequence_seperated_order (pd.DataFrame): 공정별 분리 주문
-        machine_master_info (pd.DataFrame): 기계 마스터 정보
+        machine_mapper (MachineMapper): 기계 정보 매핑 관리 객체
         base_date (datetime): 기준 날짜
         scheduler: 스케줄러 인스턴스
 
@@ -87,10 +87,11 @@ def create_new_results(
     # ===================================================================
     print("[88%] 호기_정보 생성 중...")
 
-    # 기계 인덱스 → 코드 매핑
-    machine_mapping = machine_master_info.set_index(
-        config.columns.MACHINE_INDEX
-    )[config.columns.MACHINE_CODE].to_dict()
+    # MachineMapper를 사용한 기계 매핑
+    machine_mapping = {
+        idx: machine_mapper.index_to_code(idx)
+        for idx in machine_mapper.get_all_indices()
+    }
 
     # 기계 정보 처리 (기존 MachineProcessor 사용)
     from src.results.machine_processor import MachineScheduleProcessor
@@ -112,9 +113,11 @@ def create_new_results(
         config.columns.GITEM_NAME
     ]].drop_duplicates()
 
-    code_to_name_mapping = machine_master_info.set_index(
-        config.columns.MACHINE_CODE
-    )[config.columns.MACHINE_NAME].to_dict()
+    # MachineMapper를 사용한 코드 → 이름 매핑
+    code_to_name_mapping = {
+        code: machine_mapper.code_to_name(code)
+        for code in machine_mapper.get_all_codes()
+    }
 
     machine_info = machine_info.rename(columns={
         config.columns.MACHINE_INDEX: config.columns.MACHINE_CODE
@@ -147,7 +150,7 @@ def create_new_results(
     gap_analyzer = SimplifiedGapAnalyzer(
         scheduler,
         scheduler.delay_processor,
-        machine_master_info,
+        machine_mapper,
         base_date
     )
     gap_analysis = gap_analyzer.analyze_all_gaps()
@@ -170,7 +173,7 @@ def create_new_results(
     machine_analyzer = MachineDetailedAnalyzer(
         scheduler,
         gap_analyzer,
-        machine_master_info
+        machine_mapper
     )
     machine_detailed_performance = machine_analyzer.create_detailed_table()
     print(f"[92%] 장비별 상세 성과 완료 - {len(machine_detailed_performance)}개 기계")

@@ -90,7 +90,7 @@ def run_scheduler_pipeline(
     dag_df,
     sequence_seperated_order,
     width_change_df,
-    machine_master_info,
+    machine_mapper,
     opnode_dict,
     operation_delay_df,
     machine_dict,
@@ -106,7 +106,8 @@ def run_scheduler_pipeline(
     dag_df : pd.DataFrame
     sequence_seperated_order : pd.DataFrame
     width_change_df : pd.DataFrame
-    machine_master_info : pd.DataFrame
+    machine_mapper : MachineMapper
+        기계 정보 매핑 관리 객체
     opnode_dict : dict
     operation_delay_df : pd.DataFrame
     machine_dict : dict
@@ -129,20 +130,16 @@ def run_scheduler_pipeline(
     # 스케줄러 초기화
     print("[70%] 스케줄러 초기화 및 자원 할당 중...")
 
-    # MACHINE_CODE → MACHINE_INDEX dict 생성 후 공정교체시간 존재하는 기계인덱스만 가져옴
-    code_to_index = dict(
-        zip(
-            machine_master_info[config.columns.MACHINE_CODE],
-            machine_master_info[config.columns.MACHINE_INDEX],
-        )
-    )
-    machine_index_list = (
-        width_change_df[config.columns.MACHINE_CODE].map(code_to_index).tolist()
-    )
+    # MachineMapper를 사용한 기계 인덱스 매핑
+    machine_index_list = [
+        machine_mapper.code_to_index(code)
+        for code in width_change_df[config.columns.MACHINE_CODE]
+    ]
 
-    width_change_df = pd.merge(
-        width_change_df, machine_master_info, on=config.columns.MACHINE_CODE, how="left"
-    )
+    # width_change_df에 machine_index 추가
+    width_change_df = width_change_df.copy()
+    width_change_df[config.columns.MACHINE_INDEX] = machine_index_list
+
     delay_processor = DelayProcessor(
         opnode_dict, operation_delay_df, width_change_df, machine_index_list
     )
@@ -150,9 +147,12 @@ def run_scheduler_pipeline(
     scheduler = Scheduler(machine_dict, delay_processor)
     scheduler.allocate_resources()
 
-    machine_rest = pd.merge(
-        machine_rest, machine_master_info, on=config.columns.MACHINE_CODE, how="left"
-    )
+    # machine_rest에 machine_index 추가
+    machine_rest = machine_rest.copy()
+    machine_rest[config.columns.MACHINE_INDEX] = [
+        machine_mapper.code_to_index(code)
+        for code in machine_rest[config.columns.MACHINE_CODE]
+    ]
     scheduler.allocate_machine_downtime(machine_rest, base_date)
     print("[스케줄러] 기계 자원 할당 완료, 기계 중단시간 설정 완료")
 

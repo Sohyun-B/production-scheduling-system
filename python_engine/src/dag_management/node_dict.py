@@ -28,12 +28,12 @@ def create_opnode_dict(sequence_seperated_order):
 
 
 
-def create_machine_dict(sequence_seperated_order, linespeed, machine_columns, aging_nodes_dict=None):
+def create_machine_dict(sequence_seperated_order, linespeed, machine_mapper, aging_nodes_dict=None):
     """
     인풋 데이터프레임 컬럼 조건
     sequence_seperated_order: [ GITEM, 공정, 생산길이, ID]
     linespeed: [ GITEM, 공정, 기계명(왼쪽부터 기계인덱스 0으로 지정) ]
-    machine_columns: linespeed의 컬럼명 중 기계이름의 컬럼으로 인식해야하는 컬럼명 리스트
+    machine_mapper: MachineMapper 객체 (기계 정보 매핑 관리)
     aging_nodes_dict: {aging_node_id: aging_time} (optional)
 
     Returns:
@@ -44,8 +44,10 @@ def create_machine_dict(sequence_seperated_order, linespeed, machine_columns, ag
     order_linespeed = sequence_seperated_order[[config.columns.GITEM, config.columns.OPERATION_CODE, config.columns.PRODUCTION_LENGTH, config.columns.ID]]
     order_linespeed = pd.merge(order_linespeed, linespeed, on=[config.columns.GITEM, config.columns.OPERATION_CODE], how='left')
 
+    # machine_mapper에서 순서 보장된 기계코드 리스트 추출
+    machine_codes = machine_mapper.get_all_codes()
 
-    for col in machine_columns:
+    for col in machine_codes:
         temp = order_linespeed[col].copy()
 
         # NaN이면 바로 9999
@@ -65,14 +67,16 @@ def create_machine_dict(sequence_seperated_order, linespeed, machine_columns, ag
         # 정수 변환
         order_linespeed[col] = temp.astype(int)
 
-    # CHANGED: 리스트 → 딕셔너리 구조로 변경
+    # machine_dict 생성 (명시적 매핑 - enumerate 제거)
     machine_dict = {}
     for _, row in order_linespeed.iterrows():
         node_id = row[config.columns.ID]
         machine_dict[node_id] = {}
-        for idx, col in enumerate(machine_columns):
-            processing_time = row[col]
-            machine_dict[node_id][idx] = int(processing_time)
+
+        for machine_code in machine_codes:
+            machine_index = machine_mapper.code_to_index(machine_code)  # 명시적 매핑
+            processing_time = row[machine_code]
+            machine_dict[node_id][machine_index] = int(processing_time)
 
     # NEW: Aging 노드 추가
     if aging_nodes_dict:

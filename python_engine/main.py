@@ -35,13 +35,13 @@ def run_level4_scheduling():
         input_file = "data/input/생산계획 입력정보.xlsx"
 
         # 각 시트에서 데이터 읽기 (GITEM과 OPERATION_CODE는 문자열로 고정)
-        order_df = pd.read_excel(input_file, sheet_name="tb_polist", dtype={config.columns.GITEM: str})
+        order_df = pd.read_excel(input_file, sheet_name="tb_polist", dtype={config.columns.GITEM: str}, parse_dates=[config.columns.DUE_DATE])
         gitem_sitem_df = pd.read_excel(input_file, sheet_name="tb_itemspec", dtype={config.columns.GITEM: str})
         linespeed_df = pd.read_excel(input_file, sheet_name="tb_linespeed", dtype={config.columns.GITEM: str, config.columns.OPERATION_CODE: str})
         operation_df = pd.read_excel(input_file, sheet_name="tb_itemproc", dtype={config.columns.GITEM: str, config.columns.OPERATION_CODE: str})
         yield_df = pd.read_excel(input_file, sheet_name="tb_productionyield", dtype={config.columns.GITEM: str})
         chemical_df = pd.read_excel(input_file, sheet_name="tb_chemical", dtype={config.columns.GITEM: str, config.columns.OPERATION_CODE: str})
-        operation_delay_df = pd.read_excel(input_file, sheet_name="tb_changetime", dtype={config.columns.OPERATION_CODE: str})
+        operation_delay_df = pd.read_excel(input_file, sheet_name="tb_changetime")
         width_change_df = pd.read_excel(input_file, sheet_name="tb_changewidth")
 
 
@@ -80,7 +80,6 @@ def run_level4_scheduling():
     operation_types = processed_data['operation_types']
     operation_seperated_sequence = processed_data['operation_sequence']
     yield_data = processed_data['yield_data']
-    machine_master_info = processed_data['machine_master_info']
     chemical_data = processed_data['chemical_data']
     operation_delay_df = processed_data['operation_delay']
     width_change_df = processed_data['width_change']
@@ -91,18 +90,26 @@ def run_level4_scheduling():
     # 시나리오 파일 로딩 (Local 제약조건 + 기계 할당)
     local_machine_limit = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_limit")
     machine_allocate = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_allocate")
-    machine_rest = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_rest")
-    
+    machine_rest = pd.read_excel("data/input/시나리오_공정제약조건.xlsx", sheet_name="machine_rest", parse_dates=[config.columns.MACHINE_REST_START, config.columns.MACHINE_REST_END])
 
-    # 날짜 컬럼을 datetime으로 변환
-    if config.columns.DUE_DATE in order.columns:
-        order[config.columns.DUE_DATE] = pd.to_datetime(order[config.columns.DUE_DATE])
-    if config.columns.MACHINE_REST_START in machine_rest.columns:
-        machine_rest[config.columns.MACHINE_REST_START] = pd.to_datetime(machine_rest[config.columns.MACHINE_REST_START])
-    if config.columns.MACHINE_REST_END in machine_rest.columns:
-        machine_rest[config.columns.MACHINE_REST_END] = pd.to_datetime(machine_rest[config.columns.MACHINE_REST_END])
+
 
     print("[30%] Validation 완료!")
+
+    # === 기계 마스터 정보 로딩 (Validation 이후) ===
+    print("[31%] 기계 마스터 정보 로딩 중...")
+    machine_master_file = "data/input/machine_master_info.xlsx"
+    machine_master_info_df = pd.read_excel(
+        machine_master_file,
+        sheet_name="machine_master",
+        dtype={config.columns.MACHINE_INDEX: int, config.columns.MACHINE_CODE: str}
+    )
+    print(f"[INFO] 기계 마스터 정보 로딩 완료: {len(machine_master_info_df)}대")
+
+    # MachineMapper 객체 생성
+    from src.utils import MachineMapper
+    machine_mapper = MachineMapper(machine_master_info_df)
+    print(f"[INFO] MachineMapper 초기화 완료: {machine_mapper}")
 
     # === 2단계: 주문 시퀀스 생성 (Order Sequencing) ===
     print("[30%] 주문 시퀀스 생성 중...")
@@ -114,16 +121,19 @@ def run_level4_scheduling():
     sequence_seperated_order = yield_prediction(
         yield_data, sequence_seperated_order
     )
-
+    sequence_seperated_order.to_csv("sequence_seperated_order_수율이후.csv", encoding='utf-8-sig')
     # === 4단계: DAG 생성 ===
     # NEW: aging 요구사항 파싱
     print("[38%] Aging 요구사항 파싱 중...")
     aging_map = parse_aging_requirements(aging_df, sequence_seperated_order)
     print(f"[INFO] {len(aging_map)}개의 aging 노드 생성 예정")
 
+
+    
+    sequence_seperated_order.to_csv("sequence_seperated_order_dag이후.csv", encoding='utf-8-sig')
     # DAG 생성 (aging_map 전달)
     dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
-        sequence_seperated_order, linespeed, machine_master_info, aging_map=aging_map)
+        sequence_seperated_order, linespeed, machine_mapper, aging_map=aging_map)
 
     print(f"[50%] DAG 시스템 생성 완료 - 노드: {len(dag_df)}개, 기계: {len(machine_dict)}개")
 
@@ -136,7 +146,7 @@ def run_level4_scheduling():
             dag_df=dag_df,
             sequence_seperated_order=sequence_seperated_order,
             width_change_df=width_change_df,
-            machine_master_info=machine_master_info,
+            machine_mapper=machine_mapper,
             opnode_dict=opnode_dict,
             operation_delay_df=operation_delay_df,
             machine_dict=machine_dict,
@@ -156,7 +166,7 @@ def run_level4_scheduling():
             merged_df=merged_df,
             original_order=order,
             sequence_seperated_order=sequence_seperated_order,
-            machine_master_info=machine_master_info,
+            machine_mapper=machine_mapper,
             base_date=base_date,
             scheduler=scheduler
         )

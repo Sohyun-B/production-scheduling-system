@@ -11,25 +11,27 @@ from config import config
 class MachineDetailedAnalyzer:
     """장비별 상세 분석 클래스"""
 
-    def __init__(self, scheduler, gap_analyzer, machine_master_info):
+    def __init__(self, scheduler, gap_analyzer, machine_mapper):
         """
         Args:
             scheduler: 스케줄러 인스턴스
             gap_analyzer: SimplifiedGapAnalyzer 인스턴스
-            machine_master_info (pd.DataFrame): 기계 마스터 정보
+            machine_mapper (MachineMapper): 기계 정보 매핑 관리 객체
         """
         self.scheduler = scheduler
         self.gap_analyzer = gap_analyzer
-        self.machine_master_info = machine_master_info
+        self.machine_mapper = machine_mapper
 
         # 기계 매핑
-        self.machine_idx_to_code = machine_master_info.set_index(
-            config.columns.MACHINE_INDEX
-        )[config.columns.MACHINE_CODE].to_dict()
+        self.machine_idx_to_code = {
+            idx: machine_mapper.index_to_code(idx)
+            for idx in machine_mapper.get_all_indices()
+        }
 
-        self.machine_idx_to_name = machine_master_info.set_index(
-            config.columns.MACHINE_INDEX
-        )[config.columns.MACHINE_NAME].to_dict()
+        self.machine_idx_to_name = {
+            idx: machine_mapper.index_to_name(idx)
+            for idx in machine_mapper.get_all_indices()
+        }
 
     def calculate_machine_operating_time(self, machine):
         """

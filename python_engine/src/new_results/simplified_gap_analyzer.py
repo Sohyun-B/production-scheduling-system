@@ -12,27 +12,29 @@ from config import config
 class SimplifiedGapAnalyzer:
     """간결하고 실무 친화적인 간격 분석 클래스"""
 
-    def __init__(self, scheduler, delay_processor, machine_master_info, base_date):
+    def __init__(self, scheduler, delay_processor, machine_mapper, base_date):
         """
         Args:
             scheduler: 스케줄러 인스턴스
             delay_processor: DelayProcessor 인스턴스
-            machine_master_info (pd.DataFrame): 기계 마스터 정보
+            machine_mapper (MachineMapper): 기계 정보 매핑 관리 객체
             base_date (datetime): 기준 날짜
         """
         self.scheduler = scheduler
         self.delay_processor = delay_processor
-        self.machine_master_info = machine_master_info
+        self.machine_mapper = machine_mapper
         self.base_date = base_date
 
         # 기계 매핑 (인덱스 → 코드, 이름)
-        self.machine_idx_to_code = machine_master_info.set_index(
-            config.columns.MACHINE_INDEX
-        )[config.columns.MACHINE_CODE].to_dict()
+        self.machine_idx_to_code = {
+            idx: machine_mapper.index_to_code(idx)
+            for idx in machine_mapper.get_all_indices()
+        }
 
-        self.machine_idx_to_name = machine_master_info.set_index(
-            config.columns.MACHINE_INDEX
-        )[config.columns.MACHINE_NAME].to_dict()
+        self.machine_idx_to_name = {
+            idx: machine_mapper.index_to_name(idx)
+            for idx in machine_mapper.get_all_indices()
+        }
 
     def analyze_all_gaps(self):
         """

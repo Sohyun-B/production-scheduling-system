@@ -5,7 +5,7 @@ from config import config
 import pandas as pd
 
 
-def run_dag_pipeline(merged_df, hierarchy, sequence_seperated_order, linespeed, machine_columns):
+def run_dag_pipeline(merged_df, hierarchy, sequence_seperated_order, linespeed, machine_mapper):
     """
     dag_management 모듈 내 주요 함수들을 종합 호출하여
     DAG 생성부터 노드-기계 사전 생성까지 한 번에 처리하는 편리 함수
@@ -13,7 +13,7 @@ def run_dag_pipeline(merged_df, hierarchy, sequence_seperated_order, linespeed, 
 
     # 1. DAG 데이터프레임 생성
     mnc = Create_dag_dataframe()
-    
+
     dag_df = mnc.create_full_dag(merged_df, hierarchy)
 
     # 2. 노드 사전 생성
@@ -24,19 +24,19 @@ def run_dag_pipeline(merged_df, hierarchy, sequence_seperated_order, linespeed, 
     manager.build_from_dataframe(dag_df)
 
     # 4. 기계 딕셔너리 생성
-    machine_dict = create_machine_dict(sequence_seperated_order, linespeed, machine_columns)
+    machine_dict = create_machine_dict(sequence_seperated_order, linespeed, machine_mapper)
 
     return dag_df, opnode_dict, manager, machine_dict
 
 
-def create_complete_dag_system(sequence_seperated_order, linespeed, machine_master_info, aging_map=None):
+def create_complete_dag_system(sequence_seperated_order, linespeed, machine_mapper, aging_map=None):
     """
     DAG 생성을 위한 전체 파이프라인을 한번에 처리하는 통합 함수
 
     Args:
         sequence_seperated_order: 전처리된 주문 데이터
         linespeed: 라인스피드 데이터
-        machine_master_info: 기계 마스터 정보
+        machine_mapper: MachineMapper 객체 (기계 정보 매핑 관리)
         aging_map: parse_aging_requirements()의 결과 (선택 사항)
 
     Returns:
@@ -50,7 +50,7 @@ def create_complete_dag_system(sequence_seperated_order, linespeed, machine_mast
     )
     dag_df, opnode_dict, manager, machine_dict = run_dag_pipeline(
         merged_df, hierarchy, sequence_seperated_order, linespeed,
-        machine_columns=machine_master_info[config.columns.MACHINE_CODE].values.tolist()
+        machine_mapper=machine_mapper
     )
 
     # NEW: aging 노드 처리
