@@ -1,187 +1,361 @@
+"""
+기계 제약조건 적용 모듈 (Long Format 기반)
+
+리팩토링 히스토리:
+- 이전: Wide Format 기반 (각 기계가 컬럼)
+- 현재: Long Format 기반 (gitemno, proccode, machineno, linespeed)
+"""
+
 import numpy as np
 import pandas as pd
 from config import config
 
+
 def operation_machine_limit(linespeed, local_machine_limit, global_machine_limit):
     """
-    해당 기계에서 해당 공정을 수행하지 않게 제한하는 경우 라인스피드를 사용하지 못하는 방식으로 변경
-            
-    linespeed:
-        GITEM, 공정, 각 기계코드의 이름의 라인스피드 컬럼으로 생성
-    
-    local_machine_limit:
-        필수 컬럼: 기계코드, 공정명 
+    기계 제약조건 적용 (Long Format 기반)
 
+    Args:
+        linespeed: DataFrame [gitemno, proccode, machineno, linespeed, ...]
+        local_machine_limit: DataFrame [proccode, machineno] - 공정별 기계 제외
+        global_machine_limit: DataFrame [gitemno, proccode, machineno] - GITEM+공정별 기계 제외
+
+    Returns:
+        filtered_linespeed: 제약조건 적용 후 DataFrame
+        unable_gitems: 생산 불가능한 GITEM 리스트
+        unable_details: 생산 불가능한 (GITEM, 공정) 상세 정보
     """
 
-    m = linespeed[config.columns.OPERATION_CODE].isin(local_machine_limit[config.columns.OPERATION_CODE])
-    
-    sub_ml = local_machine_limit[[config.columns.OPERATION_CODE, config.columns.MACHINE_CODE]].dropna()
-    sub_ml = sub_ml[sub_ml[config.columns.OPERATION_CODE].isin(linespeed.loc[m, config.columns.OPERATION_CODE])]
-    valid_machine_codes = set(linespeed.columns)
-    machine_code_set = valid_machine_codes - {config.columns.OPERATION_CODE, config.columns.GITEM}
-    machine_codes = [c for c in sub_ml[config.columns.MACHINE_CODE].unique() if c in machine_code_set]
-    
-    target_mask = linespeed[config.columns.OPERATION_CODE].isin(sub_ml[config.columns.OPERATION_CODE])
-    if machine_codes: 
-        linespeed.loc[target_mask, machine_codes] = np.nan
+    # 1. Local 제약조건 적용 (공정별 기계 제외)
+    if local_machine_limit is not None and not local_machine_limit.empty:
+        linespeed = apply_local_machine_limit(linespeed, local_machine_limit)
 
-    linespeed = operation_machine_global_limit(linespeed, global_machine_limit)
-    unable_gitems, unable_details = _check_unable_order(linespeed, list(machine_code_set))
+    # 2. Global 제약조건 적용 (GITEM+공정별 기계 제외)
+    if global_machine_limit is not None and not global_machine_limit.empty:
+        linespeed = apply_global_machine_limit(linespeed, global_machine_limit)
+
+    # 3. 생산 불가능한 항목 확인
+    unable_gitems, unable_details = check_unable_items(linespeed)
+
     return linespeed, unable_gitems, unable_details
 
-def operation_machine_global_limit(linespeed, global_machine_limit):
+
+def apply_local_machine_limit(linespeed, local_machine_limit):
     """
-    글로벌 제약조건(블랙리스트)을 적용하여 특정 (GITEM, OPERATION_CODE, MACHINE_CODE) 조합을 제거한다.
+    Local 제약조건 적용: 특정 공정에서 특정 기계 제외
 
-    동작 개요
-    - linespeed를 long 형식으로 변환 (각 기계별 속도값을 행으로 펼침)
-    - 글로벌 블랙리스트와 조인하여 삭제 후보를 표시
-    - 각 (GITEM, OPERATION_CODE) 그룹에서 유효 속도가 최소 1개 이상 남는 범위에서만 실제 삭제
-    - wide 형식으로 복원 후 반환 (원래 기계 컬럼을 모두 보존)
+    예시:
+        local_machine_limit:
+            proccode  machineno
+            20500     C2010
+            20906     A2020
 
-    안전성 보장
-    - 삭제로 인해 어떤 (GITEM, OPERATION_CODE)도 전부 불가능(모든 기계 NaN)이 되지 않도록 함
+        → 20500 공정에서 C2010 제거, 20906 공정에서 A2020 제거
+
+    안전성:
+        - 제거 후 해당 (gitemno, proccode)가 모든 기계 불가능이 되면 제거 취소
     """
 
-    # 1) 입력 유효성 검사: 필수 컬럼 존재 여부 확인
+    # 1. 제약조건 정제
+    required_cols = {config.columns.OPERATION_CODE, config.columns.MACHINE_CODE}
+    if not required_cols.issubset(set(local_machine_limit.columns)):
+        print("[Local 제약] 필수 컬럼 없음, 스킵")
+        return linespeed
+
+    constraints = local_machine_limit[
+        [config.columns.OPERATION_CODE, config.columns.MACHINE_CODE]
+    ].dropna().drop_duplicates()
+
+    if constraints.empty:
+        print("[Local 제약] 제약조건 없음")
+        return linespeed
+
+    print(f"[Local 제약] {len(constraints)}개 제약조건 처리 중...")
+
+    # 2. 각 제약조건별로 처리
+    total_removed = 0
+    for _, row in constraints.iterrows():
+        proccode = row[config.columns.OPERATION_CODE]
+        machineno = row[config.columns.MACHINE_CODE]
+
+        # 제거 후보 마스크
+        drop_mask = (
+            (linespeed[config.columns.OPERATION_CODE] == proccode) &
+            (linespeed[config.columns.MACHINE_CODE] == machineno)
+        )
+
+        if not drop_mask.any():
+            continue
+
+        # 안전성 검사: 이 제약조건을 적용했을 때 생산 불가능해지는 GITEM이 있는지
+        affected_gitems = linespeed.loc[drop_mask, config.columns.GITEM].unique()
+
+        safe_to_drop = []
+        for gitem in affected_gitems:
+            # 해당 gitem + proccode의 모든 행
+            gitem_proc_mask = (
+                (linespeed[config.columns.GITEM] == gitem) &
+                (linespeed[config.columns.OPERATION_CODE] == proccode)
+            )
+
+            # 제거 후 남는 유효한 행 (linespeed > 0)
+            remaining_after_drop = linespeed.loc[
+                gitem_proc_mask & ~drop_mask &
+                (linespeed['linespeed'] > 0)
+            ]
+
+            # 최소 1개 기계가 남으면 안전
+            if len(remaining_after_drop) > 0:
+                safe_to_drop.append(gitem)
+
+        # 안전한 gitem에 대해서만 제거
+        if safe_to_drop:
+            final_drop_mask = drop_mask & linespeed[config.columns.GITEM].isin(safe_to_drop)
+            removed_count = final_drop_mask.sum()
+            linespeed = linespeed[~final_drop_mask].reset_index(drop=True)
+            total_removed += removed_count
+            print(f"[Local 제약] 공정 {proccode}, 기계 {machineno}: {removed_count}개 행 제거")
+        else:
+            print(f"[Local 제약] 공정 {proccode}, 기계 {machineno}: 제거 불가 (생산 불가능 위험)")
+
+    print(f"[Local 제약] 완료: 총 {total_removed}개 행 제거")
+    return linespeed
+
+
+def apply_global_machine_limit(linespeed, global_machine_limit):
+    """
+    Global 제약조건 적용: 특정 (GITEM, 공정, 기계) 조합 제외
+
+    예시:
+        global_machine_limit:
+            gitemno  proccode  machineno
+            32265    20500     C2010
+            32267    20906     A2020
+
+        → GITEM 32265 + 공정 20500에서 C2010 제거
+        → GITEM 32267 + 공정 20906에서 A2020 제거
+
+    안전성:
+        - 제거 후 해당 (gitemno, proccode)가 모든 기계 불가능이 되면 제거 취소
+    """
+
+    # 1. 필수 컬럼 확인
     required_cols = {config.columns.GITEM, config.columns.OPERATION_CODE, config.columns.MACHINE_CODE}
-    if not hasattr(global_machine_limit, "columns"):
-        return linespeed
     if not required_cols.issubset(set(global_machine_limit.columns)):
+        print("[Global 제약] 필수 컬럼 없음, 스킵")
         return linespeed
 
-    # 2) 글로벌 블랙리스트 정제: 결측/중복 제거
-    global_df = (
-        global_machine_limit[list(required_cols)]
-        .dropna()
-        .drop_duplicates()
-    )
-    if global_df.empty:
+    # 2. 제약조건 정제
+    constraints = global_machine_limit[list(required_cols)].dropna().drop_duplicates()
+
+    if constraints.empty:
+        print("[Global 제약] 제약조건 없음")
         return linespeed
 
-    # 3) linespeed의 기계 컬럼 목록/ID 컬럼 정의
-    id_cols = [config.columns.GITEM, config.columns.OPERATION_CODE]
-    machine_cols = [c for c in linespeed.columns if c not in {config.columns.OPERATION_CODE, config.columns.GITEM}]
+    print(f"[Global 제약] {len(constraints)}개 제약조건 처리 중...")
 
-    # 4) long 형식으로 변환: (GITEM, OPERATION_CODE, MACHINE_CODE, __SPEED__)
-    melted = linespeed.melt(
-        id_vars=id_cols,
-        value_vars=machine_cols,
-        var_name=config.columns.MACHINE_CODE,
-        value_name="__SPEED__",
+    # 3. Long Format에서 직접 매칭 및 제거
+    # (gitemno, proccode, machineno) 조합 생성
+    linespeed['__KEY__'] = (
+        linespeed[config.columns.GITEM].astype(str) + '|' +
+        linespeed[config.columns.OPERATION_CODE].astype(str) + '|' +
+        linespeed[config.columns.MACHINE_CODE].astype(str)
     )
 
-    # 5) 블랙리스트 후보 표시 (__CAND__ = True)
-    blacklist = global_df.assign(__CAND__=True)
-    merged = melted.merge(
-        blacklist,
-        on=[config.columns.GITEM, config.columns.OPERATION_CODE, config.columns.MACHINE_CODE],
-        how="left",
+    constraints['__KEY__'] = (
+        constraints[config.columns.GITEM].astype(str) + '|' +
+        constraints[config.columns.OPERATION_CODE].astype(str) + '|' +
+        constraints[config.columns.MACHINE_CODE].astype(str)
     )
-    merged["__CAND__"] = merged["__CAND__"].fillna(False)
 
-    # 6) 그룹별 현재 유효 속도 개수와 후보 유효 개수 계산
-    merged["__NN__"] = merged["__SPEED__"].notna()
-    group_cols = id_cols
-    grp_nn_cnt = (
-        merged.groupby(group_cols, as_index=False)["__NN__"]
-        .sum()
-        .rename(columns={"__NN__": "__NN_CNT__"})
+    blacklist_keys = set(constraints['__KEY__'].unique())
+
+    # 제거 후보 마스크
+    drop_mask = linespeed['__KEY__'].isin(blacklist_keys)
+
+    # 4. 안전성 검사: 제거 후 생산 불가능해지는 (gitemno, proccode) 조합 확인
+    total_removed = 0
+    if drop_mask.any():
+        affected_keys = linespeed.loc[drop_mask, [config.columns.GITEM, config.columns.OPERATION_CODE]].drop_duplicates()
+
+        safe_to_drop = []
+        for _, row in affected_keys.iterrows():
+            gitem = row[config.columns.GITEM]
+            proccode = row[config.columns.OPERATION_CODE]
+
+            # 해당 (gitem, proccode)의 모든 행
+            gitem_proc_mask = (
+                (linespeed[config.columns.GITEM] == gitem) &
+                (linespeed[config.columns.OPERATION_CODE] == proccode)
+            )
+
+            # 제거 후 남는 유효한 행 (linespeed > 0)
+            remaining_after_drop = linespeed.loc[
+                gitem_proc_mask & ~drop_mask &
+                (linespeed['linespeed'] > 0)
+            ]
+
+            # 최소 1개 기계가 남으면 안전
+            if len(remaining_after_drop) > 0:
+                safe_to_drop.append((gitem, proccode))
+
+        # 안전한 항목에 대해서만 제거
+        if safe_to_drop:
+            safe_gitem_proccode = set(safe_to_drop)
+            final_drop_mask = drop_mask & linespeed.apply(
+                lambda row: (row[config.columns.GITEM], row[config.columns.OPERATION_CODE]) in safe_gitem_proccode,
+                axis=1
+            )
+            total_removed = final_drop_mask.sum()
+            linespeed = linespeed[~final_drop_mask].reset_index(drop=True)
+            print(f"[Global 제약] {len(blacklist_keys)}개 조합 중 {total_removed}개 행 제거, {len(safe_to_drop)}개 (gitem, 공정) 영향")
+        else:
+            print(f"[Global 제약] 제거 불가 (모든 항목이 생산 불가능 위험)")
+
+    # 5. 임시 컬럼 제거
+    linespeed = linespeed.drop(columns=['__KEY__'])
+
+    print(f"[Global 제약] 완료: 총 {total_removed}개 행 제거")
+    return linespeed
+
+
+def check_unable_items(linespeed):
+    """
+    생산 불가능한 (GITEM, 공정) 조합 확인
+
+    Long Format에서는:
+    - 각 (gitemno, proccode) 그룹에 유효한 linespeed (> 0)가 하나도 없으면 생산 불가능
+
+    Returns:
+        unable_gitems: 생산 불가능한 GITEM 리스트 (unique)
+        unable_details: 생산 불가능한 (gitemno, proccode) 상세 정보
+    """
+
+    # 유효한 linespeed만 추출 (> 0)
+    valid_linespeed = linespeed[linespeed['linespeed'] > 0]
+
+    # (gitemno, proccode) 그룹별 카운트
+    group_counts = valid_linespeed.groupby(
+        [config.columns.GITEM, config.columns.OPERATION_CODE]
+    ).size().reset_index(name='valid_count')
+
+    # 원본 linespeed의 모든 (gitemno, proccode) 조합
+    all_combinations = linespeed[
+        [config.columns.GITEM, config.columns.OPERATION_CODE]
+    ].drop_duplicates()
+
+    # Left join으로 카운트가 없는 조합 찾기
+    merged = all_combinations.merge(
+        group_counts,
+        on=[config.columns.GITEM, config.columns.OPERATION_CODE],
+        how='left'
     )
-    merged["__CAND_NN__"] = merged["__CAND__"] & merged["__NN__"]
-    grp_cand_nn_cnt = (
-        merged.groupby(group_cols, as_index=False)["__CAND_NN__"]
-        .sum()
-        .rename(columns={"__CAND_NN__": "__CAND_NN_CNT__"})
-    )
-    grp_info = grp_nn_cnt.merge(grp_cand_nn_cnt, on=group_cols, how="left").fillna({"__CAND_NN_CNT__": 0})
-    grp_info["__RISKY__"] = (grp_info["__NN_CNT__"] - grp_info["__CAND_NN_CNT__"]) <= 0
+    merged['valid_count'] = merged['valid_count'].fillna(0)
 
-    # 7) 위험 그룹 플래그를 행에 부여하고 삭제 마스크 생성
-    merged = merged.merge(grp_info, on=group_cols, how="left")
-    # 위험 그룹에서는 유효 속도(__SPEED__ notna)는 삭제하지 않음 (NaN 후보만 삭제 허용)
-    drop_mask = merged["__CAND__"] & ~(merged["__RISKY__"] & merged["__SPEED__"].notna())
+    # 유효한 기계가 없는 조합
+    unable_items = merged[merged['valid_count'] == 0]
 
-    # 8) 삭제 적용: 안전한 후보만 제거
-    filtered = merged.loc[~drop_mask]
-
-    # 9) wide 복원 및 기계 컬럼 보존
-    wide = pd.pivot_table(
-        filtered,
-        index=group_cols,
-        columns=config.columns.MACHINE_CODE,
-        values="__SPEED__",
-        aggfunc="first",
-    ).reset_index()
-    for col in machine_cols:
-        if col not in wide.columns:
-            wide[col] = np.nan
-    keep_cols = group_cols + machine_cols
-    return wide[keep_cols]
-
-def _check_unable_order(linespeed, all_machine_columns):
-    # 각 행에서 모든 기계 코드가 NaN인지 확인
-    mask_all_nan = linespeed[all_machine_columns].isna().all(axis=1)
-
-    if mask_all_nan.any():
-        # GITEM과 공정명을 함께 추출
-        unable_items_df = linespeed.loc[mask_all_nan, [config.columns.GITEM, config.columns.OPERATION_CODE]].dropna()
-        
-        unable_gitems = unable_items_df[config.columns.GITEM].astype(str).tolist()
-        unable_operations = unable_items_df[config.columns.OPERATION_CODE].tolist()
-        
-        # GITEM과 공정명을 매핑한 딕셔너리 생성
-        unable_details = []
-        for _, row in unable_items_df.iterrows():
-            unable_details.append({
+    if not unable_items.empty:
+        unable_gitems = unable_items[config.columns.GITEM].astype(str).unique().tolist()
+        unable_details = [
+            {
                 'gitem': str(row[config.columns.GITEM]),
                 'operation': row[config.columns.OPERATION_CODE]
-            })
-        
-        print(f"생산 불가(GITEM): {len(unable_gitems)}개")
-            
-    else: # 모든 아이템이 결과적으로 생산 가능
-        unable_gitems = []
-        unable_details = []
-        
-    return unable_gitems, unable_details
+            }
+            for _, row in unable_items.iterrows()
+        ]
 
+        print(f"\n[경고] 생산 불가능한 항목: {len(unable_items)}개 (gitemno, proccode) 조합")
+        print(f"[경고] 생산 불가능한 GITEM: {len(unable_gitems)}개")
 
+        return unable_gitems, unable_details
+    else:
+        return [], []
 
 
 def operation_machine_exclusive(linespeed, machine_allocate):
     """
-    해당 기계에서만 해당 공정을 수행하도록 독점 할당
-    독점 할당으로 생산 불가능해질 행들은 변경하지 않음
-    ex) 안료점착을 c2260에서만 생산가능하다고 했지만 gitem 30000의 경우 c2260에서 안료점착을 수행하지 못하는 경우 원본 유지
+    특정 공정을 특정 기계에서만 수행하도록 독점 할당 (Long Format 기반)
+
+    예시:
+        machine_allocate:
+            proccode  machineno
+            20500     C2270
+
+        → 20500 공정은 C2270에서만 수행 (다른 기계 제거)
+
+    안전성:
+        - 독점 할당으로 생산 불가능해지는 GITEM은 원본 유지
     """
-    # 유효한 기계코드 추출
-    machine_codes = set(linespeed.columns) - {config.columns.OPERATION_CODE, config.columns.GITEM}
-    allocated_machines = [m for m in machine_allocate[config.columns.MACHINE_CODE].dropna().unique() if m in machine_codes]
-    
-    if not allocated_machines:
-        print("독점 할당할 기계가 없음")
-        return linespeed
-    
-    # 대상 행 선택
-    target_mask = linespeed[config.columns.OPERATION_CODE].isin(machine_allocate[config.columns.OPERATION_CODE].dropna())
-    if not target_mask.any():
-        print("독점 할당할 공정이 없음")
+
+    # 1. 제약조건 정제
+    required_cols = {config.columns.OPERATION_CODE, config.columns.MACHINE_CODE}
+    if not required_cols.issubset(set(machine_allocate.columns)):
+        print("[독점 할당] 필수 컬럼 없음, 스킵")
         return linespeed
 
-    
-    # 다른 기계들 (독점하지 않을 기계들)
-    other_machines = [m for m in machine_codes if m not in allocated_machines]
-    
-    if other_machines:
-        # 독점 할당해도 안전한 행들만 선택 (할당된 기계 중 하나라도 유효값 있는 행)
-        safe_mask = target_mask & linespeed[allocated_machines].notna().any(axis=1)
-        
-        if safe_mask.any():
-            linespeed.loc[safe_mask, other_machines] = np.nan
-            print(f"독점 할당: {allocated_machines}, 비활성화: {other_machines}")
+    constraints = machine_allocate[
+        [config.columns.OPERATION_CODE, config.columns.MACHINE_CODE]
+    ].dropna().drop_duplicates()
+
+    if constraints.empty:
+        print("독점 할당할 기계가 없음")
+        return linespeed
+
+    print(f"[독점 할당] {len(constraints)}개 제약조건 처리 중...")
+
+    # 2. 각 제약조건별로 처리
+    total_removed = 0
+    for _, row in constraints.iterrows():
+        proccode = row[config.columns.OPERATION_CODE]
+        allocated_machine = row[config.columns.MACHINE_CODE]
+
+        # 해당 공정의 모든 행
+        proc_mask = linespeed[config.columns.OPERATION_CODE] == proccode
+
+        if not proc_mask.any():
+            print(f"[독점 할당] 공정 {proccode}: 데이터 없음, 스킵")
+            continue
+
+        # 제거 대상: 같은 공정이지만 다른 기계
+        drop_mask = proc_mask & (linespeed[config.columns.MACHINE_CODE] != allocated_machine)
+
+        if not drop_mask.any():
+            print(f"[독점 할당] 공정 {proccode} → 기계 {allocated_machine}: 이미 독점 상태")
+            continue
+
+        # 안전성 검사: 독점 할당 후 생산 불가능해지는 GITEM 확인
+        affected_gitems = linespeed.loc[proc_mask, config.columns.GITEM].unique()
+
+        safe_to_drop = []
+        unsafe_gitems = []
+        for gitem in affected_gitems:
+            # 해당 gitem + proccode + allocated_machine 조합이 존재하고 유효한지
+            allocated_row = linespeed.loc[
+                (linespeed[config.columns.GITEM] == gitem) &
+                (linespeed[config.columns.OPERATION_CODE] == proccode) &
+                (linespeed[config.columns.MACHINE_CODE] == allocated_machine) &
+                (linespeed['linespeed'] > 0)
+            ]
+
+            # 할당된 기계에서 처리 가능하면 안전
+            if len(allocated_row) > 0:
+                safe_to_drop.append(gitem)
+            else:
+                unsafe_gitems.append(gitem)
+
+        # 안전한 gitem에 대해서만 제거
+        if safe_to_drop:
+            final_drop_mask = drop_mask & linespeed[config.columns.GITEM].isin(safe_to_drop)
+            removed_count = final_drop_mask.sum()
+            linespeed = linespeed[~final_drop_mask].reset_index(drop=True)
+            total_removed += removed_count
+            print(f"[독점 할당] 공정 {proccode} → 기계 {allocated_machine}: {removed_count}개 행 제거 ({len(safe_to_drop)}개 GITEM)")
+
+            if unsafe_gitems:
+                print(f"[독점 할당] 공정 {proccode}: {len(unsafe_gitems)}개 GITEM은 원본 유지 (안전성)")
         else:
-            print("독점 할당 가능한 행이 없음")
-    
+            print(f"[독점 할당] 공정 {proccode} → 기계 {allocated_machine}: 제거 불가 (모든 GITEM이 위험)")
+
+    print(f"[독점 할당] 완료: 총 {total_removed}개 행 제거")
     return linespeed
