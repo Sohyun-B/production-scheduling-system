@@ -69,17 +69,21 @@ class ProductionDataPreprocessor:
 
         return df, selected_cols
 
-    def preprocess_linespeed_data(self, linespeed_df: pd.DataFrame, 
-                                 linespeed_period: str = '6_months') -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def preprocess_linespeed_data(self, linespeed_df: pd.DataFrame,
+                                 linespeed_period: str = '6_months') -> pd.DataFrame:
         """
-        라인스피드 데이터 전처리
+        라인스피드 데이터 전처리 (Long Format 유지)
+
+        ⚠️ 리팩토링: Pivot 제거 - 원본 Long Format 유지
+        전처리만 수행 (검증은 validation 단계에서 이미 완료됨)
 
         Args:
             linespeed_df (pd.DataFrame): 라인스피드 원본 데이터프레임
             linespeed_period (str): 기간 설정 ('6_months', '1_year', '3_months')
 
         Returns:
-            tuple: (선택된 라인스피드 데이터, 피벗된 라인스피드 데이터)
+            pd.DataFrame: Long Format 라인스피드 데이터
+                         컬럼: [gitemno, proccode, machineno, linespeed, ...]
         """
         # 복사본 생성
         linespeed = linespeed_df.copy()
@@ -88,7 +92,7 @@ class ProductionDataPreprocessor:
         period_mapping = {
             '6_months': r"^l.*1$",
             '1_year': r"^l.*0$",
-            '3_months': r"^l.*2$" 
+            '3_months': r"^l.*2$"
         }
 
         linespeed, linespeed_cols = self._select_period_columns(
@@ -108,14 +112,23 @@ class ProductionDataPreprocessor:
             columns=linespeed.columns[linespeed.columns.str.startswith("l")]
         )
 
-        # 피벗 테이블 생성
-        linespeed_pivot = linespeed.pivot(
-            index=[config.columns.GITEM, config.columns.OPERATION_CODE],
-            columns=config.columns.MACHINE_CODE,
-            values='selected_linespeed'
-        ).reset_index().rename_axis(None, axis=1)
+        # ⭐ 리팩토링: Pivot 제거!
+        # selected_linespeed를 linespeed로 이름 변경
+        linespeed = linespeed.rename(columns={'selected_linespeed': 'linespeed'})
 
-        return linespeed, linespeed_pivot
+        # 중복 제거 (동일한 gitem, proccode, machineno 조합)
+        linespeed = linespeed.drop_duplicates(
+            subset=[config.columns.GITEM, config.columns.OPERATION_CODE, config.columns.MACHINE_CODE],
+            keep='first'
+        )
+
+        # NaN 제거
+        linespeed = linespeed.dropna(subset=['linespeed'])
+
+        print(f"[INFO] Linespeed 전처리 완료 (Long Format): {len(linespeed)}개 레코드")
+
+        # ⭐ Long Format 그대로 반환 (Pivot 제거!)
+        return linespeed
 
     def preprocess_operation_data(self, operation_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """

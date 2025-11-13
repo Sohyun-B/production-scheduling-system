@@ -13,6 +13,8 @@ class MachineDetailedAnalyzer:
 
     def __init__(self, scheduler, gap_analyzer, machine_mapper):
         """
+        ⭐ 리팩토링: 코드 기반 매핑으로 변경
+
         Args:
             scheduler: 스케줄러 인스턴스
             gap_analyzer: SimplifiedGapAnalyzer 인스턴스
@@ -22,15 +24,10 @@ class MachineDetailedAnalyzer:
         self.gap_analyzer = gap_analyzer
         self.machine_mapper = machine_mapper
 
-        # 기계 매핑
-        self.machine_idx_to_code = {
-            idx: machine_mapper.index_to_code(idx)
-            for idx in machine_mapper.get_all_indices()
-        }
-
-        self.machine_idx_to_name = {
-            idx: machine_mapper.index_to_name(idx)
-            for idx in machine_mapper.get_all_indices()
+        # ★ 기계 매핑 (코드 → 이름)
+        self.machine_code_to_name = {
+            code: machine_mapper.code_to_name(code)
+            for code in machine_mapper.get_all_codes()
         }
 
     def calculate_machine_operating_time(self, machine):
@@ -57,12 +54,13 @@ class MachineDetailedAnalyzer:
 
         return operating_time_minutes
 
-    def extract_gap_times(self, machine_idx):
+    def extract_gap_times(self, machine_code):
         """
         gap_analyzer에서 특정 기계의 대기시간/셋업시간 추출
+        ⭐ 리팩토링: machine_idx → machine_code
 
         Args:
-            machine_idx (int): 기계 인덱스
+            machine_code (str): 기계 코드 (예: 'A2020', 'C2010')
 
         Returns:
             dict: {'setup_time': float, 'idle_time': float} (분 단위)
@@ -74,8 +72,7 @@ class MachineDetailedAnalyzer:
             return {'setup_time': 0.0, 'idle_time': 0.0}
 
         # 기계 코드로 필터링
-        machine_code = self.machine_idx_to_code.get(machine_idx, f'M{machine_idx}')
-        machine_gaps = gaps_df[gaps_df['기계코드'] == machine_code]
+        machine_gaps = gaps_df[gaps_df['기계코드'] == machine_code]  # ★ 이미 machine_code이므로 직접 사용
 
         if machine_gaps.empty:
             return {'setup_time': 0.0, 'idle_time': 0.0}
@@ -92,13 +89,15 @@ class MachineDetailedAnalyzer:
     def create_detailed_table(self):
         """
         장비별 상세 성과 테이블 생성
+        ⭐ 리팩토링: 딕셔너리 순회로 변경
 
         Returns:
             pd.DataFrame: 9개 컬럼 (기계코드, 기계명, 가동시간, 가동율, ...)
         """
         # makespan 계산 (분 단위)
+        # ★ 딕셔너리 values() 사용
         makespan_raw = max([
-            machine.End_time for machine in self.scheduler.Machines
+            machine.End_time for machine in self.scheduler.Machines.values()
             if len(machine.assigned_task) > 0
         ], default=0)
         makespan_minutes = makespan_raw * config.constants.TIME_MULTIPLIER
@@ -108,16 +107,15 @@ class MachineDetailedAnalyzer:
 
         rows = []
 
-        for machine in self.scheduler.Machines:
-            machine_idx = machine.Machine_index
-            machine_code = self.machine_idx_to_code.get(machine_idx, f'M{machine_idx}')
-            machine_name = self.machine_idx_to_name.get(machine_idx, f'기계{machine_idx}')
+        # ★ 딕셔너리 순회로 변경
+        for machine_code, machine in self.scheduler.Machines.items():
+            machine_name = self.machine_code_to_name.get(machine_code, f'기계{machine_code}')  # ★ code → name 매핑
 
             # 가동시간 계산
             operating_time = self.calculate_machine_operating_time(machine)
 
             # 대기/셋업시간 추출
-            gap_times = self.extract_gap_times(machine_idx)
+            gap_times = self.extract_gap_times(machine_code)  # ★ machine_code 전달
             idle_time = gap_times['idle_time']
             setup_time = gap_times['setup_time']
 

@@ -1,8 +1,10 @@
 class Machine_Time_window:
     """
     Machine_Time_window 클래스는 특정 기계(machine)의 공정(operation) 할당 상태와 빈 시간 창을 관리하는 클래스
+    ⭐ 리팩토링: Machine_index → Machine_code
+
     Attributes:
-        Machine_index (int): 기계의 인덱스
+        Machine_code (str): 기계의 코드 (예: 'A2020', 'C2010', 'C2250')
         assigned_task (list): 기계에 할당된 일(task)을 기록하는 리스트. (depth, ID)로 구성
         O_start (list): 각 공정(operation)의 시작 시간을 기록하는 리스트
         O_end (list): 각 공정(operation)의 종료 시간을 기록하는 리스트
@@ -19,11 +21,13 @@ class Machine_Time_window:
     def __init__(self, Machine_index, allow_overlapping=False):
         """
         클래스 Machine_Time_window의 초기화 매서드
+        ⭐ 리팩토링: Machine_index → Machine_code (파라미터명은 호환성 위해 유지)
+
         Args:
-            Machine_index (int): 기계의 인덱스
+            Machine_index (str): 기계의 코드 (예: 'A2020', 'C2010', 'C2250')
             allow_overlapping (bool): overlapping 허용 여부 (aging 전용, 기본값 False)
         """
-        self.Machine_index = Machine_index
+        self.Machine_code = Machine_index  # ★ 속성명을 Machine_code로 변경 (파라미터는 호환성 유지)
         self.assigned_task = []  # Records tasks assigned to the machine, including job index and operation index
         self.O_start = []  # Records the start time of each task's operation
         self.O_end = []  # Records the end time of each task's operation

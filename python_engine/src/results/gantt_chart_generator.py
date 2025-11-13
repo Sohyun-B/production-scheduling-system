@@ -19,15 +19,17 @@ class DrawChart:
 
     def plot(self, figsize=(15, 8), fontsize=6, major_interval=48, minor_interval=24, dpi=300, show_gaps=True, save_path='data/output/level4_gantt.png'):
         self.fig, self.ax = plt.subplots(figsize=figsize)
-        
+
         # 모든 작업의 depth 추출 및 정렬
-        unique_depths = sorted({job[0] for machine in self.Machines for job in machine.assigned_task})
+        # ★ 딕셔너리 순회로 변경
+        unique_depths = sorted({job[0] for machine in self.Machines.values() for job in machine.assigned_task})
         cmap = plt.get_cmap('tab20')
         # depth별 색상 동적 할당 (depth 종류 > 20이면 순환)
         depth_to_color = {depth: cmap(i % cmap.N) for i, depth in enumerate(unique_depths)}
-        
+
         # 작업 바 그리기
-        for i, machine in enumerate(self.Machines):
+        # ★ 딕셔너리 순회로 변경
+        for i, (machine_code, machine) in enumerate(self.Machines.items()):
             for (start, end), job_info in zip(zip(machine.O_start, machine.O_end), machine.assigned_task):
                 depth = job_info[0]
                 color = depth_to_color[depth]
@@ -63,25 +65,28 @@ class DrawChart:
         return self.fig
     
     def _draw_gaps(self):
-        """간격을 셋업시간/대기시간으로 구분하여 표시"""
+        """
+        간격을 셋업시간/대기시간으로 구분하여 표시
+        ⭐ 리팩토링: machine_index → machine_code
+        """
         gap_df = self.gap_analyzer.analyze_all_machine_gaps()
-        
+
         for _, gap in gap_df.iterrows():
-            machine_idx = gap['machine_index']
+            machine_code = gap['machine_code']  # ★ machine_index → machine_code
             gap_start = gap['gap_start']
             gap_end = gap['gap_end']
             setup_time = gap['setup_time']
             idle_time = gap['idle_time']
-            
+
             # 셋업시간 표시 (빨간색)
             if setup_time > 0:
-                self.ax.barh(machine_idx, setup_time, left=gap_start, height=0.3, 
+                self.ax.barh(machine_code, setup_time, left=gap_start, height=0.3,  # ★ machine_code 사용
                            color='red', alpha=0.6, edgecolor='darkred')
-            
+
             # 대기시간 표시 (회색)
             if idle_time > 0:
                 idle_start = gap_start + setup_time
-                self.ax.barh(machine_idx, idle_time, left=idle_start, height=0.3,
+                self.ax.barh(machine_code, idle_time, left=idle_start, height=0.3,  # ★ machine_code 사용
                            color='lightgray', alpha=0.6, edgecolor='gray')
 
     def _style_chart(self, major_interval, minor_interval):

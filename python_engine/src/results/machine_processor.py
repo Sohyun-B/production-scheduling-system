@@ -1,5 +1,6 @@
 """
 기계 정보 처리 통합 모듈 (machine_schedule + machine_info_processor 통합)
+⭐ 리팩토링: machine_index → machine_code
 """
 
 import pandas as pd
@@ -9,10 +10,12 @@ from config import config
 
 class MachineScheduleProcessor:
     """기계 스케줄 처리 (기존 machine_schedule.py의 클래스)"""
-    
+
     def __init__(self, machine_mapping, machine_schedule_df, output_final_result, base_time, gap_analyzer=None):
         """
-        :param machine_mapping: 머신 인덱스 -> 머신 이름 매핑 딕셔너리
+        ⭐ 리팩토링: machine_mapping이 이제 코드 -> 이름 매핑
+
+        :param machine_mapping: 머신 코드 -> 머신 이름 매핑 딕셔너리
         :param machine_schedule_df: 기계별 스케줄 데이터프레임
         :param output_final_result: 전체 스케줄 출력 결과 데이터프레임
         :param base_time: 기준 시작 시간(datetime.datetime 또는 pd.Timestamp)
@@ -26,13 +29,15 @@ class MachineScheduleProcessor:
         self.machine_info = None
 
     def make_readable_result_file(self):
-        self.machine_schedule_df[config.columns.MACHINE_INDEX] = self.machine_schedule_df[config.columns.MACHINE_INDEX].map(self.machine_mapping)
+        # ★ machine_schedule_df에 이미 MACHINE_CODE가 있으므로 MACHINE_NAME 추가
+        self.machine_schedule_df[config.columns.MACHINE_NAME] = self.machine_schedule_df[config.columns.MACHINE_CODE].map(self.machine_mapping)
+
         # 스케줄 할당 작업 분리
         self.machine_schedule_df[[config.columns.OPERATION_ORDER, config.columns.ID]] = pd.DataFrame(
             self.machine_schedule_df[config.columns.ALLOCATED_WORK].tolist(),
             index=self.machine_schedule_df.index
         )
-        machine_info = self.machine_schedule_df[[config.columns.MACHINE_INDEX, config.columns.WORK_START_TIME, config.columns.WORK_END_TIME, config.columns.OPERATION_ORDER, config.columns.ID]].copy()
+        machine_info = self.machine_schedule_df[[config.columns.MACHINE_CODE, config.columns.MACHINE_NAME, config.columns.WORK_START_TIME, config.columns.WORK_END_TIME, config.columns.OPERATION_ORDER, config.columns.ID]].copy()  # ★ MACHINE_INDEX → MACHINE_CODE, MACHINE_NAME 추가
         machine_info[config.columns.WORK_START_TIME] = self.base_time + pd.to_timedelta(machine_info[config.columns.WORK_START_TIME] * config.constants.TIME_MULTIPLIER, unit='m')
         machine_info[config.columns.WORK_END_TIME] = self.base_time + pd.to_timedelta(machine_info[config.columns.WORK_END_TIME] * config.constants.TIME_MULTIPLIER, unit='m')
 
@@ -117,22 +122,25 @@ class MachineScheduleProcessor:
         return machine_info
 
     def print_gap_summary(self):
-        """간격 분석 요약 출력"""
+        """
+        간격 분석 요약 출력
+        ⭐ 리팩토링: machine_index → machine_code
+        """
         if not self.gap_analyzer:
             print("[간격분석] 간격 분석기가 없습니다.")
             return
-        
+
         try:
             machine_summary = self.gap_analyzer.get_machine_summary()
 
             if not machine_summary.empty:
                 print("\n=== 기계별 간격 요약 ===")
                 for _, row in machine_summary.iterrows():
-                    machine_idx = row['machine_index']
+                    machine_code = row['machine_code']  # ★ machine_index → machine_code
                     setup_time = row['total_setup_time']
                     idle_time = row['total_idle_time']
                     gap_count = row['gap_count']
-                    print(f"기계 {machine_idx}: 총 간격 {gap_count}개, 셋업시간 {setup_time:.1f}, 대기시간 {idle_time:.1f}")
+                    print(f"기계 {machine_code}: 총 간격 {gap_count}개, 셋업시간 {setup_time:.1f}, 대기시간 {idle_time:.1f}")
             else:
                 print("[간격분석] 분석할 간격이 없습니다.")
         except Exception as e:
@@ -182,31 +190,28 @@ class MachineProcessor:
             }
         """
         print("[기계처리] 기계 정보 처리 시작...")
-        
-        # 기계 인덱스 -> 코드 매핑
-        machine_mapping = machine_master_info.set_index(config.columns.MACHINE_INDEX)[config.columns.MACHINE_CODE].to_dict()
-        
+
+        # ★ 기계 코드 -> 이름 매핑 (이제 index 변환 불필요)
+        machine_mapping = machine_master_info.set_index(config.columns.MACHINE_CODE)[config.columns.MACHINE_NAME].to_dict()
+
         # 기계 스케줄 처리기 초기화
         machine_proc = MachineScheduleProcessor(
-            machine_mapping, 
-            machine_schedule_df, 
-            result_cleaned, 
+            machine_mapping,
+            machine_schedule_df,
+            result_cleaned,
             self.base_date,
             gap_analyzer
         )
-        
+
         # 기본 기계 정보 생성
         machine_info = machine_proc.make_readable_result_file()
         machine_info = machine_proc.machine_info_decorate(merged_result)
-        
+
         # === 데이터 가공 및 GITEM명 매핑 ===
         # GITEM명 정보 매핑
         order_with_names = original_order[[config.columns.GITEM, config.columns.GITEM_NAME]].drop_duplicates()
-        
-        # 기계 정보 가공
-        code_to_name_mapping = machine_master_info.set_index(config.columns.MACHINE_CODE)[config.columns.MACHINE_NAME].to_dict()
-        machine_info = machine_info.rename(columns={config.columns.MACHINE_INDEX: config.columns.MACHINE_CODE})
-        machine_info[config.columns.MACHINE_NAME] = machine_info[config.columns.MACHINE_CODE].map(code_to_name_mapping)
+
+        # ★ machine_info는 이미 MACHINE_CODE와 MACHINE_NAME을 가지고 있으므로 추가 매핑 불필요
         
         # GITEM명 및 추가 컬럼 생성
         machine_info = pd.merge(machine_info, order_with_names, on=config.columns.GITEM, how='left')

@@ -5,37 +5,39 @@ from config import config
 
 
 class DelayProcessor:
-    def __init__(self, opnode_dict, operation_delay_df, width_change_df, machine_index_list):
+    def __init__(self, opnode_dict, operation_delay_df, width_change_df, machine_code_list):
         """
         V5 방식 구조 유지 + chemical 로직 추가
-        
+        ⭐ 리팩토링: machine_index_list → machine_code_list
+
         Args:
             opnode_dict: 노드 정보 딕셔너리
-            machine_index_list: 공정교체시간 존재하는기계인덱스 리스트
+            machine_code_list: 공정교체시간 존재하는 기계코드 리스트 (예: ['A2020', 'C2010', 'C2250'])
             operation_delay_df: 공정별 지연시간 규칙 데이터프레임
             width_change_df: 폭 변경 지연시간 규칙 데이터프레임
         """
         self.opnode_dict = opnode_dict
-        self.machine_index_list = machine_index_list
+        self.machine_code_list = machine_code_list  # ★ 코드 리스트로 변경
         self.base_df = self._generate_base_df(operation_delay_df, width_change_df)
         self.final_df = self._apply_delay_conditions(operation_delay_df, width_change_df)
         self.delay_dict = self._dataframe_to_dict()
 
-    def delay_calc_whole_process(self, item_id1, item_id2, machine_index):
+    def delay_calc_whole_process(self, item_id1, item_id2, machine_code):
         """
         ID로 지연시간을 구하는 메인 함수
-        
+        ⭐ 리팩토링: machine_index → machine_code
+
         Args:
             item_id1: 이전 아이템 ID (먼저 들어갈 ID)
-            item_id2: 다음 아이템 ID (나중에 들어갈 ID)  
-            machine_index: 사용 기계 인덱스 (0, 2, 3만 유효)
-            
+            item_id2: 다음 아이템 ID (나중에 들어갈 ID)
+            machine_code: 사용 기계 코드 (예: 'A2020', 'C2010', 'C2250')
+
         Returns:
             delay_time: 계산된 지연시간 (분 단위)
         """
-        if machine_index not in self.machine_index_list:
+        if machine_code not in self.machine_code_list:  # ★ 코드 비교로 변경
             return 0
-            
+
         # 기본값 딕셔너리 생성
         empty_dict = {
             "OPERATION_ORDER": 0,
@@ -47,20 +49,21 @@ class DelayProcessor:
         }
         values1 = self.opnode_dict.get(item_id1, empty_dict)
         values2 = self.opnode_dict.get(item_id2, empty_dict)
-        
-        input_key = self.calculate_delay(values1, values2, machine_index)
+
+        input_key = self.calculate_delay(values1, values2, machine_code)  # ★ 코드 전달
         delay_time = self.delay_dict.get(input_key, 0)
         return delay_time
 
     def _generate_base_df(self, operation_delay_df, width_change_df) -> pd.DataFrame:
         """
         지연 규칙 관련 컬럼으로 기본 데이터프레임 생성 (V5 방식)
-        
+        ⭐ 리팩토링: machine_index → machine_code
+
         Returns:
             기본 조합 데이터프레임
         """
         columns = {
-            'machine_index': self.machine_index_list,
+            'machine_code': self.machine_code_list,  # ★ 코드 리스트로 변경
             'earlier_operation_type': operation_delay_df[config.columns.EARLIER_OPERATION_TYPE].unique().tolist(),
             'later_operation_type': operation_delay_df[config.columns.LATER_OPERATION_TYPE].unique().tolist(),
             'long_to_short': [True, False],  # 장폭 -> 단폭 여부
@@ -100,17 +103,18 @@ class DelayProcessor:
             how='left'
         )
         
-        # 기계별 폭 변경 지연시간 규칙 적용
-        machine_rules = width_change_df[[config.columns.MACHINE_INDEX, config.columns.LONG_TO_SHORT, config.columns.SHORT_TO_LONG]].copy()
+        # 기계별 폭 변경 지연시간 규칙 적용 (코드 기반)
+        # ★ MACHINE_CODE 컬럼으로 변경
+        machine_rules = width_change_df[[config.columns.MACHINE_CODE, config.columns.LONG_TO_SHORT, config.columns.SHORT_TO_LONG]].copy()
         machine_rules = machine_rules.rename(columns={
-            config.columns.MACHINE_INDEX: 'machine_index',
+            config.columns.MACHINE_CODE: 'machine_code',  # ★ 코드 컬럼 사용
             config.columns.LONG_TO_SHORT: 'width_l2s_minutes',   # 컬럼명 충돌 방지
             config.columns.SHORT_TO_LONG: 'width_s2l_minutes'    # 컬럼명 충돌 방지
         })
-        
+
         df = df.merge(
             machine_rules,
-            on='machine_index',
+            on='machine_code',  # ★ 코드 기준 병합
             how='left'
         )
         
@@ -137,36 +141,41 @@ class DelayProcessor:
         return df
 
     def _dataframe_to_dict(self) -> dict:
-        """데이터프레임을 딕셔너리로 변환 (V5 방식)"""
+        """
+        데이터프레임을 딕셔너리로 변환 (V5 방식)
+        ⭐ 리팩토링: machine_index → machine_code 키 사용
+        """
         # 실제 컬럼명 확인 후 사용
         columns = self.final_df.columns.tolist()
-        
+
         # long_to_short와 short_to_long 컬럼명 찾기
         long_to_short_col = 'long_to_short'
         short_to_long_col = 'short_to_long'
-        
+
         # _x, _y 접미사가 붙은 경우 처리
         for col in columns:
             if col.startswith('long_to_short'):
                 long_to_short_col = col
             elif col.startswith('short_to_long'):
                 short_to_long_col = col
-        
+
+        # ★ machine_index → machine_code로 변경
         return {
-            tuple(row[['machine_index', 'earlier_operation_type', 'later_operation_type', 
+            tuple(row[['machine_code', 'earlier_operation_type', 'later_operation_type',
                       long_to_short_col, short_to_long_col, 'same_type', 'same_chemical']]): row['delay_time']
             for _, row in self.final_df.iterrows()
         }
 
     @staticmethod
-    def calculate_delay(earlier: list, later: list, machine_idx: int) -> Tuple:
+    def calculate_delay(earlier: list, later: list, machine_code: str) -> Tuple:
         """
         지연 키 계산 (V5 방식 + chemical 로직)
+        ⭐ 리팩토링: machine_idx → machine_code
 
         Args:
             earlier: 이전 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, SELECTED_CHEMICAL, PRODUCTION_LENGTH)
             later: 다음 공정 정보 딕셔너리 (OPERATION_ORDER, OPERATION_CODE, OPERATION_CLASSIFICATION, FABRIC_WIDTH, SELECTED_CHEMICAL, PRODUCTION_LENGTH)
-            machine_idx: 기계 인덱스
+            machine_code: 기계 코드 (예: 'A2020', 'C2010', 'C2250')
 
         Returns:
             지연 계산을 위한 키 튜플
@@ -200,5 +209,6 @@ class DelayProcessor:
         if earlier_chemical == later_chemical:
             same_chemical = True
 
-        return (machine_idx, earlier_operation_type, later_operation_type,
+        # ★ machine_idx → machine_code로 변경
+        return (machine_code, earlier_operation_type, later_operation_type,
                 long_to_short, short_to_long, same_type, same_chemical)

@@ -36,7 +36,7 @@ class ColumnNames:
     WORK_TIME: str = "work_time" # "작업시간"              # Calculated duration
     
     # Machine identifiers (from 기계정보.xlsx)
-    MACHINE_INDEX: str = "machineindex" # "기계인덱스"        # 0,1,2,3... (numeric index)
+    # MACHINE_INDEX: str = "machineindex" # "기계인덱스"        # 0,1,2,3... (numeric index)
     MACHINE_CODE: str = "machineno" # "기계코드"           # C2010, C2250... (unique code)
     MACHINE_NAME: str = "machinename" # "기계명"             # 1호기, 25호기... (human name)
     

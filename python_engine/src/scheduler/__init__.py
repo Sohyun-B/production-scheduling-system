@@ -130,29 +130,19 @@ def run_scheduler_pipeline(
     # 스케줄러 초기화
     print("[70%] 스케줄러 초기화 및 자원 할당 중...")
 
-    # MachineMapper를 사용한 기계 인덱스 매핑
-    machine_index_list = [
-        machine_mapper.code_to_index(code)
-        for code in width_change_df[config.columns.MACHINE_CODE]
-    ]
+    # ⭐ Phase 2 Day 2: machine_code_list 기반으로 변경
+    machine_code_list = width_change_df[config.columns.MACHINE_CODE].unique().tolist()
 
-    # width_change_df에 machine_index 추가
-    width_change_df = width_change_df.copy()
-    width_change_df[config.columns.MACHINE_INDEX] = machine_index_list
-
+    # DelayProcessor 생성 (코드 기반)
     delay_processor = DelayProcessor(
-        opnode_dict, operation_delay_df, width_change_df, machine_index_list
+        opnode_dict, operation_delay_df, width_change_df, machine_code_list
     )
 
-    scheduler = Scheduler(machine_dict, delay_processor)
+    # ★ Scheduler 생성 시 machine_mapper 추가
+    scheduler = Scheduler(machine_dict, delay_processor, machine_mapper)
     scheduler.allocate_resources()
 
-    # machine_rest에 machine_index 추가
-    machine_rest = machine_rest.copy()
-    machine_rest[config.columns.MACHINE_INDEX] = [
-        machine_mapper.code_to_index(code)
-        for code in machine_rest[config.columns.MACHINE_CODE]
-    ]
+    # ⭐ Phase 2 Day 2: machine_code 직접 사용 (machine_index 변환 불필요)
     scheduler.allocate_machine_downtime(machine_rest, base_date)
     print("[스케줄러] 기계 자원 할당 완료, 기계 중단시간 설정 완료")
 

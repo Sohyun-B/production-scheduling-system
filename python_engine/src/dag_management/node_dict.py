@@ -30,58 +30,76 @@ def create_opnode_dict(sequence_seperated_order):
 
 def create_machine_dict(sequence_seperated_order, linespeed, machine_mapper, aging_nodes_dict=None):
     """
-    인풋 데이터프레임 컬럼 조건
-    sequence_seperated_order: [ GITEM, 공정, 생산길이, ID]
-    linespeed: [ GITEM, 공정, 기계명(왼쪽부터 기계인덱스 0으로 지정) ]
-    machine_mapper: MachineMapper 객체 (기계 정보 매핑 관리)
-    aging_nodes_dict: {aging_node_id: aging_time} (optional)
+    machine_dict 생성 (코드 기반)
+
+    ⚠️ 리팩토링: 인덱스 기반 → 코드 기반 machine_dict
+
+    Args:
+        sequence_seperated_order: 주문 시퀀스 DataFrame
+        linespeed: Long Format DataFrame [gitemno, proccode, machineno, linespeed]
+        machine_mapper: MachineMapper 인스턴스
+        aging_nodes_dict: Aging 노드 딕셔너리 (optional)
 
     Returns:
-        machine_dict: {node_id: {machine_index: processing_time}}
+        machine_dict: {node_id: {machine_code: processing_time}}
     """
-    linespeed[config.columns.GITEM] = linespeed[config.columns.GITEM].astype(str)
+    # ⭐ Step 1: Linespeed 캐시 생성 (O(1) 조회용, vectorized 방식)
+    print("[INFO] Linespeed 캐시 생성 중...")
 
-    order_linespeed = sequence_seperated_order[[config.columns.GITEM, config.columns.OPERATION_CODE, config.columns.PRODUCTION_LENGTH, config.columns.ID]]
-    order_linespeed = pd.merge(order_linespeed, linespeed, on=[config.columns.GITEM, config.columns.OPERATION_CODE], how='left')
+    # Vectorized 방식으로 캐시 생성 (iterrows()보다 10~100배 빠름)
+    linespeed_cache = dict(zip(
+        zip(
+            linespeed[config.columns.GITEM].astype(str),
+            linespeed[config.columns.OPERATION_CODE].astype(str),
+            linespeed[config.columns.MACHINE_CODE].astype(str)
+        ),
+        linespeed['linespeed'].astype(float)
+    ))
 
-    # machine_mapper에서 순서 보장된 기계코드 리스트 추출
-    machine_codes = machine_mapper.get_all_codes()
+    print(f"[INFO] Linespeed 캐시 생성 완료: {len(linespeed_cache)}개 항목")
 
-    for col in machine_codes:
-        temp = order_linespeed[col].copy()
-
-        # NaN이면 바로 9999
-        temp[temp.isna()] = 9999
-
-        # 숫자인 경우 계산
-        numeric_mask = temp != 9999
-        temp.loc[numeric_mask] = np.ceil(
-            order_linespeed.loc[numeric_mask, config.columns.PRODUCTION_LENGTH] /
-            order_linespeed.loc[numeric_mask, col] /
-            config.constants.TIME_MULTIPLIER
-        )
-
-        # 계산 후 inf 또는 NaN도 안전하게 9999 처리
-        temp[~np.isfinite(temp)] = 9999
-
-        # 정수 변환
-        order_linespeed[col] = temp.astype(int)
-
-    # machine_dict 생성 (명시적 매핑 - enumerate 제거)
+    # ⭐ Step 2: machine_dict 생성 (코드 기반)
     machine_dict = {}
-    for _, row in order_linespeed.iterrows():
-        node_id = row[config.columns.ID]
+    all_machine_codes = machine_mapper.get_all_codes()
+
+    for _, order_row in sequence_seperated_order.iterrows():
+        node_id = order_row[config.columns.ID]
+        gitem = str(order_row[config.columns.GITEM])
+        proccode = str(order_row[config.columns.OPERATION_CODE])
+        production_length = float(order_row[config.columns.PRODUCTION_LENGTH])
+
         machine_dict[node_id] = {}
 
-        for machine_code in machine_codes:
-            machine_index = machine_mapper.code_to_index(machine_code)  # 명시적 매핑
-            processing_time = row[machine_code]
-            machine_dict[node_id][machine_index] = int(processing_time)
+        # 모든 기계에 대해 처리시간 계산
+        for machine_code in all_machine_codes:
+            # 캐시에서 linespeed 조회 (O(1))
+            cache_key = (gitem, proccode, machine_code)
+            linespeed_value = linespeed_cache.get(cache_key)
 
-    # NEW: Aging 노드 추가
+            if linespeed_value is None or linespeed_value == 0:
+                # linespeed 없음 → 처리 불가
+                processing_time = 9999
+            else:
+                # 처리시간 계산
+                processing_time = np.ceil(
+                    production_length /
+                    linespeed_value /
+                    config.constants.TIME_MULTIPLIER
+                )
+
+                # inf/NaN 안전 처리
+                if not np.isfinite(processing_time):
+                    processing_time = 9999
+
+            # ⭐ 코드 기반 저장 (인덱스 변환 제거!)
+            machine_dict[node_id][machine_code] = int(processing_time)
+
+    print(f"[INFO] machine_dict 생성 완료: {len(machine_dict)}개 노드")
+
+    # Aging 노드 추가
     if aging_nodes_dict:
         for aging_node_id, aging_time in aging_nodes_dict.items():
             machine_dict[aging_node_id] = {-1: int(aging_time)}
-        print(f"[INFO] create_machine_dict: {len(aging_nodes_dict)}개의 aging 노드 추가됨")
+        print(f"[INFO] {len(aging_nodes_dict)}개 Aging 노드 추가")
 
     return machine_dict

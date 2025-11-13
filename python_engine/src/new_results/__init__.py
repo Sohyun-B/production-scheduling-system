@@ -87,10 +87,10 @@ def create_new_results(
     # ===================================================================
     print("[88%] 호기_정보 생성 중...")
 
-    # MachineMapper를 사용한 기계 매핑
+    # ✅ MachineMapper를 사용한 code → name 매핑
     machine_mapping = {
-        idx: machine_mapper.index_to_code(idx)
-        for idx in machine_mapper.get_all_indices()
+        code: machine_mapper.code_to_name(code)
+        for code in machine_mapper.get_all_codes()
     }
 
     # 기계 정보 처리 (기존 MachineProcessor 사용)
@@ -113,18 +113,7 @@ def create_new_results(
         config.columns.GITEM_NAME
     ]].drop_duplicates()
 
-    # MachineMapper를 사용한 코드 → 이름 매핑
-    code_to_name_mapping = {
-        code: machine_mapper.code_to_name(code)
-        for code in machine_mapper.get_all_codes()
-    }
-
-    machine_info = machine_info.rename(columns={
-        config.columns.MACHINE_INDEX: config.columns.MACHINE_CODE
-    })
-    machine_info[config.columns.MACHINE_NAME] = machine_info[
-        config.columns.MACHINE_CODE
-    ].map(code_to_name_mapping)
+    # ❌ 제거: 중복 매핑 및 MACHINE_INDEX 처리 (make_readable_result_file()에서 이미 처리됨)
 
     machine_info = pd.merge(
         machine_info,

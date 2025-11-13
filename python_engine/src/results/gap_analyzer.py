@@ -1,5 +1,6 @@
 """
 완성된 스케줄에서 기계별 빈 시간을 셋업시간 vs 대기시간으로 구분하는 분석 클래스
+⭐ 리팩토링: machine_index → machine_code
 """
 
 import pandas as pd
@@ -8,7 +9,7 @@ from config import config
 
 class ScheduleGapAnalyzer:
     """완성된 스케줄에서 기계별 간격을 셋업시간/대기시간으로 분석"""
-    
+
     def __init__(self, scheduler, delay_processor):
         """
         Args:
@@ -18,58 +19,65 @@ class ScheduleGapAnalyzer:
         self.scheduler = scheduler
         self.delay_processor = delay_processor
         self.gap_analysis_results = []
-    
+
     def analyze_all_machine_gaps(self):
         """모든 기계의 간격을 분석하여 셋업시간/대기시간 구분"""
         self.gap_analysis_results = []
-        
-        for machine in self.scheduler.Machines:
+
+        # ★ 딕셔너리 순회로 변경
+        for machine_code, machine in self.scheduler.Machines.items():
             machine_gaps = self._analyze_single_machine_gaps(machine)
             self.gap_analysis_results.extend(machine_gaps)
-        
+
         return pd.DataFrame(self.gap_analysis_results)
     
     def _analyze_single_machine_gaps(self, machine):
-        """단일 기계의 모든 간격 분석"""
+        """
+        단일 기계의 모든 간격 분석
+        ⭐ 리팩토링: machine.Machine_index → machine.Machine_code
+        """
         gaps = []
         tasks = machine.assigned_task
         starts = machine.O_start
         ends = machine.O_end
-        
+
         if len(tasks) < 2:
             return gaps  # 작업이 1개 이하면 간격 없음
-        
+
         # 시간순 정렬 (혹시 순서가 뒤바뀌었을 경우 대비)
         sorted_indices = sorted(range(len(starts)), key=lambda i: starts[i])
-        
+
         for i in range(len(sorted_indices) - 1):
             current_idx = sorted_indices[i]
             next_idx = sorted_indices[i + 1]
-            
+
             current_end = ends[current_idx]
             next_start = starts[next_idx]
             gap_duration = next_start - current_end
-            
+
             if gap_duration > 0:  # 간격이 있는 경우만
                 gap_info = self._classify_gap(
-                    machine.Machine_index,
+                    machine.Machine_code,  # ★ Machine_index → Machine_code
                     tasks[current_idx],
-                    tasks[next_idx], 
+                    tasks[next_idx],
                     current_end,
                     next_start,
                     gap_duration
                 )
                 gaps.append(gap_info)
-        
+
         return gaps
-    
-    def _classify_gap(self, machine_index, prev_task, next_task, gap_start, gap_end, gap_duration):
-        """간격을 셋업시간/대기시간으로 분류"""
-        
+
+    def _classify_gap(self, machine_code, prev_task, next_task, gap_start, gap_end, gap_duration):
+        """
+        간격을 셋업시간/대기시간으로 분류
+        ⭐ 리팩토링: machine_index → machine_code
+        """
+
         # DOWNTIME 등 가짜 작업은 제외
         if prev_task[0] == -1 or next_task[0] == -1:
             result = {
-                'machine_index': machine_index,
+                'machine_code': machine_code,  # ★ machine_index → machine_code
                 'gap_start': gap_start,
                 'gap_end': gap_end,
                 'gap_duration': gap_duration,
@@ -97,14 +105,14 @@ class ScheduleGapAnalyzer:
         # 실제 셋업시간 계산
         prev_task_id = prev_task[1]
         next_task_id = next_task[1]
-        
-        # DelayProcessor로 이론적 셋업시간 계산
+
+        # DelayProcessor로 이론적 셋업시간 계산 (machine_code 전달)
         theoretical_setup_time = self.delay_processor.delay_calc_whole_process(
-            prev_task_id, next_task_id, machine_index
+            prev_task_id, next_task_id, machine_code  # ★ machine_index → machine_code
         )
-        
+
         # 셋업 상세 정보 분석
-        setup_details = self._analyze_setup_details(prev_task_id, next_task_id, machine_index)
+        setup_details = self._analyze_setup_details(prev_task_id, next_task_id, machine_code)  # ★ machine_index → machine_code
         
         # 실제 간격과 이론적 셋업시간 비교
         if theoretical_setup_time == 0:
@@ -125,7 +133,7 @@ class ScheduleGapAnalyzer:
         
         # 결과에 setup_details 추가
         result = {
-            'machine_index': machine_index,
+            'machine_code': machine_code,  # ★ machine_index → machine_code
             'gap_start': gap_start,
             'gap_end': gap_end,
             'gap_duration': gap_duration,
@@ -136,17 +144,21 @@ class ScheduleGapAnalyzer:
             'prev_task_id': prev_task_id,
             'next_task_id': next_task_id
         }
-        
+
         # setup_details를 result에 추가
         result.update(setup_details)
-        
+
         return result
-    
-    def _analyze_setup_details(self, prev_task_id, next_task_id, machine_index):
-        """DelayProcessor에서 사용하는 키 값들을 그대로 반환"""
-        if machine_index not in [0, 2, 3]:
+
+    def _analyze_setup_details(self, prev_task_id, next_task_id, machine_code):
+        """
+        DelayProcessor에서 사용하는 키 값들을 그대로 반환
+        ⭐ 리팩토링: machine_index → machine_code
+        """
+        # ★ 하드코딩된 체크 대신 delay_processor의 machine_code_list 사용
+        if machine_code not in self.delay_processor.machine_code_list:
             return {
-                'machine_index': machine_index,
+                'machine_code': machine_code,  # ★ machine_index → machine_code
                 'earlier_operation_type': 'N/A',
                 'later_operation_type': 'N/A', 
                 'long_to_short': False,
@@ -186,11 +198,11 @@ class ScheduleGapAnalyzer:
         same_chemical = earlier_chemical == later_chemical
         
         # DelayProcessor가 실제로 사용하는 키 생성
-        setup_key = (machine_index, earlier_operation_type, later_operation_type, 
+        setup_key = (machine_code, earlier_operation_type, later_operation_type,  # ★ machine_index → machine_code
                     long_to_short, short_to_long, same_type, same_chemical)
-        
+
         return {
-            'machine_index': machine_index,
+            'machine_code': machine_code,  # ★ machine_index → machine_code
             'earlier_operation_type': earlier_operation_type,
             'later_operation_type': later_operation_type,
             'long_to_short': long_to_short,
@@ -199,17 +211,17 @@ class ScheduleGapAnalyzer:
             'same_chemical': same_chemical,
             'setup_key': str(setup_key)
         }
-    
+
     def get_machine_summary(self):
         """기계별 셋업시간/대기시간 요약"""
         if not self.gap_analysis_results:
             self.analyze_all_machine_gaps()
-        
+
         df = pd.DataFrame(self.gap_analysis_results)
         if df.empty:
             return pd.DataFrame()
-        
-        summary = df.groupby('machine_index').agg(
+
+        summary = df.groupby('machine_code').agg(  # ★ machine_index → machine_code
             gap_count=('gap_duration', 'count'),
             total_gap_time=('gap_duration', 'sum'),
             total_setup_time=('setup_time', 'sum'),
@@ -276,9 +288,10 @@ class GapAnalysisProcessor:
             
             # 간격 분석기 생성
             gap_analyzer = ScheduleGapAnalyzer(scheduler, delay_processor)
-            
-            # 기계 매핑 정보
-            machine_mapping = machine_master_info.set_index(config.columns.MACHINE_INDEX)[config.columns.MACHINE_CODE].to_dict()
+
+            # ★ 기계 매핑 정보 (code → name 매핑으로 변경)
+            # 이제 machine_schedule_df에 이미 MACHINE_CODE가 있으므로 code → name만 필요
+            machine_mapping = machine_master_info.set_index(config.columns.MACHINE_CODE)[config.columns.MACHINE_NAME].to_dict()
             
             # 기계별 스케줄 결과 처리기에 간격 분석기 전달
             from .machine_processor import MachineScheduleProcessor

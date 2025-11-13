@@ -101,8 +101,7 @@ def run_level4_scheduling():
     machine_master_file = "data/input/machine_master_info.xlsx"
     machine_master_info_df = pd.read_excel(
         machine_master_file,
-        sheet_name="machine_master",
-        dtype={config.columns.MACHINE_INDEX: int, config.columns.MACHINE_CODE: str}
+        dtype={config.columns.MACHINE_CODE: str}
     )
     print(f"[INFO] 기계 마스터 정보 로딩 완료: {len(machine_master_info_df)}대")
 

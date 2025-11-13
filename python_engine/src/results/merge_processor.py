@@ -95,7 +95,7 @@ def create_process_detail_result(final_result_df, sequence_seperated_order, sche
             config.columns.ID: node_id,
             config.columns.OPERATION_CODE: extra_info.get(config.columns.OPERATION_CODE, ''),
             'is_aging': is_aging,
-            config.columns.MACHINE_INDEX: row.get(config.columns.MACHINE_INDEX, row.get('machine', None)),
+            config.columns.MACHINE_CODE: row.get(config.columns.MACHINE_CODE, row.get('machine', None)),  # ★ MACHINE_INDEX → MACHINE_CODE
             'node_start': node_start,
             config.columns.NODE_END: node_end,
             'processing_time': row.get('processing_time', node_end - node_start),

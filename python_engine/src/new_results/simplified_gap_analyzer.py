@@ -14,6 +14,8 @@ class SimplifiedGapAnalyzer:
 
     def __init__(self, scheduler, delay_processor, machine_mapper, base_date):
         """
+        ⭐ 리팩토링: 코드 기반 매핑으로 변경
+
         Args:
             scheduler: 스케줄러 인스턴스
             delay_processor: DelayProcessor 인스턴스
@@ -25,27 +27,24 @@ class SimplifiedGapAnalyzer:
         self.machine_mapper = machine_mapper
         self.base_date = base_date
 
-        # 기계 매핑 (인덱스 → 코드, 이름)
-        self.machine_idx_to_code = {
-            idx: machine_mapper.index_to_code(idx)
-            for idx in machine_mapper.get_all_indices()
-        }
-
-        self.machine_idx_to_name = {
-            idx: machine_mapper.index_to_name(idx)
-            for idx in machine_mapper.get_all_indices()
+        # ★ 기계 매핑 (코드 → 이름)
+        self.machine_code_to_name = {
+            code: machine_mapper.code_to_name(code)
+            for code in machine_mapper.get_all_codes()
         }
 
     def analyze_all_gaps(self):
         """
         모든 기계의 간격을 분석하여 간결한 DataFrame 반환
+        ⭐ 리팩토링: 딕셔너리 순회로 변경
 
         Returns:
             pd.DataFrame: 12개 컬럼의 간격 분석 결과
         """
         gaps = []
 
-        for machine in self.scheduler.Machines:
+        # ★ 딕셔너리 순회로 변경
+        for machine_code, machine in self.scheduler.Machines.items():
             machine_gaps = self._analyze_machine_gaps(machine)
             gaps.extend(machine_gaps)
 
@@ -92,7 +91,7 @@ class SimplifiedGapAnalyzer:
 
             # 간격 정보 계산
             gap_info = self._calculate_gap_info(
-                machine.Machine_index,
+                machine.Machine_code,  # ★ Machine_index → Machine_code
                 machine.assigned_task[curr_idx],
                 machine.assigned_task[next_idx],
                 gap_start,
@@ -105,13 +104,14 @@ class SimplifiedGapAnalyzer:
 
         return gaps
 
-    def _calculate_gap_info(self, machine_idx, prev_task, next_task,
+    def _calculate_gap_info(self, machine_code, prev_task, next_task,
                            gap_start, gap_end, gap_duration):
         """
         간격 정보 계산 (핵심 로직)
+        ⭐ 리팩토링: machine_idx → machine_code
 
         Args:
-            machine_idx (int): 기계 인덱스
+            machine_code (str): 기계 코드 (예: 'A2020', 'C2010')
             prev_task (tuple): (depth, task_id)
             next_task (tuple): (depth, task_id)
             gap_start (float): 간격 시작 시간 (TIME_MULTIPLIER 단위)
@@ -128,9 +128,9 @@ class SimplifiedGapAnalyzer:
         prev_task_id = prev_task[1]
         next_task_id = next_task[1]
 
-        # 이론적 셋업시간 계산
+        # 이론적 셋업시간 계산 (machine_code 전달)
         theoretical_setup = self.delay_processor.delay_calc_whole_process(
-            prev_task_id, next_task_id, machine_idx
+            prev_task_id, next_task_id, machine_code  # ★ machine_idx → machine_code
         )
 
         # 셋업시간 vs 대기시간 분류
@@ -169,8 +169,8 @@ class SimplifiedGapAnalyzer:
         setup_ratio = (setup_time / gap_duration * 100) if gap_duration > 0 else 0
 
         return {
-            '기계코드': self.machine_idx_to_code.get(machine_idx, f'M{machine_idx}'),
-            '기계명': self.machine_idx_to_name.get(machine_idx, f'기계{machine_idx}'),
+            '기계코드': machine_code,  # ★ 이미 machine_code이므로 직접 사용
+            '기계명': self.machine_code_to_name.get(machine_code, f'기계{machine_code}'),  # ★ code → name 매핑
             '간격시작시각': gap_start_dt,
             '간격종료시각': gap_end_dt,
             '간격시간(분)': round(gap_duration * time_mult, 1),

@@ -130,7 +130,8 @@ class PerformanceMetricsCalculator:
         total_operating_time = 0
         machine_count = 0
 
-        for machine in self.scheduler.Machines:
+        # ★ 딕셔너리 순회로 변경
+        for machine_code, machine in self.scheduler.Machines.items():
             if len(machine.assigned_task) == 0:
                 continue
 

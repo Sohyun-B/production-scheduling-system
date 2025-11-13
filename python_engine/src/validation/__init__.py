@@ -159,7 +159,8 @@ def preprocess_production_data(
 
     # 각 데이터 전처리 (검증 및 정제된 데이터 사용)
     order_data = preprocessor.preprocess_order_data(cleaned_data['order_df'])
-    linespeed, linespeed_pivot = preprocessor.preprocess_linespeed_data(cleaned_data['linespeed_df'], linespeed_period)
+    # ⭐ 리팩토링: linespeed_pivot 제거, Long Format만 반환
+    linespeed = preprocessor.preprocess_linespeed_data(cleaned_data['linespeed_df'], linespeed_period)
     operation_types, operation_sequence = preprocessor.preprocess_operation_data(cleaned_data['operation_df'])
     yield_info = preprocessor.preprocess_yield_data(cleaned_data['yield_df'], yield_period)
     chemical_data = preprocessor.preprocess_chemical_data(cleaned_data['chemical_df'])
@@ -192,7 +193,7 @@ def preprocess_production_data(
     # 결과를 딕셔너리로 정리
     processed_data = {
         'order_data': order_data,
-        'linespeed': linespeed_pivot,
+        'linespeed': linespeed,  # ⭐ Long Format 반환
         'operation_types': operation_types,
         'operation_sequence': operation_sequence,
         'yield_data': yield_info,

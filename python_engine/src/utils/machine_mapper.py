@@ -13,16 +13,12 @@ class MachineMapper:
     """
     기계 정보 매핑 관리 클래스
 
-    machine_master_info DataFrame을 받아서 다양한 매핑 기능을 제공합니다.
+    machine_master_info DataFrame을 받아서 code ↔ name 매핑 기능을 제공합니다.
     모든 매핑 딕셔너리는 초기화 시 한 번만 생성되며 캐싱됩니다.
 
     Attributes:
         _machine_master_info (pd.DataFrame): 원본 기계 마스터 정보
-        _idx_to_code (Dict[int, str]): machineindex → machineno
-        _idx_to_name (Dict[int, str]): machineindex → machinename
-        _code_to_idx (Dict[str, int]): machineno → machineindex
         _code_to_name (Dict[str, str]): machineno → machinename
-        _name_to_idx (Dict[str, int]): machinename → machineindex
         _name_to_code (Dict[str, str]): machinename → machineno
     """
 
@@ -32,22 +28,18 @@ class MachineMapper:
 
         Args:
             machine_master_info (pd.DataFrame): 기계 마스터 정보
-                필수 컬럼: machineindex, machineno, machinename
+                필수 컬럼: machineno, machinename
 
         Raises:
             ValueError: 필수 컬럼이 없거나 데이터가 유효하지 않은 경우
         """
         # 필수 컬럼 검증
-        required_columns = ['machineindex', config.columns.MACHINE_CODE, config.columns.MACHINE_NAME]
+        required_columns = [config.columns.MACHINE_CODE, config.columns.MACHINE_NAME]
         missing_columns = [col for col in required_columns if col not in machine_master_info.columns]
         if missing_columns:
             raise ValueError(f"Missing required columns: {missing_columns}")
 
-        # 중복 검증
-        if machine_master_info['machineindex'].duplicated().any():
-            duplicates = machine_master_info[machine_master_info['machineindex'].duplicated()]['machineindex'].tolist()
-            raise ValueError(f"Duplicate machineindex found: {duplicates}")
-
+        # 중복 검증: machineno만 체크
         if machine_master_info[config.columns.MACHINE_CODE].duplicated().any():
             duplicates = machine_master_info[machine_master_info[config.columns.MACHINE_CODE].duplicated()][config.columns.MACHINE_CODE].tolist()
             raise ValueError(f"Duplicate machineno found: {duplicates}")
@@ -55,8 +47,8 @@ class MachineMapper:
         # 원본 데이터 저장 (복사본)
         self._machine_master_info = machine_master_info.copy()
 
-        # machineindex 순서로 정렬 (순서 보장)
-        self._machine_master_info = self._machine_master_info.sort_values('machineindex').reset_index(drop=True)
+        # machineno로 정렬 (일관된 순서 보장)
+        self._machine_master_info = self._machine_master_info.sort_values(config.columns.MACHINE_CODE).reset_index(drop=True)
 
         # 매핑 딕셔너리 초기화
         self._build_mapping_dicts()
@@ -65,89 +57,13 @@ class MachineMapper:
         """매핑 딕셔너리 생성 (캐싱)"""
         df = self._machine_master_info
 
-        # Index → Code/Name
-        self._idx_to_code = dict(zip(df['machineindex'], df[config.columns.MACHINE_CODE]))
-        self._idx_to_name = dict(zip(df['machineindex'], df[config.columns.MACHINE_NAME]))
-
-        # Code → Index/Name
-        self._code_to_idx = dict(zip(df[config.columns.MACHINE_CODE], df['machineindex']))
+        # Code → Name
         self._code_to_name = dict(zip(df[config.columns.MACHINE_CODE], df[config.columns.MACHINE_NAME]))
 
-        # Name → Index/Code
-        self._name_to_idx = dict(zip(df[config.columns.MACHINE_NAME], df['machineindex']))
+        # Name → Code
         self._name_to_code = dict(zip(df[config.columns.MACHINE_NAME], df[config.columns.MACHINE_CODE]))
 
-    # === Public API: Index → Code/Name ===
-
-    def index_to_code(self, idx: int) -> Optional[str]:
-        """
-        machineindex → machineno 변환
-
-        Args:
-            idx (int): 기계 인덱스
-
-        Returns:
-            Optional[str]: 기계 코드 (없으면 None)
-
-        Example:
-            >>> mapper.index_to_code(0)
-            'C2010'
-        """
-        return self._idx_to_code.get(idx)
-
-    def index_to_name(self, idx: int) -> Optional[str]:
-        """
-        machineindex → machinename 변환
-
-        Args:
-            idx (int): 기계 인덱스
-
-        Returns:
-            Optional[str]: 기계명 (없으면 None)
-
-        Example:
-            >>> mapper.index_to_name(0)
-            '염색1호기_WIN'
-        """
-        return self._idx_to_name.get(idx)
-
-    def index_to_info(self, idx: int) -> Optional[Dict]:
-        """
-        machineindex → {code, name} 변환
-
-        Args:
-            idx (int): 기계 인덱스
-
-        Returns:
-            Optional[Dict]: {'code': machineno, 'name': machinename} (없으면 None)
-
-        Example:
-            >>> mapper.index_to_info(0)
-            {'code': 'C2010', 'name': '염색1호기_WIN'}
-        """
-        code = self._idx_to_code.get(idx)
-        name = self._idx_to_name.get(idx)
-        if code is None or name is None:
-            return None
-        return {'code': code, 'name': name}
-
-    # === Public API: Code → Index/Name ===
-
-    def code_to_index(self, code: str) -> Optional[int]:
-        """
-        machineno → machineindex 변환
-
-        Args:
-            code (str): 기계 코드
-
-        Returns:
-            Optional[int]: 기계 인덱스 (없으면 None)
-
-        Example:
-            >>> mapper.code_to_index('C2010')
-            0
-        """
-        return self._code_to_idx.get(code)
+    # === Public API: Code ↔ Name ===
 
     def code_to_name(self, code: str) -> Optional[str]:
         """
@@ -167,41 +83,24 @@ class MachineMapper:
 
     def code_to_info(self, code: str) -> Optional[Dict]:
         """
-        machineno → {index, name} 변환
+        machineno → {name} 변환
 
         Args:
             code (str): 기계 코드
 
         Returns:
-            Optional[Dict]: {'index': machineindex, 'name': machinename} (없으면 None)
+            Optional[Dict]: {'name': machinename} (없으면 None)
 
         Example:
             >>> mapper.code_to_info('C2010')
-            {'index': 0, 'name': '염색1호기_WIN'}
+            {'name': '염색1호기_WIN'}
         """
-        idx = self._code_to_idx.get(code)
         name = self._code_to_name.get(code)
-        if idx is None or name is None:
+        if name is None:
             return None
-        return {'index': idx, 'name': name}
+        return {'name': name}
 
-    # === Public API: Name → Index/Code ===
-
-    def name_to_index(self, name: str) -> Optional[int]:
-        """
-        machinename → machineindex 변환
-
-        Args:
-            name (str): 기계명
-
-        Returns:
-            Optional[int]: 기계 인덱스 (없으면 None)
-
-        Example:
-            >>> mapper.name_to_index('염색1호기_WIN')
-            0
-        """
-        return self._name_to_idx.get(name)
+    # === Public API: Name → Code ===
 
     def name_to_code(self, name: str) -> Optional[str]:
         """
@@ -236,29 +135,16 @@ class MachineMapper:
 
     def get_all_names(self) -> List[str]:
         """
-        모든 machinename 리스트 반환 (machineindex 순서)
+        모든 machinename 리스트 반환 (machineno 정렬 순서)
 
         Returns:
             List[str]: 기계명 리스트
 
         Example:
             >>> mapper.get_all_names()
-            ['염색1호기_WIN', '염색25호기_WIN', ...]
+            ['AgNW2호기', '코팅1호기_WIN', '코팅25호기_WIN', ...]
         """
         return self._machine_master_info[config.columns.MACHINE_NAME].tolist()
-
-    def get_all_indices(self) -> List[int]:
-        """
-        모든 machineindex 리스트 반환
-
-        Returns:
-            List[int]: 기계 인덱스 리스트
-
-        Example:
-            >>> mapper.get_all_indices()
-            [0, 1, 2, 3, ...]
-        """
-        return self._machine_master_info['machineindex'].tolist()
 
     def get_machine_count(self) -> int:
         """
@@ -345,24 +231,24 @@ class MachineMapper:
 
     # === String Representation ===
 
-    def format_machine_info(self, idx: int) -> str:
+    def format_machine_info(self, code: str) -> str:
         """
         기계 정보를 사람이 읽기 쉬운 형태로 포맷팅
 
         Args:
-            idx (int): 기계 인덱스
+            code (str): 기계 코드
 
         Returns:
             str: 포맷된 기계 정보 문자열
 
         Example:
-            >>> mapper.format_machine_info(0)
-            '염색1호기_WIN (C2010) [idx=0]'
+            >>> mapper.format_machine_info('C2010')
+            '코팅1호기_WIN (C2010)'
         """
-        info = self.index_to_info(idx)
-        if info is None:
-            return f"Unknown machine [idx={idx}]"
-        return f"{info['name']} ({info['code']}) [idx={idx}]"
+        name = self.code_to_name(code)
+        if name is None:
+            return f"Unknown machine [{code}]"
+        return f"{name} ({code})"
 
     def __repr__(self) -> str:
         """
@@ -381,6 +267,6 @@ class MachineMapper:
             str: 모든 기계 정보를 포함한 문자열
         """
         lines = [f"MachineMapper: {self.get_machine_count()} machines"]
-        for idx in self.get_all_indices():
-            lines.append(f"  [{idx}] {self.index_to_code(idx)} - {self.index_to_name(idx)}")
+        for code in self.get_all_codes():
+            lines.append(f"  {code} - {self.code_to_name(code)}")
         return "\n".join(lines)
