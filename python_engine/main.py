@@ -19,8 +19,7 @@ from src.yield_management import yield_prediction
 from src.dag_management import create_complete_dag_system
 from src.dag_management.dag_dataframe import parse_aging_requirements
 from src.scheduler import run_scheduler_pipeline
-# from src.results import create_results  # 기존 모듈
-from src.new_results import create_new_results  # 신규 모듈
+from src.results import create_results
 
 def run_level4_scheduling():
     # 사용자 입력으로 받는 부분
@@ -155,11 +154,11 @@ def run_level4_scheduling():
         )
 
 
-        # === 6단계: 결과 후처리 (new_results 모듈 사용) ===
+        # === 6단계: 결과 후처리 (results 모듈 사용) ===
         print(f"[80%] 스케줄링 완료! 결과 후처리 시작...")
 
-        # create_new_results 함수로 모든 후처리 위임
-        final_results = create_new_results(
+        # create_results 함수로 모든 후처리 위임
+        final_results = create_results(
             raw_scheduling_result=result,
             merged_df=merged_df,
             original_order=order,
@@ -197,7 +196,7 @@ def run_level4_scheduling():
         result.to_excel(excel_filename, index=False)
         print(f"[저장] 원본 결과를 '{excel_filename}'에 저장 완료")
         
-        # 최종 엑셀 파일 저장 (new_results 버전 - 5개 시트)
+        # 최종 엑셀 파일 저장 (results 버전 - 5개 시트)
         print("[99%] 최종 Excel 파일 저장 중...")
         processed_filename = "data/output/0829 스케줄링결과.xlsx"
         with pd.ExcelWriter(processed_filename, engine="openpyxl") as writer:

@@ -1,6 +1,7 @@
 # 생산 스케줄링 시스템 모듈 입출력 명세
 
 ## 개요
+
 이 문서는 `main.py`의 `run_level4_scheduling()` 함수 내에서 호출되는 각 모듈의 입출력을 정의합니다.
 백엔드 서비스(`python_Server/app/services/python_engine_service`)에서 각 모듈을 개별 엔드포인트로 호출할 수 있도록 명세합니다.
 
@@ -9,14 +10,17 @@
 ## 0. 데이터 로딩 (Excel Inputs)
 
 ### 위치
+
 `main.py:26-93`
 
 ### 입력 파일
 
 #### 파일 1: 생산계획 입력정보.xlsx
+
 **경로**: `data/input/생산계획 입력정보.xlsx`
 
 **시트별 읽기 설정**:
+
 ```python
 order_df = pd.read_excel(input_file, sheet_name="tb_polist",
                          dtype={config.columns.GITEM: str},
@@ -52,13 +56,17 @@ aging_gbn = pd.read_excel(input_file, sheet_name="tb_agingtime_gbn")
 ```
 
 #### 파일 2: 글로벌 기계 제약조건
+
 **경로**: `data/input/tb_commomconstraint.xlsx`
+
 ```python
 global_machine_limit_raw = pd.read_excel("data/input/tb_commomconstraint.xlsx")
 ```
 
 #### 파일 3: 시나리오 공정제약조건
+
 **경로**: `data/input/시나리오_공정제약조건.xlsx`
+
 ```python
 local_machine_limit = pd.read_excel("data/input/시나리오_공정제약조건.xlsx",
                                     sheet_name="machine_limit")
@@ -73,13 +81,16 @@ machine_rest = pd.read_excel("data/input/시나리오_공정제약조건.xlsx",
 ```
 
 #### 파일 4: 기계 마스터 정보
+
 **경로**: `data/input/machine_master_info.xlsx`
+
 ```python
 machine_master_info_df = pd.read_excel(machine_master_file,
                                        dtype={config.columns.MACHINE_CODE: str})
 ```
 
 ### 설정 파라미터
+
 ```python
 base_date = datetime(config.constants.BASE_YEAR,
                     config.constants.BASE_MONTH,
@@ -90,6 +101,7 @@ yield_period = config.constants.YIELD_PERIOD
 ```
 
 ### 출력
+
 - `order_df` (pd.DataFrame): 주문 정보
 - `gitem_sitem_df` (pd.DataFrame): 제품군-GITEM-SITEM 매핑
 - `linespeed_df` (pd.DataFrame): 라인스피드 정보
@@ -110,13 +122,16 @@ yield_period = config.constants.YIELD_PERIOD
 ## 1. Validation - 데이터 유효성 검사 및 전처리
 
 ### 함수명
+
 `preprocess_production_data()`
 
 ### 위치
+
 `src/validation/__init__.py:13`
 `main.py:59-88` (호출)
 
 ### 입력
+
 ```python
 processed_data = preprocess_production_data(
     order_df=order_df,                          # PO정보 (tb_polist)
@@ -138,7 +153,9 @@ processed_data = preprocess_production_data(
 ```
 
 ### 처리 과정
+
 1. **DataValidator**: 데이터 유효성 검사 및 중복 제거
+
    - 제품군-GITEM-SITEM 정합성 검증
    - 공정, 수율, 라인스피드 데이터의 GITEM 존재성 검증
    - 배합액 데이터 검증
@@ -152,7 +169,9 @@ processed_data = preprocess_production_data(
    - Aging 데이터 병합 (aging_gitem + aging_gbn)
 
 ### 출력
+
 `processed_data` (Dict[str, Any]):
+
 ```python
 {
     'order_data': pd.DataFrame,           # 전처리된 주문 데이터
@@ -170,6 +189,7 @@ processed_data = preprocess_production_data(
 ```
 
 ### 비고
+
 - 이 모듈은 원본 Excel 데이터를 표준화된 형식으로 변환
 - `validate=True`일 때 데이터 유효성 검사 수행
 - `save_output=True`일 때 중간 결과를 `python_input.xlsx`로 저장 가능 (선택 사항)
@@ -179,13 +199,16 @@ processed_data = preprocess_production_data(
 ## 2. MachineMapper 생성 - 기계 매핑 관리자 초기화
 
 ### 클래스명
+
 `MachineMapper`
 
 ### 위치
+
 `src/utils/machine_mapper.py:MachineMapper`
 `main.py:100-111` (호출)
 
 ### 입력
+
 ```python
 machine_master_file = "data/input/machine_master_info.xlsx"
 machine_master_info_df = pd.read_excel(
@@ -196,13 +219,16 @@ machine_mapper = MachineMapper(machine_master_info_df)
 ```
 
 ### 처리 과정
+
 1. machine_master_info_df에서 기계 정보 추출
 2. 기계코드 → machineno 매핑 딕셔너리 생성
 3. machineno → 기계코드 매핑 딕셔너리 생성
 4. 기계코드 → 공정구분 매핑 딕셔너리 생성
 
 ### 출력
+
 `machine_mapper` (MachineMapper 인스턴스):
+
 ```python
 class MachineMapper:
     machine_master_df: pd.DataFrame
@@ -218,6 +244,7 @@ class MachineMapper:
 ```
 
 ### 비고
+
 - 기계 인덱스 대신 machineno 기반으로 작업
 - 기계 정보 조회 중앙화 (하드코딩 제거)
 
@@ -226,13 +253,16 @@ class MachineMapper:
 ## 3. Order Sequencing - 주문 시퀀스 생성
 
 ### 함수명
+
 `generate_order_sequences()`
 
 ### 위치
+
 `src/order_sequencing/__init__.py:8`
 `main.py:114-116` (호출)
 
 ### 입력
+
 ```python
 sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = generate_order_sequences(
     order=order,                                # processed_data['order_data']
@@ -247,13 +277,17 @@ sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details
 ```
 
 ### 처리 과정
+
 1. **OrderPreprocessor**: 주문 전처리
+
    - `same_order_groupby()`: 동일 주문 통합 (배치 효율화)
 
 2. **SequencePreprocessor**: 공정 시퀀스 생성
+
    - `create_sequence_seperated_order()`: 주문별 상세 공정 순서 생성
 
 3. **OperationMachineLimit**: 기계 제약 처리
+
    - `operation_machine_limit()`: 로컬/글로벌 기계 제약 조건 적용
    - `operation_machine_exclusive()`: 강제 할당 처리
 
@@ -261,6 +295,7 @@ sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details
    - `combine_fabric_width()`: 너비 조합 로직 적용
 
 ### 출력
+
 ```python
 (
     sequence_seperated_order,  # pd.DataFrame: 공정별 분리된 주문 데이터
@@ -272,12 +307,14 @@ sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details
 ```
 
 #### `sequence_seperated_order` 주요 컬럼
+
 - `PoNo`, `GitemNo`, `PROCCODE`, `PROCSEQ`, `PROCNAME`, `ProcGbn`
 - `production_length`, `fabric_width`
 - `DUEDATE`, `ID` (DAG 노드 ID용)
 - 기타 공정 정보
 
 ### 비고
+
 - `unable_gitems`, `unable_order`는 생산 불가능한 항목을 사용자에게 알리기 위한 정보
 - main.py에서 통계 출력 용도로 사용됨
 
@@ -286,13 +323,16 @@ sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details
 ## 4. Yield Prediction - 수율 예측
 
 ### 함수명
+
 `yield_prediction()`
 
 ### 위치
+
 `src/yield_management/__init__.py:4`
 `main.py:119-122` (호출)
 
 ### 입력
+
 ```python
 sequence_seperated_order = yield_prediction(
     yield_data=yield_data,                      # processed_data['yield_data']
@@ -301,6 +341,7 @@ sequence_seperated_order = yield_prediction(
 ```
 
 ### 처리 과정
+
 1. GITEM을 문자열로 변환
 2. **GITEM + PROCCODE** 기준으로 yield_data와 병합 (left join) ⭐ 변경됨
 3. `product_ratio = 1 / yield` 계산
@@ -310,12 +351,15 @@ sequence_seperated_order = yield_prediction(
 7. 임시 컬럼 제거 (yield, product_ratio)
 
 ### 출력
+
 `sequence_seperated_order` (pd.DataFrame):
+
 - 입력과 동일한 DataFrame에 다음 컬럼 추가/수정:
   - `original_production_length`: 원본 생산길이
   - `production_length`: 수율 반영 + 10단위 반올림된 생산길이
 
 ### 비고
+
 - 수율이 없는 GITEM+PROCCODE는 원본 생산길이 유지
 - 수율 = 0.9 → product_ratio = 1.11 → 생산길이 11% 증가 → 10단위 반올림
 
@@ -324,13 +368,16 @@ sequence_seperated_order = yield_prediction(
 ## 5. Aging 요구사항 파싱
 
 ### 함수명
+
 `parse_aging_requirements()`
 
 ### 위치
+
 `src/dag_management/dag_dataframe.py:parse_aging_requirements()`
 `main.py:126-128` (호출)
 
 ### 입력
+
 ```python
 aging_map = parse_aging_requirements(
     aging_df=aging_df,                          # processed_data['aging_data']
@@ -339,11 +386,13 @@ aging_map = parse_aging_requirements(
 ```
 
 ### 처리 과정
+
 1. **Aging Map 생성**: Aging 데이터에서 맵 생성
 2. **형식**: `{(GitemNo, ProcGbn): aging_time}` 딕셔너리
 3. **에이징 시간**: 특정 공정 완료 후 다음 공정 시작 전 필수 대기 시간
 
 ### 출력
+
 ```python
 aging_map = {
     ("GITEM001", "DY"): 96.0,    # GITEM001의 염색 공정 후 96시간 대기
@@ -353,6 +402,7 @@ aging_map = {
 ```
 
 ### 비고
+
 - `aging_df=None` 또는 빈 DataFrame 전달 시 빈 딕셔너리 반환
 - 모든 노드의 AGING_TIME=0으로 처리됨
 
@@ -361,13 +411,16 @@ aging_map = {
 ## 6. DAG Creation - DAG 시스템 생성
 
 ### 함수명
+
 `create_complete_dag_system()`
 
 ### 위치
+
 `src/dag_management/__init__.py:75`
 `main.py:133-136` (호출)
 
 ### 입력
+
 ```python
 dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
     sequence_seperated_order=sequence_seperated_order,  # yield_prediction() 출력
@@ -378,24 +431,30 @@ dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_syst
 ```
 
 ### 처리 과정
+
 0. **Aging Map 활용** (aging_map이 제공된 경우)
+
    - `parse_aging_requirements()`에서 생성된 aging_map 직접 전달
    - `{(GitemNo, ProcGbn): aging_time}` 형식
    - aging_map=None이면 빈 딕셔너리로 처리
 
 1. **DAGDataFrameCreator**: DAG 데이터프레임 생성
+
    - `create_full_dag()`: 전체 DAG 구조 생성
    - depth, children 계산
    - Aging 노드 자동 삽입 (sequential insertion)
 
 2. **NodeDictCreator**: 노드 딕셔너리 생성
+
    - `create_opnode_dict()`: 작업 노드 정보 딕셔너리 생성
    - CHEMICAL_LIST, SELECTED_CHEMICAL(초기값 None), AGING_TIME 포함
 
 3. **DAGGraphManager**: DAG 그래프 구축
+
    - `build_from_dataframe()`: DAGNode 객체 생성 및 children 연결
 
 4. **MachineDict**: 기계 정보 딕셔너리
+
    - `create_machine_dict()`: 노드별 기계 소요시간 딕셔너리 생성
    - machineno 기준 ⭐ 변경됨
 
@@ -403,6 +462,7 @@ dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_syst
    - `merge_order_operation()`: 주문-공정 정보 통합
 
 ### 출력
+
 ```python
 (
     dag_df,         # pd.DataFrame: DAG 데이터프레임 (ID, depth, children, aging 노드 포함)
@@ -414,6 +474,7 @@ dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_syst
 ```
 
 #### `opnode_dict` 구조 예시
+
 ```python
 {
     "N00001_1_공정": {
@@ -430,6 +491,7 @@ dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_syst
 ```
 
 #### `machine_dict` 구조 예시 ⭐ 변경됨
+
 ```python
 {
     "N00001_1_공정": {
@@ -446,13 +508,16 @@ dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_syst
 ## 7. Scheduling - 스케줄링 실행
 
 ### 함수명
+
 `run_scheduler_pipeline()`
 
 ### 위치
+
 `src/scheduler/__init__.py:89`
 `main.py:143-155` (호출)
 
 ### 입력
+
 ```python
 result, scheduler = run_scheduler_pipeline(
     dag_df=dag_df,                                      # create_complete_dag_system() 출력
@@ -470,18 +535,22 @@ result, scheduler = run_scheduler_pipeline(
 ```
 
 ### 처리 과정
+
 이 함수는 스케줄링 준비부터 실행까지 전체 파이프라인을 자동으로 처리합니다:
 
 1. **디스패치 규칙 생성** (`create_dispatch_rule`)
+
    - dag_df와 sequence_seperated_order 기반으로 우선순위 생성
    - 우선순위 정렬된 노드 ID 리스트 생성
 
 2. **DelayProcessor 초기화**
+
    - 공정 교체 지연시간 설정 (operation_delay_df)
    - 폭 변경 지연시간 설정 (width_change_df)
    - 배합액 교체 지연시간 설정
 
 3. **Scheduler 초기화 및 자원 할당**
+
    - 기계별 자원 할당 (`allocate_resources`)
    - 기계 다운타임 적용 (`allocate_machine_downtime`)
 
@@ -492,6 +561,7 @@ result, scheduler = run_scheduler_pipeline(
    - **시간 계산**: 선행 작업 완료, 기계 가용 시간, 지연시간 모두 반영
 
 ### 출력
+
 ```python
 (
     result,     # pd.DataFrame: 스케줄링 결과
@@ -500,6 +570,7 @@ result, scheduler = run_scheduler_pipeline(
 ```
 
 #### `result` 주요 컬럼
+
 - `ID`: 노드 ID
 - `node_start`: 작업 시작 시간 (time slot)
 - `node_end`: 작업 종료 시간 (time slot)
@@ -509,6 +580,7 @@ result, scheduler = run_scheduler_pipeline(
 - 기타 노드 정보
 
 ### 비고
+
 - 이 함수는 wrapper function으로, 복잡한 스케줄링 파이프라인을 단순하게 호출 가능
 - 배합액 최적화가 포함된 SetupMinimizedStrategy 자동 적용
 - opnode_dict의 SELECTED_CHEMICAL가 이 단계에서 동적으로 설정됨
@@ -519,15 +591,18 @@ result, scheduler = run_scheduler_pipeline(
 ## 8. Results Processing - 결과 후처리
 
 ### 함수명
-`create_new_results()` ⭐ 변경됨
+
+`create_results()` ⭐ 변경됨
 
 ### 위치
-`src/new_results/__init__.py:create_new_results()`
+
+`src/results/__init__.py:create_results()`
 `main.py:162-170` (호출)
 
 ### 입력
+
 ```python
-final_results = create_new_results(
+final_results = create_results(
     raw_scheduling_result=result,                       # run_scheduler_pipeline() 출력
     merged_df=merged_df,                                # create_complete_dag_system() 출력
     original_order=order,                               # processed_data['order_data']
@@ -541,17 +616,21 @@ final_results = create_new_results(
 ### 처리 과정
 
 1. **PerformanceMetrics**: 성과 지표 계산 ⭐ 신규
+
    - PO 개수, makespan, 납기준수율, 평균 장비가동률 계산
 
 2. **MachineDetailedAnalyzer**: 장비별 상세 성과 분석 ⭐ 신규
+
    - 기계별 작업 수, 가동시간, 가동률 계산
    - 간격(gap) 분석
 
 3. **OrderLatenessReporter**: 주문 지각 정보 분석 ⭐ 신규
+
    - 주문별 납기 대비 완료 일자 계산
    - 지각일수, 준수 여부 판정
 
 4. **SimplifiedGapAnalyzer**: 간격 분석 ⭐ 신규
+
    - 작업 간 간격(gap) 상세 분석
    - 지연시간 세부 분류
 
@@ -560,7 +639,9 @@ final_results = create_new_results(
    - 타임라인 정리
 
 ### 출력
+
 `final_results` (dict):
+
 ```python
 {
     # ===== 메타데이터 =====
@@ -596,7 +677,8 @@ final_results = create_new_results(
 
 #### Excel 시트별 상세 구조
 
-##### 시트1: 스케줄링_성과_지표
+##### 시트1: 스케줄링*성과*지표
+
 ```python
 [
     {'지표명': 'PO제품수', '값': 100, '단위': '개'},
@@ -606,19 +688,24 @@ final_results = create_new_results(
 ]
 ```
 
-##### 시트2: 호기_정보
+##### 시트2: 호기\_정보
+
 - 컬럼: `machineno`, `node_id`, `작업시작시각`, `작업종료시각`, 기타
 
-##### 시트3: 장비별_상세_성과
+##### 시트3: 장비별*상세*성과
+
 - 컬럼: `machineno`, `작업수`, `가동시간`, `가동률`, `간격합계`, 기타
 
-##### 시트4: 주문_지각_정보
+##### 시트4: 주문*지각*정보
+
 - 컬럼: `PoNo`, `GitemNo`, `납기일`, `완료일`, `지각일수`, `준수여부`
 
-##### 시트5: 간격_분석
+##### 시트5: 간격\_분석
+
 - 컬럼: `machineno`, `작업1`, `작업2`, `간격`, `간격유형`, 기타
 
 ### 비고
+
 - 이 모듈이 최종 사용자에게 보여질 모든 결과 생성
 - Excel 파일 생성 (5개 시트)
 - 기존 `create_results()` 대체 ⭐
@@ -628,19 +715,24 @@ final_results = create_new_results(
 ## 9. 파일 저장 (Final Output)
 
 ### 위치
+
 `main.py:196-230`
 
 ### 저장되는 파일
 
 #### 9-1. 원본 결과 (임시)
+
 **파일**: `data/output/result.xlsx`
 **내용**: `result` DataFrame 그대로 저장
+
 ```python
 result.to_excel(excel_filename, index=False)
 ```
 
 #### 9-2. 최종 결과 Excel (5개 시트) ⭐ 변경됨
+
 **파일**: `data/output/0829 스케줄링결과.xlsx`
+
 ```python
 with pd.ExcelWriter(processed_filename, engine="openpyxl") as writer:
     # 1. 스케줄링 성과 지표
@@ -670,6 +762,7 @@ with pd.ExcelWriter(processed_filename, engine="openpyxl") as writer:
 ```
 
 ### 출력 요약
+
 ```
 data/output/result.xlsx                # 원본 결과 (임시)
 data/output/0829 스케줄링결과.xlsx      # 최종 결과 (5개 시트)
@@ -743,7 +836,7 @@ data/output/0829 스케줄링결과.xlsx      # 최종 결과 (5개 시트)
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│  8. create_new_results()                                        │
+│  8. create_results()                                        │
 │     ├─ PerformanceMetrics: 성과 지표 계산                        │
 │     ├─ MachineDetailedAnalyzer: 장비별 상세 성과                 │
 │     ├─ OrderLatenessReporter: 주문 지각 정보                     │
@@ -765,6 +858,7 @@ data/output/0829 스케줄링결과.xlsx      # 최종 결과 (5개 시트)
 백엔드 서비스에서 각 모듈을 API 엔드포인트로 노출할 경우:
 
 ### 옵션 1: 단일 엔드포인트 (권장)
+
 ```
 POST /api/scheduling/run
 - 전체 파이프라인을 한 번에 실행
@@ -773,6 +867,7 @@ POST /api/scheduling/run
 ```
 
 **요청 예시**:
+
 ```json
 {
   "files": {
@@ -793,6 +888,7 @@ POST /api/scheduling/run
 ```
 
 ### 옵션 2: 단계별 엔드포인트
+
 ```
 POST /api/scheduling/1-validation        → processed_data
 POST /api/scheduling/2-machine-mapper    → machine_mapper
@@ -805,6 +901,7 @@ POST /api/scheduling/8-results           → final_results
 ```
 
 ### 옵션 3: 하이브리드 (추천)
+
 ```
 POST /api/scheduling/preprocess          → 1+2+3+4+5 통합 (데이터 준비)
 POST /api/scheduling/schedule            → 6+7 통합 (스케줄링 실행, 시간 소모 단계)
@@ -816,28 +913,33 @@ POST /api/scheduling/postprocess         → 8 (결과 처리)
 ## 주요 변경사항 (v3.0)
 
 ### 1. MachineMapper 도입 ⭐
+
 - 기계 인덱스 → machineno 기반으로 변경
 - 기계 정보 조회 중앙화
 - `machine_master_info` 대신 `machine_mapper` 사용
 
-### 2. new_results 모듈 사용 ⭐
-- `create_results()` → `create_new_results()`
+### 2. results 모듈 사용 ⭐
+
+- `create_results()` → `create_results()`
 - 5개 시트로 결과 재구성:
-  1. 스케줄링_성과_지표
-  2. 호기_정보
-  3. 장비별_상세_성과
-  4. 주문_지각_정보
-  5. 간격_분석
+  1. 스케줄링*성과*지표
+  2. 호기\_정보
+  3. 장비별*상세*성과
+  4. 주문*지각*정보
+  5. 간격\_분석
 
 ### 3. 입력 파일 구조 변경 ⭐
+
 - aging 데이터: 통합 엑셀의 시트로 변경 (tb_agingtime_gitem, tb_agingtime_gbn)
 - global/local machine limit 분리
 
 ### 4. run_scheduler_pipeline 도입 ⭐
+
 - 스케줄링 파이프라인 단순화 (wrapper function)
 - 복잡한 초기화 과정 자동화
 
 ### 5. 수율 적용 로직 개선 ⭐
+
 - GITEM + PROCCODE 기준으로 변경 (기존: GITEM만)
 - 10단위 반올림 추가
 
@@ -846,23 +948,28 @@ POST /api/scheduling/postprocess         → 8 (결과 처리)
 ## 주의사항
 
 1. **데이터 직렬화**
+
    - pandas DataFrame은 JSON으로 직렬화 시 `df.to_dict('records')` 사용
    - datetime 객체는 ISO 8601 문자열로 변환
    - MachineMapper는 pickle로 직렬화 필요
 
 2. **메모리 관리**
+
    - 대용량 DataFrame 전달 시 메모리 사용량 주의
    - 필요시 파일 기반 전달 (임시 파일) 고려
 
 3. **에러 처리**
+
    - 각 단계별 validation 실패 시 명확한 에러 메시지 반환
    - unable_gitems, unable_order 정보 사용자에게 전달
 
 4. **성능**
+
    - 전체 파이프라인 실행 시간: 데이터 크기에 따라 수십 초 ~ 수 분
    - 단계별 실행 시 중간 데이터 캐싱 고려
 
 5. **버전 관리**
+
    - 설정 파라미터 변경 시 API 버전 업데이트
    - 입출력 스키마 변경 시 문서 업데이트 필수
 

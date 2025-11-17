@@ -1,5 +1,6 @@
 """
-주문-공정 병합 처리 통합 모듈 (merge_results + order_merge_processor 통합)
+주문-공정 병합 처리 통합 모듈 (results 전용)
+merge_results + order_merge_processor 통합
 """
 
 import pandas as pd

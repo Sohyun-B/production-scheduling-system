@@ -17,7 +17,6 @@ class DataValidator:
         self.warnings = []
         self.gitem_proccode_pairs: Set[Tuple[str, str]] = set()
         self.cleaned_data = {}
-        self.validation_issues = []  # JSON 형식의 검증 이슈 저장
 
     def validate_all(
         self,
@@ -70,7 +69,6 @@ class DataValidator:
             'errors': self.errors,
             'warnings': self.warnings,
             'gitem_proccode_pairs': self.gitem_proccode_pairs,
-            'validation_issues': self.validation_issues  # JSON 형식 이슈 추가
         }
 
         self._print_summary(result)
@@ -101,20 +99,6 @@ class DataValidator:
                 warning_msg = f"[제품군-GITEM-SITEM] PO정보의 (제품코드={gitem}, 규격={spec}) 조합이 제품군-GITEM-SITEM 테이블에 존재하지 않습니다."
                 self.warnings.append(warning_msg)
                 
-                # JSON 이슈 추가
-                self.validation_issues.append({
-                    "table_name": "tb_itemspec",
-                    "severity": "warning",
-                    "columns": ["gitemno", "spec"],
-                    "constraint": "existence",
-                    "issue_type": "missing",
-                    "values": {
-                        "gitemno": str(gitem),
-                        "spec": str(spec)
-                    },
-                    "action_taken": "none"
-                })
-                
                 print(f"  - 제품코드: {gitem}, 규격: {spec}")
         else:
             print(f"[PASS] 검증 통과: PO정보의 모든 (제품코드, 규격) 조합이 존재합니다.")
@@ -134,20 +118,6 @@ class DataValidator:
             for gitem in missing_gitems:
                 error_msg = f"[GITEM-공정-순서] PO정보의 제품코드={gitem}가 GITEM-공정-순서 테이블에 존재하지 않습니다."
                 self.errors.append(error_msg)
-                
-                # JSON 이슈 추가
-                self.validation_issues.append({
-                    "table_name": "tb_itemproc",
-                    "severity": "error",
-                    "columns": ["gitemno"],
-                    "constraint": "existence",
-                    "issue_type": "missing",
-                    "values": {
-                        "gitemno": str(gitem)
-                    },
-                    "action_taken": "none"
-                })
-                
                 print(f"  - 제품코드: {gitem}")
 
         # 각 GitemNo별 PROCSEQ 연속성 확인
@@ -165,19 +135,7 @@ class DataValidator:
                 error_msg = f"[GITEM-공정-순서] 제품코드={gitem}의 공정순서(PROCSEQ)가 연속적이지 않습니다. 현재: {procseq_values}, 예상: {expected_seq}"
                 self.errors.append(error_msg)
                 seq_errors.append((gitem, procseq_values, expected_seq))
-                
-                # JSON 이슈 추가
-                self.validation_issues.append({
-                    "table_name": "tb_itemproc",
-                    "severity": "error",
-                    "columns": ["gitemno"],
-                    "constraint": "sequence_continuity",
-                    "issue_type": "invalid_sequence",
-                    "values": {
-                        "gitemno": str(gitem)
-                    },
-                    "action_taken": "none"
-                })
+
             else:
                 # 정상이면 (GitemNo, PROCCODE) 쌍 저장
                 for _, row in gitem_operations.iterrows():
@@ -219,40 +177,10 @@ class DataValidator:
                 error_msg = f"[수율-GITEM등] (제품코드={gitem}, 공정코드={proccode})가 수율-GITEM등 테이블에 존재하지 않습니다."
                 self.errors.append(error_msg)
                 missing_pairs.append((gitem, proccode))
-
-                # JSON 이슈 추가
-                self.validation_issues.append({
-                    "table_name": "tb_productionyield",
-                    "severity": "error",
-                    "columns": ["gitemno", "proccode"],
-                    "constraint": "existence",
-                    "issue_type": "missing",
-                    "values": {
-                        "gitemno": str(gitem),
-                        "proccode": str(proccode)
-                    },
-                    "action_taken": "none"
-                })
-
             elif row_count > 1:
                 warning_msg = f"[수율-GITEM등] (제품코드={gitem}, 공정코드={proccode})가 수율-GITEM등 테이블에 {row_count}개 행으로 중복 존재합니다. (전처리에서 첫 번째 행만 유지)"
                 self.warnings.append(warning_msg)
                 duplicate_pairs.append((gitem, proccode, row_count))
-
-                # JSON 이슈 추가
-                self.validation_issues.append({
-                    "table_name": "tb_productionyield",
-                    "severity": "warning",
-                    "columns": ["gitemno", "proccode"],
-                    "constraint": "uniqueness",
-                    "issue_type": "duplicate",
-                    "duplicate_count": row_count,
-                    "values": {
-                        "gitemno": str(gitem),
-                        "proccode": str(proccode)
-                    },
-                    "action_taken": "keep_first"
-                })
 
         if missing_pairs:
             print(f"[ERROR] 수율 데이터가 없는 (제품코드, 공정코드) 쌍 ({len(missing_pairs)}건)")
@@ -294,39 +222,10 @@ class DataValidator:
                 self.errors.append(error_msg)
                 missing_pairs.append((gitem, proccode))
                 
-                # JSON 이슈 추가
-                self.validation_issues.append({
-                    "table_name": "tb_linespeed",
-                    "severity": "error",
-                    "columns": ["gitemno", "proccode"],
-                    "constraint": "existence",
-                    "issue_type": "missing",
-                    "values": {
-                        "gitemno": str(gitem),
-                        "proccode": str(proccode)
-                    },
-                    "action_taken": "none"
-                })
-                
             elif row_count > 1:
                 warning_msg = f"[라인스피드-GITEM등] (제품코드={gitem}, 공정코드={proccode})가 라인스피드-GITEM등 테이블에 {row_count}개 행으로 중복 존재합니다. (전처리에서 첫 번째 행만 유지)"
                 self.warnings.append(warning_msg)
                 duplicate_pairs.append((gitem, proccode, row_count))
-                
-                # JSON 이슈 추가
-                self.validation_issues.append({
-                    "table_name": "tb_linespeed",
-                    "severity": "warning",
-                    "columns": ["gitemno", "proccode"],
-                    "constraint": "uniqueness",
-                    "issue_type": "duplicate",
-                    "duplicate_count": row_count,
-                    "values": {
-                        "gitemno": str(gitem),
-                        "proccode": str(proccode)
-                    },
-                    "action_taken": "keep_first"
-                })
 
         if missing_pairs:
             print(f"[ERROR] 라인스피드 데이터가 없는 (제품코드, 공정코드) 쌍 ({len(missing_pairs)}건)")
@@ -368,40 +267,11 @@ class DataValidator:
                 self.warnings.append(warning_msg)
                 missing_pairs.append((gitem, proccode))
                 
-                # JSON 이슈 추가 (누락은 경고)
-                self.validation_issues.append({
-                    "table_name": "tb_chemical",
-                    "severity": "warning",
-                    "columns": ["gitemno", "proccode"],
-                    "constraint": "existence",
-                    "issue_type": "missing",
-                    "values": {
-                        "gitemno": str(gitem),
-                        "proccode": str(proccode)
-                    },
-                    "action_taken": "none"
-                })
-                
             elif row_count > 1:
                 error_msg = f"[배합액정보] (제품코드={gitem}, 공정코드={proccode})가 배합액정보 테이블에 {row_count}개 행으로 중복 존재합니다."
                 self.errors.append(error_msg)
                 duplicate_pairs.append((gitem, proccode, row_count))
                 
-                # JSON 이슈 추가 (중복은 오류)
-                self.validation_issues.append({
-                    "table_name": "tb_chemical",
-                    "severity": "error",
-                    "columns": ["gitemno", "proccode"],
-                    "constraint": "uniqueness",
-                    "issue_type": "duplicate",
-                    "duplicate_count": row_count,
-                    "values": {
-                        "gitemno": str(gitem),
-                        "proccode": str(proccode)
-                    },
-                    "action_taken": "none"
-                })
-
         if missing_pairs:
             print(f"[WARNING] 배합액 데이터가 없는 (제품코드, 공정코드) 쌍 ({len(missing_pairs)}건)")
             print(f"   (배합액이 필요 없는 공정일 수 있습니다)")

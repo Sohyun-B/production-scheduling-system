@@ -1,5 +1,6 @@
 """
-간트차트 생성 전용 모듈 (scheduler의 DrawChart를 results로 이동)
+간트차트 생성 전용 모듈 (results 전용)
+scheduler의 DrawChart를 results로 이동
 """
 
 import os
