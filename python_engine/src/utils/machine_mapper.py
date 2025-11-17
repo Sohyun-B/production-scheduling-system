@@ -6,7 +6,7 @@ MachineMapper 클래스를 통해 machineindex, machineno, machinename 간의
 """
 
 import pandas as pd
-from typing import Dict, List, Optional
+from typing import List, Optional
 from config import config
 
 class MachineMapper:
@@ -18,8 +18,7 @@ class MachineMapper:
 
     Attributes:
         _machine_master_info (pd.DataFrame): 원본 기계 마스터 정보
-        _code_to_name (Dict[str, str]): machineno → machinename
-        _name_to_code (Dict[str, str]): machinename → machineno
+        _code_to_name (dict): machineno → machinename 매핑
     """
 
     def __init__(self, machine_master_info: pd.DataFrame):
@@ -60,9 +59,6 @@ class MachineMapper:
         # Code → Name
         self._code_to_name = dict(zip(df[config.columns.MACHINE_CODE], df[config.columns.MACHINE_NAME]))
 
-        # Name → Code
-        self._name_to_code = dict(zip(df[config.columns.MACHINE_NAME], df[config.columns.MACHINE_CODE]))
-
     # === Public API: Code ↔ Name ===
 
     def code_to_name(self, code: str) -> Optional[str]:
@@ -81,42 +77,6 @@ class MachineMapper:
         """
         return self._code_to_name.get(code)
 
-    def code_to_info(self, code: str) -> Optional[Dict]:
-        """
-        machineno → {name} 변환
-
-        Args:
-            code (str): 기계 코드
-
-        Returns:
-            Optional[Dict]: {'name': machinename} (없으면 None)
-
-        Example:
-            >>> mapper.code_to_info('C2010')
-            {'name': '염색1호기_WIN'}
-        """
-        name = self._code_to_name.get(code)
-        if name is None:
-            return None
-        return {'name': name}
-
-    # === Public API: Name → Code ===
-
-    def name_to_code(self, name: str) -> Optional[str]:
-        """
-        machinename → machineno 변환
-
-        Args:
-            name (str): 기계명
-
-        Returns:
-            Optional[str]: 기계 코드 (없으면 None)
-
-        Example:
-            >>> mapper.name_to_code('염색1호기_WIN')
-            'C2010'
-        """
-        return self._name_to_code.get(name)
 
     # === Public API: Bulk Operations ===
 
@@ -133,18 +93,6 @@ class MachineMapper:
         """
         return self._machine_master_info[config.columns.MACHINE_CODE].tolist()
 
-    def get_all_names(self) -> List[str]:
-        """
-        모든 machinename 리스트 반환 (machineno 정렬 순서)
-
-        Returns:
-            List[str]: 기계명 리스트
-
-        Example:
-            >>> mapper.get_all_names()
-            ['AgNW2호기', '코팅1호기_WIN', '코팅25호기_WIN', ...]
-        """
-        return self._machine_master_info[config.columns.MACHINE_NAME].tolist()
 
     def get_machine_count(self) -> int:
         """
@@ -159,96 +107,7 @@ class MachineMapper:
         """
         return len(self._machine_master_info)
 
-    def get_master_info(self) -> pd.DataFrame:
-        """
-        원본 machine_master_info 반환 (복사본)
-
-        Returns:
-            pd.DataFrame: 기계 마스터 정보 복사본
-        """
-        return self._machine_master_info.copy()
-
-    # === Validation Helpers ===
-
-    def validate_machine_order(self, machine_columns: List[str]) -> bool:
-        """
-        machine_columns 순서가 machine_master_info와 일치하는지 검증
-
-        Args:
-            machine_columns (List[str]): 검증할 기계 코드 리스트
-
-        Returns:
-            bool: 순서가 일치하면 True, 아니면 False
-
-        Example:
-            >>> mapper.validate_machine_order(['C2010', 'C2250', 'C2260'])
-            True
-            >>> mapper.validate_machine_order(['C2250', 'C2010', 'C2260'])
-            False
-        """
-        expected_order = self.get_all_codes()
-
-        # machine_columns가 expected_order의 부분집합인지 확인
-        # (모든 기계가 포함되지 않을 수 있으므로)
-        if not all(code in expected_order for code in machine_columns):
-            return False
-
-        # 순서 확인: expected_order에서 machine_columns의 순서를 추출했을 때 동일한지
-        filtered_expected = [code for code in expected_order if code in machine_columns]
-        return filtered_expected == machine_columns
-
-    def validate_linespeed_columns(self, linespeed_df: pd.DataFrame,
-                                  key_columns: List[str] = None) -> tuple:
-        """
-        linespeed DataFrame의 기계 컬럼이 machine_master_info와 일치하는지 검증
-
-        Args:
-            linespeed_df (pd.DataFrame): 검증할 linespeed DataFrame
-            key_columns (List[str]): 제외할 키 컬럼들 (기본값: [config.columns.GITEM, config.columns.OPERATION_CODE])
-
-        Returns:
-            tuple: (is_valid: bool, missing: List[str], extra: List[str])
-                - is_valid: 모든 기계 코드가 일치하면 True
-                - missing: machine_master_info에는 있지만 linespeed에 없는 기계
-                - extra: linespeed에는 있지만 machine_master_info에 없는 기계
-        """
-        if key_columns is None:
-            key_columns = [config.columns.GITEM, config.columns.OPERATION_CODE]
-
-        # linespeed의 기계 컬럼 추출
-        linespeed_machine_cols = [col for col in linespeed_df.columns
-                                  if col not in key_columns]
-
-        expected_codes = set(self.get_all_codes())
-        actual_codes = set(linespeed_machine_cols)
-
-        missing = list(expected_codes - actual_codes)
-        extra = list(actual_codes - expected_codes)
-
-        is_valid = len(missing) == 0 and len(extra) == 0
-
-        return is_valid, missing, extra
-
     # === String Representation ===
-
-    def format_machine_info(self, code: str) -> str:
-        """
-        기계 정보를 사람이 읽기 쉬운 형태로 포맷팅
-
-        Args:
-            code (str): 기계 코드
-
-        Returns:
-            str: 포맷된 기계 정보 문자열
-
-        Example:
-            >>> mapper.format_machine_info('C2010')
-            '코팅1호기_WIN (C2010)'
-        """
-        name = self.code_to_name(code)
-        if name is None:
-            return f"Unknown machine [{code}]"
-        return f"{name} ({code})"
 
     def __repr__(self) -> str:
         """

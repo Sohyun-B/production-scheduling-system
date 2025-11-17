@@ -74,7 +74,6 @@ class ProductionDataPreprocessor:
         """
         라인스피드 데이터 전처리 (Long Format 유지)
 
-        ⚠️ 리팩토링: Pivot 제거 - 원본 Long Format 유지
         전처리만 수행 (검증은 validation 단계에서 이미 완료됨)
 
         Args:
@@ -98,6 +97,9 @@ class ProductionDataPreprocessor:
         linespeed, linespeed_cols = self._select_period_columns(
             linespeed, linespeed_period, 'l', period_mapping
         )
+
+        # 0을 NaN으로 변경
+        linespeed = linespeed.replace(0, np.nan)
 
         # NaN이 아닌 첫 번째 값으로 linespeed 컬럼 생성
         linespeed['selected_linespeed'] = linespeed[linespeed_cols].bfill(axis=1).iloc[:, 0]
