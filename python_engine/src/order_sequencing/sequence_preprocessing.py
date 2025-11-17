@@ -26,15 +26,26 @@ def process_operations_by_category(merged_df):
                 
                 
                 paired_order = combiner.process(notnan_bh)
-                
+
                 if not paired_order.empty:
-                    paired_order[config.columns.ID] = (
-                        str(gitem) + "_" + 
-                        paired_order[config.columns.OPERATION_CODE].astype(str) + "_" +
-                        paired_order[config.columns.FABRIC_WIDTH].round().astype(int).astype(str) + "_" + 
-                        paired_order[config.columns.CHEMICAL_LIST].astype(str) + "_" +
-                        paired_order[config.columns.COMBINATION_CLASSIFICATION].astype(str)
+                    # PRODUCT_ID와 PROCESS_ID를 한 번에 생성 (월 포함)
+                    # paired_order에 이미 DUE_DATE가 있으므로 처음부터 월 정보 포함
+
+                    # PRODUCT_ID 생성 (월 포함)
+                    paired_order[config.columns.PRODUCT_ID] = (
+                        str(gitem) + "_" +
+                        paired_order[config.columns.FABRIC_WIDTH].round().astype(int).astype(str) + "_" +
+                        paired_order[config.columns.COMBINATION_CLASSIFICATION].astype(str) + "_M" +
+                        paired_order[config.columns.DUE_DATE].dt.month.astype(str)
                     )
+
+                    # PROCESS_ID 생성 (PRODUCT_ID 기반)
+                    paired_order[config.columns.PROCESS_ID] = (
+                        paired_order[config.columns.PRODUCT_ID] + "_" +
+                        paired_order[config.columns.OPERATION_CODE].astype(str) + "_" +
+                        paired_order[config.columns.CHEMICAL_LIST].astype(str)
+                    )
+
                     results.append(paired_order)
 
             if not nan_bh.empty:
@@ -61,9 +72,9 @@ def create_sequence_seperated_order(order_list, operation_seperated_sequence):
     
     # 결과를 하나의 DataFrame으로 병합
     sequence_seperated_order = pd.concat(sequence_seperated_order_list, ignore_index=True)
-    
-    # 해시 생성 후 ID에 추가
-    sequence_seperated_order[config.columns.ID] = sequence_seperated_order[config.columns.ID].astype(str) + "_M" + sequence_seperated_order[config.columns.DUE_DATE].dt.month.astype(str)
+
+    # OPERATION_ORDER 타입 변환만 유지
     sequence_seperated_order[config.columns.OPERATION_ORDER] = sequence_seperated_order[config.columns.OPERATION_ORDER].astype(int)
+
     return sequence_seperated_order
     

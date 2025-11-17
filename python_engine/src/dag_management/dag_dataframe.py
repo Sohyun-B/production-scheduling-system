@@ -72,13 +72,13 @@ class Create_dag_dataframe:
         for node, depth in node_depth_map.items():
             children = sorted(self.node_registry.get(node, set()))  # 자식 노드 정렬
             dag_data.append({
-                'ID': node,
-                'DEPTH': depth,  # 원본 계층 깊이 유지
-                'CHILDREN': ', '.join(children) if children else ''  # 자식 목록 문자열화
+                config.columns.PROCESS_ID: node,
+                config.columns.DEPTH: depth,  # 원본 계층 깊이 유지
+                config.columns.CHILDREN: ', '.join(children) if children else ''  # 자식 목록 문자열화
             })
     
         # 깊이 → 노드ID 순으로 정렬 후 반환
-        return pd.DataFrame(dag_data).sort_values(['DEPTH', 'ID'])
+        return pd.DataFrame(dag_data).sort_values([config.columns.DEPTH, config.columns.PROCESS_ID])
 
 class DAGNode:
     def __init__(self, node_id, depth, is_aging=False):
@@ -127,7 +127,7 @@ def make_process_table(df):
     pivot_df = df_exploded.pivot_table(
         index=[config.columns.PO_NO],
         columns='operation_col',
-        values=config.columns.ID,
+        values=config.columns.PROCESS_ID,
         aggfunc='first'
     ).reset_index()
 
@@ -193,7 +193,7 @@ def parse_aging_requirements(aging_df, sequence_seperated_order):
         ]
 
         for _, match_row in matches.iterrows():
-            parent_node_id = match_row[config.columns.ID]
+            parent_node_id = match_row[config.columns.PROCESS_ID]
             aging_node_id = f"{parent_node_id}_AGING"
 
             # 다음 노드 찾기 (같은 P/O NO, operation_order + 1)
@@ -210,7 +210,7 @@ def parse_aging_requirements(aging_df, sequence_seperated_order):
                 (sequence_seperated_order[config.columns.OPERATION_ORDER] == next_op_order)
             ]
 
-            next_node_id = next_node.iloc[0][config.columns.ID] if len(next_node) > 0 else None
+            next_node_id = next_node.iloc[0][config.columns.PROCESS_ID] if len(next_node) > 0 else None
 
             aging_map[parent_node_id] = {
                 "aging_time": aging_time,
@@ -244,12 +244,12 @@ def normalize_depths_post_aging(dag_df):
     # 1. Source 노드 찾기 (parent가 없는 노드)
     source_nodes = []
     for idx, row in result_df.iterrows():
-        node_id = row['ID']
+        node_id = row[config.columns.PROCESS_ID]
         is_source = True
 
         # 다른 노드가 이 노드를 children으로 가지는지 확인
         for idx2, row2 in result_df.iterrows():
-            children_str = row2['CHILDREN']
+            children_str = row2[config.columns.CHILDREN]
             if isinstance(children_str, str) and children_str.strip():
                 children_list = [c.strip() for c in children_str.split(',') if c.strip()]
                 if node_id in children_list:
@@ -286,9 +286,9 @@ def normalize_depths_post_aging(dag_df):
         depth_map[current_id] = new_depth
 
         # 현재 노드의 자식 찾기
-        current_row = result_df[result_df['ID'] == current_id]
+        current_row = result_df[result_df[config.columns.PROCESS_ID] == current_id]
         if not current_row.empty:
-            children_str = current_row.iloc[0]['CHILDREN']
+            children_str = current_row.iloc[0][config.columns.CHILDREN]
             if isinstance(children_str, str) and children_str.strip():
                 children_list = [c.strip() for c in children_str.split(',') if c.strip()]
 
@@ -298,18 +298,18 @@ def normalize_depths_post_aging(dag_df):
 
     # 3. depth_map을 DataFrame에 적용
     for node_id, new_depth in depth_map.items():
-        mask = result_df['ID'] == node_id
-        old_depth = result_df.loc[mask, 'DEPTH'].values[0] if mask.any() else None
-        result_df.loc[mask, 'DEPTH'] = new_depth
+        mask = result_df[config.columns.PROCESS_ID] == node_id
+        old_depth = result_df.loc[mask, config.columns.DEPTH].values[0] if mask.any() else None
+        result_df.loc[mask, config.columns.DEPTH] = new_depth
 
         if old_depth != new_depth:
             print(f"[INFO] Normalize: {node_id} depth {old_depth} → {new_depth}")
 
     # 4. 최종 정렬
-    result_df = result_df.sort_values(['DEPTH', 'ID']).reset_index(drop=True)
+    result_df = result_df.sort_values([config.columns.DEPTH, config.columns.PROCESS_ID]).reset_index(drop=True)
 
     # 5. 검증: 모든 depth가 unique한지 확인
-    unique_depths = result_df['DEPTH'].nunique()
+    unique_depths = result_df[config.columns.DEPTH].nunique()
     total_rows = len(result_df)
 
     if unique_depths == total_rows:
@@ -317,10 +317,10 @@ def normalize_depths_post_aging(dag_df):
     else:
         print(f"[WARN] [NG] Depth 중복 여전히 존재: {total_rows}개 노드 중 {unique_depths}개만 unique")
         # 중복된 depth 출력
-        duplicates = result_df[result_df.duplicated(subset=['DEPTH'], keep=False)]
-        print(f"[WARN] 중복된 depth: {duplicates[['ID', 'DEPTH']].values.tolist()}")
+        duplicates = result_df[result_df.duplicated(subset=[config.columns.DEPTH], keep=False)]
+        print(f"[WARN] 중복된 depth: {duplicates[[config.columns.PROCESS_ID, config.columns.DEPTH]].values.tolist()}")
 
-    print(f"[INFO] Normalize 완료: depth 범위 {result_df['DEPTH'].min()}-{result_df['DEPTH'].max()}")
+    print(f"[INFO] Normalize 완료: depth 범위 {result_df[config.columns.DEPTH].min()}-{result_df[config.columns.DEPTH].max()}")
 
     return result_df
 
@@ -349,7 +349,7 @@ def shift_depths_after_aging(aging_node_id, aging_depth, df):
         print(f"[ERROR] df is not a DataFrame")
         return df
 
-    if aging_node_id not in df['ID'].values:
+    if aging_node_id not in df[config.columns.PROCESS_ID].values:
         print(f"[WARN] Aging node {aging_node_id} not found in DataFrame, skipping shift")
         return df
 
@@ -365,19 +365,19 @@ def shift_depths_after_aging(aging_node_id, aging_depth, df):
         visited.add(current_id)
 
         # 현재 노드의 자식들 찾기 (CHILDREN 컬럼 사용)
-        current_row = df[df['ID'] == current_id]
+        current_row = df[df[config.columns.PROCESS_ID] == current_id]
         if current_row.empty:
             continue
 
-        children_str = current_row.iloc[0]['CHILDREN']
+        children_str = current_row.iloc[0][config.columns.CHILDREN]
         if isinstance(children_str, str) and children_str.strip():
             children_list = [c.strip() for c in children_str.split(',') if c.strip()]
 
             for child_id in children_list:
                 # 자식 노드의 depth 확인
-                child_row = df[df['ID'] == child_id]
+                child_row = df[df[config.columns.PROCESS_ID] == child_id]
                 if not child_row.empty:
-                    child_depth = child_row.iloc[0]['DEPTH']
+                    child_depth = child_row.iloc[0][config.columns.DEPTH]
 
                     # ✅ FIX: 더 명확한 조건
                     # Aging depth 이상인 후손들만 shift 대상
@@ -393,10 +393,10 @@ def shift_depths_after_aging(aging_node_id, aging_depth, df):
               f"{len(descendants)}개 후손 노드의 depth +1 증가")
 
         # ✅ FIX: 더 명확한 로깅
-        mask = df['ID'].isin(descendants)
-        before_depths = df.loc[mask, 'DEPTH'].copy()
-        df.loc[mask, 'DEPTH'] = df.loc[mask, 'DEPTH'] + 1
-        after_depths = df.loc[mask, 'DEPTH'].copy()
+        mask = df[config.columns.PROCESS_ID].isin(descendants)
+        before_depths = df.loc[mask, config.columns.DEPTH].copy()
+        df.loc[mask, config.columns.DEPTH] = df.loc[mask, config.columns.DEPTH] + 1
+        after_depths = df.loc[mask, config.columns.DEPTH].copy()
 
         # 검증: depth가 실제로 증가했는지 확인
         if (after_depths == before_depths + 1).all():
@@ -439,17 +439,17 @@ def insert_aging_nodes_to_dag(dag_df, aging_map):
         next_node_id = aging_info['next_node_id']
 
         # 1. 현재 dag_df에서 parent의 최신 depth 읽기 ✅ (KEY FIX)
-        parent_row = result_df[result_df['ID'] == parent_node_id]
+        parent_row = result_df[result_df[config.columns.PROCESS_ID] == parent_node_id]
         if parent_row.empty:
             print(f"[WARN] Parent node {parent_node_id} not found in DAG, skipping")
             continue
 
-        parent_depth = parent_row.iloc[0]['DEPTH']
+        parent_depth = parent_row.iloc[0][config.columns.DEPTH]
         aging_depth = parent_depth + 1  # ← 최신 depth 사용!
 
         # 2. Parent의 CHILDREN 수정
         idx = parent_row.index[0]
-        children = result_df.at[idx, 'CHILDREN']
+        children = result_df.at[idx, config.columns.CHILDREN]
         if isinstance(children, str):
             children_list = [c.strip() for c in children.split(',') if c.strip()]
         else:
@@ -459,13 +459,13 @@ def insert_aging_nodes_to_dag(dag_df, aging_map):
         if next_node_id and next_node_id in children_list:
             children_list.remove(next_node_id)
         children_list.append(aging_node_id)
-        result_df.at[idx, 'CHILDREN'] = ', '.join(children_list)
+        result_df.at[idx, config.columns.CHILDREN] = ', '.join(children_list)
 
         # 3. Aging 노드 생성
         aging_row = {
-            'ID': aging_node_id,
-            'DEPTH': aging_depth,
-            'CHILDREN': next_node_id if next_node_id else ''
+            config.columns.PROCESS_ID: aging_node_id,
+            config.columns.DEPTH: aging_depth,
+            config.columns.CHILDREN: next_node_id if next_node_id else ''
         }
 
         # 4. Aging 노드를 dag_df에 추가
@@ -482,10 +482,10 @@ def insert_aging_nodes_to_dag(dag_df, aging_map):
         print(f"[INFO] [{aging_count}/{len(aging_map)}] Aging 노드 '{aging_node_id}' (depth={aging_depth}) 삽입 및 shift 완료")
 
     # 6. 최종 정렬 및 정리
-    result_df = result_df.sort_values(['DEPTH', 'ID']).reset_index(drop=True)
+    result_df = result_df.sort_values([config.columns.DEPTH, config.columns.PROCESS_ID]).reset_index(drop=True)
 
     print(f"[INFO] insert_aging_nodes_to_dag: {aging_count}개의 aging 노드 추가 완료")
-    print(f"[INFO] 최종 depth 범위: {result_df['DEPTH'].min()}-{result_df['DEPTH'].max()}")
+    print(f"[INFO] 최종 depth 범위: {result_df[config.columns.DEPTH].min()}-{result_df[config.columns.DEPTH].max()}")
     print(f"[INFO] 최종 노드 개수: {len(result_df)} (원본: {len(dag_df)}, 추가: {aging_count})")
 
     # 7. ⚠️ normalize_depths_post_aging() 제거

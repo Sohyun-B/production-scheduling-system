@@ -550,10 +550,10 @@ class DispatchPriorityStrategy(HighLevelSchedulingStrategy):
         if config.columns.DUE_DATE not in dag_df.columns:
             # sequence_seperated_order에서 ID별 납기일 매핑 생성
             sequence_seperated_order = kwargs.get('sequence_seperated_order', pd.DataFrame())
-            if sequence_seperated_order.empty or config.columns.ID not in sequence_seperated_order.columns:
+            if sequence_seperated_order.empty or config.columns.PROCESS_ID not in sequence_seperated_order.columns:
                 raise ValueError(f"priority_order가 None이고 dag_df에 {config.columns.DUE_DATE} 컬럼이 없는 경우, sequence_seperated_order가 필요합니다")
             
-            due_date_mapping = sequence_seperated_order.set_index(config.columns.ID)[config.columns.DUE_DATE].to_dict()
+            due_date_mapping = sequence_seperated_order.set_index(config.columns.PROCESS_ID)[config.columns.DUE_DATE].to_dict()
             result = []
             for node_id in priority_order:
                 due_date = due_date_mapping.get(node_id)
@@ -564,7 +564,7 @@ class DispatchPriorityStrategy(HighLevelSchedulingStrategy):
         else:
             result = []
             for node_id in priority_order:
-                due_date = dag_df.loc[dag_df['ID'] == node_id, config.columns.DUE_DATE].values[0]
+                due_date = dag_df.loc[dag_df[config.columns.PROCESS_ID] == node_id, config.columns.DUE_DATE].values[0]
                 result.append((node_id, due_date))
         
         

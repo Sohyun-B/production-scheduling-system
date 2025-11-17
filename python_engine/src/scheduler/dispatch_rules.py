@@ -6,34 +6,34 @@ from config import config
 
 def create_dispatch_rule(dag_df, sequence_seperated_order):
     # --- 전처리 ---
-    dag_df = pd.merge(dag_df, sequence_seperated_order[[config.columns.DUE_DATE, config.columns.FABRIC_WIDTH, config.columns.ID]], on=config.columns.ID, how='left')
-    dag_df[config.columns.CHILDREN.upper()] = dag_df[config.columns.CHILDREN.upper()].apply(lambda x: x if isinstance(x, list) else eval(x) if isinstance(x, str) and len(x)>0 else [])
+    dag_df = pd.merge(dag_df, sequence_seperated_order[[config.columns.DUE_DATE, config.columns.FABRIC_WIDTH, config.columns.PROCESS_ID]], on=config.columns.PROCESS_ID, how='left')
+    dag_df[config.columns.CHILDREN] = dag_df[config.columns.CHILDREN].apply(lambda x: x if isinstance(x, list) else eval(x) if isinstance(x, str) and len(x)>0 else [])
     
     # child → parent 맵, 그리고 parent → children 맵 구축
     children_map = defaultdict(list)
     parents_map = defaultdict(list)
     for idx, row in dag_df.iterrows():
-        parent = row[config.columns.ID]
-        for child in row[config.columns.CHILDREN.upper()]:
+        parent = row[config.columns.PROCESS_ID]
+        for child in row[config.columns.CHILDREN]:
             children_map[parent].append(child)
             parents_map[child].append(parent)
     
-    all_ids = set(dag_df[config.columns.ID])
+    all_ids = set(dag_df[config.columns.PROCESS_ID])
     
     # 본인 기준 parents 개수 계산: 선행해야 하는 작업수
     in_degree = {}
     for idx, row in dag_df.iterrows():
-        node = row['ID']
+        node = row[config.columns.PROCESS_ID]
         # depth 기준으로 진입차수(선행 필요 갯수) 설정
-        if row['DEPTH'] == 1:
+        if row[config.columns.DEPTH] == 1:
             in_degree[node] = 0  # 바로 처리 가능
         else:
             # 자신을 child로 가지고 있는 노드 수 → 부모 수
             in_degree[node] = len(parents_map[node])
     
     # 납기일, 너비, id 정보 dict 빠르게 접근
-    due_dict = dag_df.set_index(config.columns.ID)[config.columns.DUE_DATE].to_dict()
-    width_dict = dag_df.set_index(config.columns.ID)[config.columns.FABRIC_WIDTH].to_dict()
+    due_dict = dag_df.set_index(config.columns.PROCESS_ID)[config.columns.DUE_DATE].to_dict()
+    width_dict = dag_df.set_index(config.columns.PROCESS_ID)[config.columns.FABRIC_WIDTH].to_dict()
     
     # --- 우선순위 큐 활용 Topological Sort ---
     # heap 항목: (납기일, -원단너비, ID 순)로 heapq 사용
@@ -63,7 +63,7 @@ def allocating_schedule_by_dispatching_priority(dag_df, answer, window_days=5, d
     if dag_scheduler is None:
         raise ValueError("dag_scheduler 인스턴스를 반드시 전달해야 합니다.")
     
-    result = [(ans, dag_df.loc[dag_df[config.columns.ID] == ans, config.columns.DUE_DATE].values[0]) for ans in answer]
+    result = [(ans, dag_df.loc[dag_df[config.columns.PROCESS_ID] == ans, config.columns.DUE_DATE].values[0]) for ans in answer]
 
     while result:
         base_date = result[0][1]

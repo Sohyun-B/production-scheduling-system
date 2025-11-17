@@ -33,11 +33,11 @@ class MachineScheduleProcessor:
         self.machine_schedule_df[config.columns.MACHINE_NAME] = self.machine_schedule_df[config.columns.MACHINE_CODE].map(self.machine_mapping)
 
         # 스케줄 할당 작업 분리
-        self.machine_schedule_df[[config.columns.OPERATION_ORDER, config.columns.ID]] = pd.DataFrame(
+        self.machine_schedule_df[[config.columns.OPERATION_ORDER, config.columns.PROCESS_ID]] = pd.DataFrame(
             self.machine_schedule_df[config.columns.ALLOCATED_WORK].tolist(),
             index=self.machine_schedule_df.index
         )
-        machine_info = self.machine_schedule_df[[config.columns.MACHINE_CODE, config.columns.MACHINE_NAME, config.columns.WORK_START_TIME, config.columns.WORK_END_TIME, config.columns.OPERATION_ORDER, config.columns.ID]].copy()  # ★ MACHINE_INDEX → MACHINE_CODE, MACHINE_NAME 추가
+        machine_info = self.machine_schedule_df[[config.columns.MACHINE_CODE, config.columns.MACHINE_NAME, config.columns.WORK_START_TIME, config.columns.WORK_END_TIME, config.columns.OPERATION_ORDER, config.columns.PROCESS_ID]].copy()  # ★ MACHINE_INDEX → MACHINE_CODE, MACHINE_NAME 추가
         machine_info[config.columns.WORK_START_TIME] = self.base_time + pd.to_timedelta(machine_info[config.columns.WORK_START_TIME] * config.constants.TIME_MULTIPLIER, unit='m')
         machine_info[config.columns.WORK_END_TIME] = self.base_time + pd.to_timedelta(machine_info[config.columns.WORK_END_TIME] * config.constants.TIME_MULTIPLIER, unit='m')
 
@@ -59,10 +59,10 @@ class MachineScheduleProcessor:
         duedate_list = []
 
         for idx, row in machine_info.iterrows():
-            machine_id = row[config.columns.ID]
+            machine_id = row[config.columns.PROCESS_ID]
 
             # 긴 형식에서 해당 process_id로 필터링
-            filtered_rows = process_detail_df[process_detail_df[config.columns.ID] == machine_id]
+            filtered_rows = process_detail_df[process_detail_df[config.columns.PROCESS_ID] == machine_id]
 
             if filtered_rows.empty:
                 # Aging 노드이거나 매칭 실패 시 빈 리스트
@@ -215,7 +215,7 @@ class MachineProcessor:
         
         # GITEM명 및 추가 컬럼 생성
         machine_info = pd.merge(machine_info, order_with_names, on=config.columns.GITEM, how='left')
-        machine_info[config.columns.OPERATION] = machine_info[config.columns.ID].str.split('_').str[1]
+        machine_info[config.columns.OPERATION] = machine_info[config.columns.PROCESS_ID].str.split('_').str[1]
         machine_info[config.columns.WORK_TIME] = machine_info[config.columns.WORK_END_TIME] - machine_info[config.columns.WORK_START_TIME]
         
         print(f"[기계처리] 완료 - 기계 정보: {len(machine_info)}행")

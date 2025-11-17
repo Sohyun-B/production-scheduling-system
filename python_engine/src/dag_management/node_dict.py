@@ -14,7 +14,7 @@ def create_opnode_dict(sequence_seperated_order):
             # 'A|B' -> ('A','B'), 'A' -> ('A',)
             chemical_tuple = tuple(chemical_str.split("|"))
         
-        opnode_dict[row[config.columns.ID]] = {
+        opnode_dict[row[config.columns.PROCESS_ID]] = {
             "OPERATION_ORDER": row[config.columns.OPERATION_ORDER],
             "OPERATION_CODE": row[config.columns.OPERATION_CODE],
             "OPERATION_CLASSIFICATION": row[config.columns.OPERATION_CLASSIFICATION],
@@ -63,7 +63,7 @@ def create_machine_dict(sequence_seperated_order, linespeed, machine_mapper, agi
     all_machine_codes = machine_mapper.get_all_codes()
 
     for _, order_row in sequence_seperated_order.iterrows():
-        node_id = order_row[config.columns.ID]
+        node_id = order_row[config.columns.PROCESS_ID]
         gitem = str(order_row[config.columns.GITEM])
         proccode = str(order_row[config.columns.OPERATION_CODE])
         production_length = float(order_row[config.columns.PRODUCTION_LENGTH])

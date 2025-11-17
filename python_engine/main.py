@@ -39,7 +39,7 @@ def run_level4_scheduling():
         gitem_sitem_df = pd.read_excel(input_file, sheet_name="tb_itemspec", dtype={config.columns.GITEM: str})
         linespeed_df = pd.read_excel(input_file, sheet_name="tb_linespeed", dtype={config.columns.GITEM: str, config.columns.OPERATION_CODE: str})
         operation_df = pd.read_excel(input_file, sheet_name="tb_itemproc", dtype={config.columns.GITEM: str, config.columns.OPERATION_CODE: str})
-        yield_df = pd.read_excel(input_file, sheet_name="tb_productionyield", dtype={config.columns.GITEM: str})
+        yield_df = pd.read_excel(input_file, sheet_name="tb_productionyield", dtype={config.columns.GITEM: str, config.columns.OPERATION_CODE: str})
         chemical_df = pd.read_excel(input_file, sheet_name="tb_chemical", dtype={config.columns.GITEM: str, config.columns.OPERATION_CODE: str})
         operation_delay_df = pd.read_excel(input_file, sheet_name="tb_changetime")
         width_change_df = pd.read_excel(input_file, sheet_name="tb_changewidth")
@@ -114,6 +114,8 @@ def run_level4_scheduling():
     print("[30%] 주문 시퀀스 생성 중...")
     sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = generate_order_sequences(
         order, operation_seperated_sequence, operation_types, local_machine_limit, global_machine_limit, machine_allocate, linespeed, chemical_data)
+
+    sequence_seperated_order.to_csv("sequence_seperated_order_수율이전.csv", encoding='utf-8-sig')
 
     # === 3단계: 수율 예측 ===
     print("[35%] 수율 예측 처리 중...")

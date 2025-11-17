@@ -1,33 +1,58 @@
 import pandas as pd
 from config import config
 
+
 def yield_prediction(yield_data, sequence_seperated_order):
     """
-    yield 계산 전 과정을 한 번에 수행하는 편리 함수.
-    - 전처리
-    - 공정별 예측 수율 계산
-    - 시퀀스별 수율 예측
-    - 수율 매핑에 따른 생산길이 조정 반환
+    yield_data: gitemno, proccode 별 수율 (단위: %)
+    
+    수율에 따라 공정에 길이 추가하는 함수
+    해당 공정이 수행된 뒤
+        production_length: 수율을 고려하여 변경된 해당 공정에 '투입되어야 하는' 길이. 이때 2공정의 투입길이 == 1공정의 완료길이 
+        original_production_length: 수율 고려 이전 주문한 아이템의 길이
     """
-    sequence_seperated_order[config.columns.GITEM] = sequence_seperated_order[config.columns.GITEM].astype(int).astype(str)
-    yield_data[config.columns.GITEM] = yield_data[config.columns.GITEM].astype(int).astype(str)
-    
-    
-    sequence_seperated_order_yield = pd.merge(sequence_seperated_order, yield_data, on = config.columns.GITEM, how = 'left')
-    sequence_seperated_order_yield['product_ratio'] = 100 / sequence_seperated_order_yield['yield']
-    sequence_seperated_order_yield.rename(columns = {"production_length" : "original_production_length"}, inplace = True)
-    sequence_seperated_order_yield['production_length'] = sequence_seperated_order_yield['original_production_length'] * sequence_seperated_order_yield['product_ratio']
-    sequence_seperated_order_yield.drop(columns = {'yield', 'product_ratio'}, inplace = True)
-    sequence_seperated_order_yield
-    
+    # 수율 정보 추가
+    sequence_seperated_order_yield = sequence_seperated_order.merge(yield_data, on = [config.columns.GITEM, config.columns.OPERATION_CODE], how = 'left')
+
+    # item과 process_sequence로 정렬
+    sequence_seperated_order_yield = sequence_seperated_order_yield.sort_values([config.columns.GITEM, config.columns.OPERATION_ORDER]).reset_index(drop=True)
+
+    # item별로 그룹화하여 투입 비율 계산
+    sequence_seperated_order_yield = sequence_seperated_order_yield.groupby(config.columns.GITEM, group_keys=False).apply(calculate_input_ratio)
+
+    sequence_seperated_order_yield.rename(columns = { config.columns.PRODUCTION_LENGTH: config.columns.ORIGINAL_PRODUCTION_LENGTH}, inplace = True)
+    sequence_seperated_order_yield[config.columns.PRODUCTION_LENGTH] = sequence_seperated_order_yield[config.columns.ORIGINAL_PRODUCTION_LENGTH] * sequence_seperated_order_yield[config.columns.PRODUCT_RATIO]
+    sequence_seperated_order_yield.drop(columns = {config.columns.YIELD, config.columns.PRODUCT_RATIO}, inplace = True)
+
+    # 결과 길이를 10의 자리에서 반올림
+    sequence_seperated_order_yield[config.columns.PRODUCTION_LENGTH] = (sequence_seperated_order_yield[config.columns.PRODUCTION_LENGTH].round(-1).astype(int)
+)
+
     return sequence_seperated_order_yield
 
-    # yp = YieldPredictor(yield_data)
-    # yp.preprocessing()
-    # yp.calculate_predicted_yield()
-    # result_df = yp.predict_sequence_yield(operation_sequence)
 
-    # # 수율 매핑 및 생산길이 조정
-    # adjusted_sequence_order = yp.adjust_production_length(sequence_seperated_order)
+def calculate_input_ratio(group):
+    """
+    공정별 수율을 고려한 투입 비율을 계산합니다.
 
-    # return yp, result_df, adjusted_sequence_order
+    역순으로 누적 곱을 계산하여 각 공정에서 필요한 투입량 비율을 산출합니다.
+
+    Args:
+        group: 같은 item으로 그룹화된 DataFrame
+
+    Returns:
+        input_ratio 컬럼이 추가된 DataFrame
+    """
+    yields = group[config.columns.YIELD].values
+    num_processes = len(yields)
+    ratios = [1] * num_processes
+
+    accumulator = 1
+
+    # 역순으로 진행하며 누적 곱을 계산
+    for i in range(num_processes - 1, -1, -1):
+        accumulator *= 1 / yields[i] * 100
+        ratios[i] = accumulator
+
+    group[config.columns.PRODUCT_RATIO] = ratios
+    return group

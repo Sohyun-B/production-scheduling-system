@@ -11,9 +11,13 @@ class ColumnNames:
     GRP2_NAME: str = "grp2_name" # "GRP2 이름, GITEM보다 상위 분류
     GITEM: str = "gitemno" # "GITEM"
     GITEM_NAME: str = "gitemname" # "GITEM명"
-    ID: str = "ID" # "ID"
+
+    # ID
+    PRODUCT_ID: str = "product_ID"   # 제품 레벨 식별자: {GITEM}_{FABRIC_WIDTH}_{COMB}_M{MONTH}
+    PROCESS_ID: str = "process_ID"   # 공정 레벨 식별자: {PRODUCT_ID}_{OPERATION_CODE}_{CHEMICAL}
+
     SPEC: str = "spec" # "SPEC"
-    SITEM: str = "sitemno" # "SITEMNO"    
+    SITEM: str = "sitemno" # "SITEMNO"
     SITEM_NAME: str = "sitemname" # "SITEM명"
 
     # Product specifications
@@ -61,9 +65,10 @@ class ColumnNames:
     
     # Yield related
     YIELD: str = "yield" # "수율"
-    PREDICTED_YIELD: str = "predicted_yield" # "예측_수율"
-    TOTAL_PREDICTED_YIELD: str = "total_predicted_yield" # "전체_예측_수율"
-    YIELD_PRODUCTION_RATIO: str = "yield_production_ratio" # "수율_생산비율"
+    PRODUCT_RATIO: float = "product_ratio" # 수율을 고려한 각 공정의 생산 비율
+    # PREDICTED_YIELD: str = "predicted_yield" # "예측_수율"
+    # TOTAL_PREDICTED_YIELD: str = "total_predicted_yield" # "전체_예측_수율"
+    # YIELD_PRODUCTION_RATIO: str = "yield_production_ratio" # "수율_생산비율"
     
     # Scheduler delay/setup time related
     EARLIER_OPERATION_TYPE: str = "prev_procgbn" # "선행공정분류"

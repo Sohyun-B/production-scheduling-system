@@ -122,7 +122,7 @@ def create_new_results(
         how='left'
     )
 
-    machine_info[config.columns.OPERATION] = machine_info[config.columns.ID].str.split('_').str[1]
+    machine_info[config.columns.OPERATION] = machine_info[config.columns.PROCESS_ID].str.split('_').str[1]
     machine_info[config.columns.WORK_TIME] = (
         machine_info[config.columns.WORK_END_TIME] -
         machine_info[config.columns.WORK_START_TIME]

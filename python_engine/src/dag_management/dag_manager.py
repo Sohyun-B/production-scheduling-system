@@ -4,6 +4,7 @@ import ast
 from collections import defaultdict, OrderedDict
 import copy
 import re
+from config import config
 from .dag_dataframe import DAGNode
 
 class DAGGraphManager:
@@ -44,10 +45,10 @@ class DAGGraphManager:
 
     def build_from_dataframe(self, dag_df):
         # children이 리스트 형태가 아닌 경우 리스트 형태로 변환
-        dag_df['CHILDREN'] = dag_df['CHILDREN'].apply(self.parse_list)
+        dag_df[config.columns.CHILDREN] = dag_df[config.columns.CHILDREN].apply(self.parse_list)
         for idx, row in dag_df.iterrows():
-            node = DAGNode(row['ID'], row['DEPTH'])
-            node_id = row['ID']
+            node = DAGNode(row[config.columns.PROCESS_ID], row[config.columns.DEPTH])
+            node_id = row[config.columns.PROCESS_ID]
             if node_id in self.opnode_dict:
                 node_info = self.opnode_dict[node_id]
                 # aging_time = node_info.get('AGING_TIME', 0) if isinstance(node_info, dict) else 0
@@ -55,14 +56,14 @@ class DAGGraphManager:
             else:
                 # opnode_dict에 없는 노드는 aging_time을 0으로 유지
                 pass
-            self.nodes[row['ID']] = node
+            self.nodes[row[config.columns.PROCESS_ID]] = node
 
         # 관계 설정: CHILDREN 컬럼 기준
         for _, row in dag_df.iterrows():
-            current = self.nodes[row['ID']]
+            current = self.nodes[row[config.columns.PROCESS_ID]]
 
             # CHILDREN 기반 연결
-            for child_id in row['CHILDREN']:  # PARENT -> CHILDREN 변경
+            for child_id in row[config.columns.CHILDREN]:  # PARENT -> CHILDREN 변경
                 # 핵심 수정 부분 시작
                 if child_id not in self.nodes:  # 존재 여부 확인
                     continue  # 없는 경우 건너뜀

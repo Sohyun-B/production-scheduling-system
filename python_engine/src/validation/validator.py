@@ -56,7 +56,7 @@ class DataValidator:
         self._validate_operation_sequence(unique_gitems, operation_df)
 
         # 3. 수율-GITEM등 테이블 검증
-        self._validate_yield_data(unique_gitems, yield_df)
+        self._validate_yield_data(yield_df)
 
         # 4. 라인스피드-GITEM등 테이블 검증
         self._validate_linespeed_data(linespeed_df)
@@ -194,68 +194,79 @@ class DataValidator:
             print(f"[PASS] 검증 통과: 모든 제품코드의 공정순서가 정상입니다.")
             print(f"  저장된 (제품코드, 공정코드) 쌍: {len(self.gitem_proccode_pairs)}개")
 
-    def _validate_yield_data(self, unique_gitems: List[str], yield_df: pd.DataFrame):
-        """3. 수율-GITEM등 테이블 검증"""
+    def _validate_yield_data(self, yield_df: pd.DataFrame):
+        """3. 수율-GITEM등 테이블 검증 (GITEM, PROCCODE 기준)"""
         print("\n[검증 3/5] 수율-GITEM등 테이블")
         print("-" * 80)
 
-        missing_gitems = []
-        duplicate_gitems = []
+        if not self.gitem_proccode_pairs:
+            warning_msg = "GITEM-공정-순서 검증 실패로 인해 수율 검증을 건너뜁니다."
+            self.warnings.append(warning_msg)
+            print(f"[WARNING] {warning_msg}")
+            return
 
-        for gitem in unique_gitems:
-            gitem_rows = yield_df[yield_df[config.columns.GITEM] == gitem]
-            row_count = len(gitem_rows)
+        missing_pairs = []
+        duplicate_pairs = []
+
+        for gitem, proccode in self.gitem_proccode_pairs:
+            yield_rows = yield_df[
+                (yield_df[config.columns.GITEM] == gitem) &
+                (yield_df[config.columns.OPERATION_CODE] == proccode)
+            ]
+            row_count = len(yield_rows)
 
             if row_count == 0:
-                error_msg = f"[수율-GITEM등] PO정보의 제품코드={gitem}가 수율-GITEM등 테이블에 존재하지 않습니다."
+                error_msg = f"[수율-GITEM등] (제품코드={gitem}, 공정코드={proccode})가 수율-GITEM등 테이블에 존재하지 않습니다."
                 self.errors.append(error_msg)
-                missing_gitems.append(gitem)
-                
+                missing_pairs.append((gitem, proccode))
+
                 # JSON 이슈 추가
                 self.validation_issues.append({
                     "table_name": "tb_productionyield",
                     "severity": "error",
-                    "columns": ["gitemno"],
+                    "columns": ["gitemno", "proccode"],
                     "constraint": "existence",
                     "issue_type": "missing",
                     "values": {
-                        "gitemno": str(gitem)
+                        "gitemno": str(gitem),
+                        "proccode": str(proccode)
                     },
                     "action_taken": "none"
                 })
-                
+
             elif row_count > 1:
-                warning_msg = f"[수율-GITEM등] 제품코드={gitem}가 수율-GITEM등 테이블에 {row_count}개 행으로 중복 존재합니다. (전처리에서 첫 번째 행만 유지)"
+                warning_msg = f"[수율-GITEM등] (제품코드={gitem}, 공정코드={proccode})가 수율-GITEM등 테이블에 {row_count}개 행으로 중복 존재합니다. (전처리에서 첫 번째 행만 유지)"
                 self.warnings.append(warning_msg)
-                duplicate_gitems.append((gitem, row_count))
-                
+                duplicate_pairs.append((gitem, proccode, row_count))
+
                 # JSON 이슈 추가
                 self.validation_issues.append({
                     "table_name": "tb_productionyield",
                     "severity": "warning",
-                    "columns": ["gitemno"],
+                    "columns": ["gitemno", "proccode"],
                     "constraint": "uniqueness",
                     "issue_type": "duplicate",
                     "duplicate_count": row_count,
                     "values": {
-                        "gitemno": str(gitem)
+                        "gitemno": str(gitem),
+                        "proccode": str(proccode)
                     },
                     "action_taken": "keep_first"
                 })
 
-        if missing_gitems:
-            print(f"[ERROR] 수율 데이터가 없는 제품코드 ({len(missing_gitems)}건)")
-            for gitem in missing_gitems:
-                print(f"  - 제품코드: {gitem}")
+        if missing_pairs:
+            print(f"[ERROR] 수율 데이터가 없는 (제품코드, 공정코드) 쌍 ({len(missing_pairs)}건)")
+            for gitem, proccode in missing_pairs:
+                print(f"  - 제품코드: {gitem}, 공정코드: {proccode}")
 
-        if duplicate_gitems:
-            print(f"[WARNING] 수율 데이터가 중복된 제품코드 ({len(duplicate_gitems)}건)")
+        if duplicate_pairs:
+            print(f"[WARNING] 수율 데이터가 중복된 (제품코드, 공정코드) 쌍 ({len(duplicate_pairs)}건)")
             print(f"   → 전처리 단계에서 첫 번째 행만 자동으로 유지됩니다.")
-            for gitem, count in duplicate_gitems:
-                print(f"  - 제품코드: {gitem} (중복 {count}건)")
+            for gitem, proccode, count in duplicate_pairs:
+                print(f"  - 제품코드: {gitem}, 공정코드: {proccode} (중복 {count}건)")
 
-        if not missing_gitems and not duplicate_gitems:
-            print(f"[PASS] 검증 통과: 모든 제품코드가 수율-GITEM등 테이블에 정확히 1개씩 존재합니다.")
+        if not missing_pairs and not duplicate_pairs:
+            print(f"[PASS] 검증 통과: 모든 (제품코드, 공정코드) 쌍이 수율-GITEM등 테이블에 정확히 1개씩 존재합니다.")
 
     def _validate_linespeed_data(self, linespeed_df: pd.DataFrame):
         """4. 라인스피드-GITEM등 테이블 검증"""
@@ -464,18 +475,27 @@ class DataValidator:
             print(f"\n[1/2] 라인스피드 데이터")
             print(f"  [OK] 중복 없음")
 
-        # 2. 수율 중복 제거
+        # 2. 수율 중복 제거 (GITEM, PROCCODE 기준)
         before_count = len(yield_df)
-        # GItemName이 있으면 함께 사용, 없으면 GitemNo만 사용
-        subset_cols = [config.columns.GITEM, config.columns.GITEM_NAME] if config.columns.GITEM_NAME in yield_df.columns else [config.columns.GITEM]
+        # GITEM과 OPERATION_CODE 조합으로 중복 제거
+        subset_cols = [config.columns.GITEM, config.columns.OPERATION_CODE]
         yield_cleaned = yield_df.drop_duplicates(subset=subset_cols, keep='first')
         duplicate_count = before_count - len(yield_cleaned)
 
         if duplicate_count > 0:
-            duplicated_gitems = yield_df[yield_df.duplicated(subset=subset_cols, keep=False)][config.columns.GITEM].unique()
-            print(f"\n[2/2] 수율 데이터")
-            print(f"  중복 {duplicate_count}개 행 발견 → 첫 번째 행만 유지")
-            print(f"  중복된 제품코드: {', '.join(map(str, duplicated_gitems))}")
+            duplicated_rows = yield_df[yield_df.duplicated(subset=subset_cols, keep=False)]
+            if config.columns.GITEM in duplicated_rows.columns and config.columns.OPERATION_CODE in duplicated_rows.columns:
+                duplicated_pairs = duplicated_rows[[config.columns.GITEM, config.columns.OPERATION_CODE]].drop_duplicates()
+                print(f"\n[2/2] 수율 데이터")
+                print(f"  중복 {duplicate_count}개 행 발견 → 첫 번째 행만 유지")
+                print(f"  중복된 (제품코드, 공정코드) 쌍: {len(duplicated_pairs)}개")
+                for _, row in duplicated_pairs.head(5).iterrows():
+                    print(f"    - 제품코드: {row[config.columns.GITEM]}, 공정코드: {row[config.columns.OPERATION_CODE]}")
+                if len(duplicated_pairs) > 5:
+                    print(f"    ... 외 {len(duplicated_pairs) - 5}개")
+            else:
+                print(f"\n[2/2] 수율 데이터")
+                print(f"  중복 {duplicate_count}개 행 발견 → 첫 번째 행만 유지")
         else:
             print(f"\n[2/2] 수율 데이터")
             print(f"  [OK] 중복 없음")

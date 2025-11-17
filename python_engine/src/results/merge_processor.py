@@ -32,13 +32,13 @@ class ResultMerger:
         
 
         for process in process_list:
-            temp = self.sequence_seperated_order[[config.columns.ID] + merge_cols].copy()
-            suffix = process.replace(config.columns.ID, '')  # 예: '1공정'
+            temp = self.sequence_seperated_order[[config.columns.PROCESS_ID] + merge_cols].copy()
+            suffix = process.replace(config.columns.PROCESS_ID, '')  # 예: '1공정'
             rename_map = {col: f"{col}_{suffix}" for col in merge_cols}
             temp.rename(columns=rename_map, inplace=True)
 
-            result = result.merge(temp, how='left', left_on=process, right_on=config.columns.ID)
-            result.drop(columns=[config.columns.ID], inplace=True)
+            result = result.merge(temp, how='left', left_on=process, right_on=config.columns.PROCESS_ID)
+            result.drop(columns=[config.columns.PROCESS_ID], inplace=True)
 
         self.merged_result = result
         return self.merged_result
@@ -64,7 +64,7 @@ def create_process_detail_result(final_result_df, sequence_seperated_order, sche
     # sequence_seperated_order를 ID 기준으로 인덱싱 (중복 고려 - 첫 번째 것만 사용)
     seq_dict = {}
     for _, row in sequence_seperated_order.iterrows():
-        node_id = row[config.columns.ID]
+        node_id = row[config.columns.PROCESS_ID]
         if node_id not in seq_dict:  # 중복 시 첫 번째만 저장
             seq_dict[node_id] = row.to_dict()
 
@@ -92,7 +92,7 @@ def create_process_detail_result(final_result_df, sequence_seperated_order, sche
             config.columns.PO_NO: extra_info.get(config.columns.PO_NO, ''),
             config.columns.GITEM: extra_info.get(config.columns.GITEM, ''),
             config.columns.DEPTH: row[config.columns.DEPTH],
-            config.columns.ID: node_id,
+            config.columns.PROCESS_ID: node_id,
             config.columns.OPERATION_CODE: extra_info.get(config.columns.OPERATION_CODE, ''),
             'is_aging': is_aging,
             config.columns.MACHINE_CODE: row.get(config.columns.MACHINE_CODE, row.get('machine', None)),  # ★ MACHINE_INDEX → MACHINE_CODE

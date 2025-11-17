@@ -35,9 +35,9 @@ class OrderLatenessReporter:
         # 주의: result_cleaned의 컬럼명은 'id' (소문자)
         result_with_po = pd.merge(
             self.result_cleaned[['id', 'node_end']],
-            self.sequence_seperated_order[[config.columns.ID, config.columns.PO_NO]],
+            self.sequence_seperated_order[[config.columns.PROCESS_ID, config.columns.PO_NO]],
             left_on='id',
-            right_on=config.columns.ID,
+            right_on=config.columns.PROCESS_ID,
             how='left'
         )
 

@@ -184,13 +184,6 @@ class FabricCombiner:
             raise ValueError(f"Invalid combination type: {comb_type}")
         result = handler(sub_df)
 
-        # MIDDLE로 묶지 않는 공정의 경우 MIDDLE을 빈칸으로
-        # if 'MIDDLE (점착제)' in sub_df.columns:
-        #     middle_value = sub_df['MIDDLE (점착제)'].iloc[0]
-        #     if sub_df['MIDDLE (점착제)'].nunique() > 1:
-        #         middle_value = ''
-        # else:
-        #     middle_value = ''
 
         return pd.DataFrame([{
             config.columns.PO_NO: ', '.join(map(str, sub_df[config.columns.PO_NO].explode().unique())),

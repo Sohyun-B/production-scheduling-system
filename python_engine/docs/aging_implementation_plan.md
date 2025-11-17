@@ -8,15 +8,15 @@
 
 ## 📊 빠른 현황 파악
 
-| 항목 | 상태 | 비고 |
-|------|-----|------|
-| **전체 진행률** | ⚠️ 95% | Depth 중복 문제만 해결하면 100% |
-| **Phase 1-5** | ✅ 완료 | 모든 핵심 기능 구현 완료 |
-| **Phase 6-7** | ⏭️ 선택사항 | 구현 안 함 (불필요) |
-| **Phase 8 (테스트)** | ⏳ 대기 | Depth 문제 해결 후 진행 |
-| **미해결 이슈** | 🔥 1개 | **CRITICAL: Depth 중복 문제** |
-| **수정 파일** | 7개 | 모두 수정 완료 |
-| **추가 코드** | ~200줄 | 새 함수 4개, 새 클래스 1개 |
+| 항목                 | 상태        | 비고                            |
+| -------------------- | ----------- | ------------------------------- |
+| **전체 진행률**      | ⚠️ 95%      | Depth 중복 문제만 해결하면 100% |
+| **Phase 1-5**        | ✅ 완료     | 모든 핵심 기능 구현 완료        |
+| **Phase 6-7**        | ⏭️ 선택사항 | 구현 안 함 (불필요)             |
+| **Phase 8 (테스트)** | ⏳ 대기     | Depth 문제 해결 후 진행         |
+| **미해결 이슈**      | 🔥 1개      | **CRITICAL: Depth 중복 문제**   |
+| **수정 파일**        | 7개         | 모두 수정 완료                  |
+| **추가 코드**        | ~200줄      | 새 함수 4개, 새 클래스 1개      |
 
 **🔥 CRITICAL 이슈**: [dag_dataframe.py:287-303](src/dag_management/dag_dataframe.py#L287-L303)의 Depth 중복 문제 해결 필요
 
@@ -27,12 +27,14 @@
 Aging 공정은 실제 공정순서(tb_itemproc)에 없는 특별한 공정으로, 별도 테이블에서 관리되며 **overlapping이 가능한 가상 기계(기계 인덱스 -1)**에서 수행됩니다.
 
 ### 핵심 특징
+
 - **Overlapping 가능**: 동시에 여러 aging 작업 수행 가능
 - **가상 기계**: 기계 인덱스 -1 전용
 - **즉시 시작**: earliest_start 기준으로 바로 시작 (기계 대기 시간 없음)
 - **별도 테이블 관리**: tb_agingtime_gitem, tb_agingtime_gbn에서 관리
 
 ### 구현 완료 항목 ✅
+
 1. ✅ **Hybrid Approach**: `Scheduler.Machines` 리스트 유지 + `aging_machine` 별도 속성
 2. ✅ **machine_dict 구조 변경**: 리스트 → 딕셔너리
 3. ✅ **Aging 노드 감지**: `set(machine_info.keys()) == {-1}`
@@ -41,6 +43,7 @@ Aging 공정은 실제 공정순서(tb_itemproc)에 없는 특별한 공정으�
 6. ✅ **자동 필터링**: `opnode_dict` 기반 aging 노드 자동 제외
 
 ### 미해결 항목 ⚠️
+
 1. 🔥 **CRITICAL**: Depth 중복 문제 - [상세 내용 보기](#-미해결-이슈)
 
 ---
@@ -52,11 +55,13 @@ Aging 공정은 실제 공정순서(tb_itemproc)에 없는 특별한 공정으�
 #### 1.1 Aging 노드 식별
 
 **중요**: Aging 노드는 **opnode_dict에 포함되지 않음**
+
 - `opnode_dict`: setup 시간 계산용 (CHEMICAL_LIST 등 필요)
 - Aging 기계는 setup time이 없으므로 불필요
 - Aging 노드는 **DAGNode + machine_dict만 생성**
 
 **식별 방법 (권장)**: DAGNode에 `is_aging` 속성 추가
+
 ```python
 class DAGNode:
     def __init__(self, node_id, depth, is_aging=False):
@@ -78,6 +83,7 @@ if node.is_aging:
 | DAGGraphManager.build_from_dataframe | is_aging=True 설정 |
 
 **헬퍼 함수**:
+
 ```python
 def is_aging_node(node):
     return hasattr(node, 'is_aging') and node.is_aging
@@ -89,6 +95,7 @@ def is_aging_node(node):
 **변경**: `{node_id: {machine_index: processing_time}}`
 
 **변경 이유 (필수)**:
+
 1. **enumerate 문제**: 리스트는 `enumerate(machine_info)`로 순회 시 0부터만 카운트 → aging 기계(-1) 접근 불가
 2. **명시성**: 딕셔너리는 `machine_info[-1]`로 명확하게 aging 기계 구분
 3. **aging 판별**: `set(machine_info.keys()) == {-1}`로 aging 노드 명확하게 식별
@@ -97,6 +104,7 @@ def is_aging_node(node):
 **Aging 노드**: `{aging_node_id: {-1: aging_time}}`
 
 **create_machine_dict() 수정**:
+
 ```python
 def create_machine_dict(sequence_seperated_order, linespeed, machine_columns, aging_nodes_dict=None):
     machine_dict = {}
@@ -118,6 +126,7 @@ def create_machine_dict(sequence_seperated_order, linespeed, machine_columns, ag
 ```
 
 **assign_operation() 주요 수정사항**:
+
 ```python
 # enumerate → items
 for machine_index, machine_processing_time in machine_info.items():
@@ -133,11 +142,13 @@ for machine_index, machine_processing_time in machine_info.items():
 #### 2.1 aging_df 파싱
 
 **aging_df 컬럼 구조**:
+
 - `gitemno`: 품목 번호
 - `proccode`: aging 공정을 하기 **이전**의 공정 코드
 - `aging_time`: aging 소요 시간 (30분 단위)
 
 **parse_aging_requirements() 함수**:
+
 ```python
 def parse_aging_requirements(aging_df, sequence_seperated_order):
     """
@@ -194,12 +205,14 @@ def parse_aging_requirements(aging_df, sequence_seperated_order):
 **Aging 노드 ID 규칙**: `{parent_node_id}_AGING`
 
 **DAG 구조 변경**:
+
 ```
 기존: [공정A] -> [공정B]
 변경: [공정A] -> [공정A_AGING] -> [공정B]
 ```
 
 **insert_aging_nodes_to_dag() 함수**:
+
 ```python
 def insert_aging_nodes_to_dag(dag_df, aging_map):
     """
@@ -240,7 +253,7 @@ def insert_aging_nodes_to_dag(dag_df, aging_map):
             # 2. aging 노드 생성
             new_rows.append({
                 'ID': aging_node_id,
-                'DEPTH': row['DEPTH'] + 1,  # parent depth + 1
+                config.columns.DEPTH: row[config.columns.DEPTH] + 1,  # parent depth + 1
                 'CHILDREN': next_node_id if next_node_id else ''
             })
 
@@ -248,7 +261,7 @@ def insert_aging_nodes_to_dag(dag_df, aging_map):
     if new_rows:
         new_df = pd.DataFrame(new_rows)
         dag_df = pd.concat([dag_df, new_df], ignore_index=True)
-        dag_df = dag_df.sort_values(['DEPTH', 'ID']).reset_index(drop=True)
+        dag_df = dag_df.sort_values([config.columns.DEPTH, 'ID']).reset_index(drop=True)
 
     return dag_df
 ```
@@ -260,11 +273,13 @@ def insert_aging_nodes_to_dag(dag_df, aging_map):
 #### 2.3 create_complete_dag_system() 수정
 
 **함수 시그니처 변경**:
+
 ```python
 def create_complete_dag_system(sequence_seperated_order, linespeed, machine_master_info, aging_map=None):
 ```
 
 **내부 로직 수정**:
+
 ```python
 def create_complete_dag_system(sequence_seperated_order, linespeed, machine_master_info, aging_map=None):
     merged_df = make_process_table(sequence_seperated_order)
@@ -306,6 +321,7 @@ def create_complete_dag_system(sequence_seperated_order, linespeed, machine_mast
 ### 단계 3: Machine_Time_window 확장
 
 **플래그 추가**:
+
 ```python
 class Machine_Time_window:
     def __init__(self, Machine_index, allow_overlapping=False):
@@ -313,7 +329,8 @@ class Machine_Time_window:
         self.allow_overlapping = allow_overlapping
 ```
 
-**_Input() 메서드 수정**:
+**\_Input() 메서드 수정**:
+
 ```python
 def _Input(self, depth, node_id, M_Earliest, P_t, ...):
     if self.allow_overlapping:
@@ -336,11 +353,13 @@ def _Input(self, depth, node_id, M_Earliest, P_t, ...):
 #### 4.1 Machines 구조 수정
 
 **핵심 전략**:
+
 - ✅ `self.Machines` **리스트 유지** (기존 코드 호환성)
 - ✅ `self.aging_machine` **별도 속성 추가** (aging 전용)
 - ✅ `get_machine()` **통합 접근자 제공** (향후 확장성)
 
-**4.1.1 Scheduler.__init__() 수정**:
+**4.1.1 Scheduler.**init**() 수정**:
+
 ```python
 class Scheduler:
     def __init__(self, machine_dict, machine_numbers, delay_processor):
@@ -352,6 +371,7 @@ class Scheduler:
 ```
 
 **4.1.2 allocate_resources() 수정**:
+
 ```python
 def allocate_resources(self):
     # 일반 기계 생성 (기존 방식 유지)
@@ -365,6 +385,7 @@ def allocate_resources(self):
 ```
 
 **4.1.3 get_machine() 통합 접근자 추가** (새로 추가):
+
 ```python
 def get_machine(self, machine_index):
     """
@@ -382,12 +403,14 @@ def get_machine(self, machine_index):
 ```
 
 **영향받는 코드**:
+
 - ✅ 기존 `self.Machines[i]` 코드는 **수정 불필요** (리스트 유지)
 - ✅ 기존 `for machine in self.Machines` 코드는 **수정 불필요** (리스트 순회)
 - 기계 -1 접근 시: `self.aging_machine` 또는 `self.get_machine(-1)` 사용
 - 동적 인덱스 접근: `self.get_machine(idx)` 사용 권장
 
 **수정 필요 위치**:
+
 - `assign_operation()`: aging 감지 및 aging_machine 사용
 - `machine_earliest_start()`: machine_index == -1 체크
 - `create_machine_schedule_dataframe()`: aging_machine 별도 처리
@@ -606,6 +629,7 @@ def find_best_chemical(nodes, scheduler):
 **수정 위치**: `main.py:182` (create_complete_dag_system 호출 직전)
 
 **수정 전**:
+
 ```python
 # === 4단계: DAG 생성 (내부에서 aging_map 자동 생성) ===
 print("[40%] DAG 시스템 생성 중...")
@@ -614,6 +638,7 @@ dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_syst
 ```
 
 **수정 후**:
+
 ```python
 # === 4단계: DAG 생성 ===
 print("[40%] DAG 시스템 생성 중...")
@@ -629,6 +654,7 @@ dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_syst
 ```
 
 **import 추가**:
+
 ```python
 # main.py 상단
 from src.dag_management import create_complete_dag_system
@@ -641,20 +667,22 @@ from src.dag_management.dag_dataframe import parse_aging_requirements  # 추가
 
 ### 3.1 Aging 노드 정의
 
-| 항목 | 값 |
-|------|-----|
-| **ID 규칙** | `{parent_node_id}_AGING` |
-| **depth** | parent.depth + 1 |
-| **시간 단위** | 30분 단위 |
-| **기계 인덱스** | -1 (고정) |
+| 항목            | 값                       |
+| --------------- | ------------------------ |
+| **ID 규칙**     | `{parent_node_id}_AGING` |
+| **depth**       | parent.depth + 1         |
+| **시간 단위**   | 30분 단위                |
+| **기계 인덱스** | -1 (고정)                |
 
 ### 3.2 Aging 노드 감지 전략 (Hybrid Approach)
 
 **이중 감지 메커니즘**:
+
 1. **Primary**: `machine_dict` 구조 체크 (빠르고 간단)
 2. **Secondary**: `DAGNode.is_aging` 속성 체크 (명시적, 선택적)
 
 **구현**:
+
 ```python
 def is_aging_node(node_id, machine_dict):
     """
@@ -675,6 +703,7 @@ def is_aging_node(node_id, machine_dict):
 ```
 
 **Optional: DAGNode 속성 활용** (추가 검증용):
+
 ```python
 def is_aging_node_with_attribute(node, machine_dict):
     """
@@ -689,6 +718,7 @@ def is_aging_node_with_attribute(node, machine_dict):
 ```
 
 **사용 위치**:
+
 - `Scheduler.assign_operation()`: 기계 할당 분기
 - `SchedulingCore.schedule_single_node()`: 전략 선택
 - `SetupMinimizedStrategy`: aging 노드 필터링 (배합액 선택 제외)
@@ -697,6 +727,7 @@ def is_aging_node_with_attribute(node, machine_dict):
 ### 3.3 DAG 삽입 로직
 
 **aging_df 필요 정보**:
+
 - 어떤 gitem의 어떤 공정 이후 aging?
 - aging 시간 (30분 단위 변환 필요?)
 
@@ -713,12 +744,14 @@ def is_aging_node_with_attribute(node, machine_dict):
 ## 4. 구현 체크리스트
 
 ### Phase 1: 데이터 구조 ✅ **완료 (100%)**
+
 - [x] machine_dict 딕셔너리 구조로 변경
 - [x] create_machine_dict() 수정 (aging_nodes_dict 파라미터)
 - [x] DAGNode에 is_aging 속성 추가
 - [x] is_aging_node() 헬퍼 함수 작성
 
 ### Phase 2: DAG 생성 ⚠️ **대부분 완료 (95%)**
+
 - [x] `parse_aging_requirements()` 함수 작성 (`src/dag_management/dag_dataframe.py`)
   - [x] aging_df에서 gitemno, proccode, aging_time 읽기
   - [x] sequence_seperated_order와 매칭하여 parent_node_id 찾기
@@ -742,10 +775,12 @@ def is_aging_node_with_attribute(node, machine_dict):
   - [x] create_complete_dag_system()에 aging_map 전달
 
 ### Phase 3: Machine 클래스 ✅ **완료 (100%)**
+
 - [x] Machine_Time_window에 allow_overlapping 플래그
-- [x] _Input() overlapping 지원
+- [x] \_Input() overlapping 지원
 
 ### Phase 4: Scheduler (Hybrid Approach) ✅ **완료 (100%)**
+
 - [x] **Machines 리스트 유지** (딕셔너리 변경 ❌)
 - [x] **aging_machine 속성 추가** (별도 Machine_Time_window)
 - [x] **get_machine() 메서드 추가** (통합 접근자)
@@ -759,22 +794,26 @@ def is_aging_node_with_attribute(node, machine_dict):
 - [x] allocate_machine_downtime() 확인 (변경 불필요)
 
 ### Phase 5: SchedulingCore ✅ **완료 (100%)**
+
 - [x] AgingMachineStrategy 클래스 작성
 - [x] schedule_single_node() aging 감지 추가
 - [x] SetupMinimizedStrategy aging 필터링 (opnode_dict 자동 필터링)
 - [x] find_best_chemical() aging 필터링 (opnode_dict 자동 필터링)
 
 ### Phase 6: DelayProcessor ⏭️ **선택사항 - 구현 안 함**
+
 - [ ] aging 딜레이 0 처리
   - **이유**: Aging 노드는 가상 기계이므로 딜레이 계산 자체가 무의미
   - **현재 상태**: assign_operation()에서 조기 리턴하므로 딜레이 계산 안 함
 
 ### Phase 7: 결과 처리 ⏭️ **선택사항 - 구현 안 함**
+
 - [ ] create_results() 기계 -1 표시 개선
   - **이유**: 기계 인덱스 -1만으로 충분히 구분 가능
   - **향후**: 필요 시 추가 가능
 
 ### Phase 8: 테스트 ⏳ **대기 중**
+
 - [ ] 기본/Overlapping/다중부모 시나리오 테스트
   - **선행 조건**: Depth 중복 문제 해결 필요
 
@@ -782,17 +821,17 @@ def is_aging_node_with_attribute(node, machine_dict):
 
 ## 📊 구현 현황 요약
 
-| Phase | 상태 | 진행률 | 비고 |
-|-------|-----|-------|------|
-| Phase 1 | ✅ 완료 | 100% | machine_dict 구조 변경, DAGNode.is_aging 추가 |
-| Phase 2 | ⚠️ 대부분 완료 | 95% | **Depth 중복 문제 미해결** (Line 287-303) |
-| Phase 3 | ✅ 완료 | 100% | Overlapping 지원 |
-| Phase 4 | ✅ 완료 | 100% | Hybrid Approach 적용 |
-| Phase 5 | ✅ 완료 | 100% | 전략 패턴 통합 |
-| Phase 6 | ⏭️ 선택사항 | - | 구현 안 함 (불필요) |
-| Phase 7 | ⏭️ 선택사항 | - | 구현 안 함 (우선순위 낮음) |
-| Phase 8 | ✅ 부분 완료 | 80% | Dispatch Priority 문제 해결, Depth 문제 남음 |
-| **전체** | **⚠️ 대부분 완료** | **97%** | **Depth 중복 문제만 해결하면 100%** |
+| Phase    | 상태               | 진행률  | 비고                                          |
+| -------- | ------------------ | ------- | --------------------------------------------- |
+| Phase 1  | ✅ 완료            | 100%    | machine_dict 구조 변경, DAGNode.is_aging 추가 |
+| Phase 2  | ⚠️ 대부분 완료     | 95%     | **Depth 중복 문제 미해결** (Line 287-303)     |
+| Phase 3  | ✅ 완료            | 100%    | Overlapping 지원                              |
+| Phase 4  | ✅ 완료            | 100%    | Hybrid Approach 적용                          |
+| Phase 5  | ✅ 완료            | 100%    | 전략 패턴 통합                                |
+| Phase 6  | ⏭️ 선택사항        | -       | 구현 안 함 (불필요)                           |
+| Phase 7  | ⏭️ 선택사항        | -       | 구현 안 함 (우선순위 낮음)                    |
+| Phase 8  | ✅ 부분 완료       | 80%     | Dispatch Priority 문제 해결, Depth 문제 남음  |
+| **전체** | **⚠️ 대부분 완료** | **97%** | **Depth 중복 문제만 해결하면 100%**           |
 
 ---
 
@@ -804,22 +843,26 @@ def is_aging_node_with_attribute(node, machine_dict):
 **위치**: `src/scheduler/scheduling_core.py` DispatchPriorityStrategy.execute()
 
 **문제**:
+
 1. **Due Date 부재**: Aging 노드는 `sequence_seperated_order`에 없어서 due_date가 없음
 2. **Priority Order 포함**: create_dispatch_rule()이 모든 노드(Aging 포함)를 priority_order에 포함
 3. **스케줄링 누락**: due_date가 없는 Aging 노드는 `result` 리스트에서 제외됨
 4. **IndexError 발생**: 모든 노드가 제외되면 window_result가 빈 리스트가 되어 `window_result[0]` 접근 시 에러
 
 **로직적 문제**:
+
 - Aging 노드를 dispatch priority에 포함시키는 것 자체가 논리적으로 맞지 않음
 - Aging은 선행 공정 완료 즉시 자동으로 시작되어야 함 (due_date 우선순위 무관)
 
 **영향**:
+
 - 런타임 에러: `IndexError: list index out of range` (Line 549)
 - Aging 노드가 스케줄링되지 않음
 
 **해결 방안** (2025-11-10 확정 - Option 1 채택):
 
 ### 설계 원칙
+
 - **단일 책임 원칙 (SRP)**: 각 메서드는 하나의 책임만 가짐
 - **응집도 향상**: 스케줄링 로직을 SchedulingCore에 집중
 - **결합도 감소**: update_dependencies()는 의존성 업데이트만 담당
@@ -827,6 +870,7 @@ def is_aging_node_with_attribute(node, machine_dict):
 ### 구현 방법
 
 **1. DispatchPriorityStrategy에서 Aging 제외**:
+
 ```python
 # priority_order를 필터링하여 Aging 노드 제외
 filtered_priority = [
@@ -838,6 +882,7 @@ filtered_priority = [
 ```
 
 **2. schedule_ready_aging_children() 새 메서드 추가** (Option 1):
+
 ```python
 @staticmethod
 def schedule_ready_aging_children(node, scheduler):
@@ -866,6 +911,7 @@ def schedule_ready_aging_children(node, scheduler):
 ```
 
 **3. schedule_single_node() 수정**:
+
 ```python
 # 5. 후속 작업 의존성 업데이트
 SchedulingCore.update_dependencies(node)
@@ -875,6 +921,7 @@ SchedulingCore.schedule_ready_aging_children(node, scheduler)
 ```
 
 **4. 방어 코드 추가**:
+
 ```python
 # DispatchPriorityStrategy.execute()에서
 if not window_result:
@@ -887,6 +934,7 @@ if not used_ids:
 ```
 
 **구현 체크리스트**:
+
 - [x] 문제 분석 완료
 - [x] 설계 원칙 확정 (Option 1: 별도 메서드 분리)
 - [x] `SchedulingCore.schedule_ready_aging_children()` 메서드 추가 (Line 104-127)
@@ -896,6 +944,7 @@ if not used_ids:
 - [x] 테스트 실행 - **IndexError 완전 해결!**
 
 **구현 결과 (2025-11-10 완료)**:
+
 ```
 ✅ Aging 노드 필터링 성공
 [INFO] Priority order: 전체 4개 노드 중 일반 2개, Aging 2개
@@ -918,10 +967,12 @@ if not used_ids:
 **위치**: `src/dag_management/dag_dataframe.py` Line 287-303
 
 **문제**:
+
 - 현재 구현: `aging_depth = parent_depth + 1`
 - 예: Parent(depth=2) → Aging(depth=3) → Next(depth=3) ❌ DUPLICATE!
 
 **근본 원인**:
+
 ```python
 # insert_aging_nodes_to_dag()에서 Aging 노드 depth 할당
 aging_depth = parent_depth + 1  # ← 문제 발생 지점
@@ -931,6 +982,7 @@ aging_depth = parent_depth + 1  # ← 문제 발생 지점
 ```
 
 **실제 에러 사례**:
+
 ```
 KeyError: '3_proccode'
 
@@ -940,6 +992,7 @@ merged_df.columns: Index(['pono', '1_proccode', '2_proccode'], dtype='object')
 ```
 
 **에러 발생 경로**:
+
 1. `insert_aging_nodes_to_dag()`: Aging(depth=3), Next(depth=3) 중복 생성
 2. `make_process_table()`: Pivot table 생성 시 컬럼명 중복 → 덮어씀
    ```python
@@ -953,6 +1006,7 @@ merged_df.columns: Index(['pono', '1_proccode', '2_proccode'], dtype='object')
 3. `late_processor.py` Line 32: "3_proccode" 컬럼 접근 시도 → KeyError!
 
 **영향 범위 분석**:
+
 - **Column Naming**: `late_processor.py:32` - depth 기반 컬럼명 생성
 - **Node Ordering**: `dag_dataframe.py:138` - depth 기준 정렬
 - **Machine Tasks**: `machine.py:26` - `[depth, node_id]` 튜플 사용
@@ -962,6 +1016,7 @@ merged_df.columns: Index(['pono', '1_proccode', '2_proccode'], dtype='object')
 **해결 방안**:
 
 #### **Option 1: Depth Shift 방식** (✅ 채택)
+
 - Aging 노드 삽입 후 모든 후속 노드(descendants)의 depth를 +1씩 shift
 - 장점:
   - 컬럼명 체계 유지 (1공정, 2공정, 3공정, ...)
@@ -971,6 +1026,7 @@ merged_df.columns: Index(['pono', '1_proccode', '2_proccode'], dtype='object')
   - DAG 전체 순회 필요 (성능 영향 미미)
 
 **구현 알고리즘**:
+
 ```python
 def shift_depths_after_aging(aging_node_id, aging_depth, df):
     """
@@ -1013,6 +1069,7 @@ def shift_depths_after_aging(aging_node_id, aging_depth, df):
 ```
 
 **호출 위치**:
+
 ```python
 # insert_aging_nodes_to_dag() 내부
 # Aging 노드 추가 후
@@ -1027,7 +1084,9 @@ dag_df = shift_depths_after_aging(
 ```
 
 **테스트 케이스**:
+
 1. **Single Aging**:
+
    ```
    Before: A(1) → B(2) → C(3)
    After:  A(1) → B(2) → Aging(3) → C(4)
@@ -1035,6 +1094,7 @@ dag_df = shift_depths_after_aging(
    ```
 
 2. **Multiple Aging**:
+
    ```
    Before: A(1) → B(2) → C(3) → D(4)
    Insert Aging1 after A, Aging2 after B
@@ -1043,6 +1103,7 @@ dag_df = shift_depths_after_aging(
    ```
 
 3. **Branching DAG**:
+
    ```
    Before:      A(1)
                /    \
@@ -1061,6 +1122,7 @@ dag_df = shift_depths_after_aging(
    ```
 
 #### **Option 2: 소수점 Depth** (❌ 기각)
+
 - Aging 노드에 소수점 depth 부여 (예: 2.5)
 - 단점:
   - late_processor.py 수정 필요 (컬럼명 생성 로직)
@@ -1068,6 +1130,7 @@ dag_df = shift_depths_after_aging(
   - 기존 depth 기반 로직 전면 수정
 
 **구현 계획**:
+
 - [ ] `shift_depths_after_aging()` 함수 추가
 - [ ] `insert_aging_nodes_to_dag()`에서 depth shift 호출
 - [ ] 모든 Aging 노드 삽입 후 재정렬
@@ -1079,17 +1142,17 @@ dag_df = shift_depths_after_aging(
 
 ## 5. 수정 파일 목록
 
-| 파일 | 수정 내용 | 상태 | 우선순위 |
-|------|----------|------|---------|
-| **`src/dag_management/dag_dataframe.py`** | ✅ DAGNode.is_aging 속성 추가<br>✅ parse_aging_requirements() 함수 추가<br>✅ insert_aging_nodes_to_dag() 함수 추가<br>⚠️ **Depth 중복 문제 주석 작성** (Line 287-303) | ⚠️ 95% | Critical |
-| **`src/dag_management/__init__.py`** | ✅ create_complete_dag_system() 시그니처 변경<br>✅ aging_map 처리 로직 추가 | ✅ 100% | Critical |
-| **`main.py`** | ✅ parse_aging_requirements import<br>✅ aging_map 생성<br>✅ create_complete_dag_system()에 aging_map 전달 | ✅ 100% | Critical |
-| **`src/dag_management/node_dict.py`** | ✅ create_machine_dict() 딕셔너리 구조 변경<br>✅ aging_nodes_dict 파라미터 추가 | ✅ 100% | Critical |
-| **`src/scheduler/scheduler.py`** | ✅ **aging_machine 속성 추가** (별도 속성)<br>✅ **get_machine() 메서드 추가** (통합 접근자)<br>✅ allocate_resources()에 aging_machine 생성<br>✅ assign_operation() aging 감지 추가<br>✅ assign_operation() enumerate → items<br>✅ machine_earliest_start() get_machine() 사용<br>✅ create_machine_schedule_dataframe() aging_machine 포함<br>✅ **Machines는 리스트 유지** | ✅ 100% | High |
-| **`src/scheduler/machine.py`** | ✅ Machine_Time_window에 allow_overlapping 플래그<br>✅ _Input() overlapping 지원 | ✅ 100% | High |
-| **`src/scheduler/scheduling_core.py`** | ✅ AgingMachineStrategy 클래스 추가<br>✅ schedule_single_node() aging 감지<br>✅ SetupMinimizedStrategy aging 자동 필터링<br>✅ find_best_chemical() aging 자동 필터링 | ✅ 100% | Medium |
-| **`src/dag_management/dag_manager.py`** | ✅ 수정 불필요 (opnode_dict 없는 노드 자동 처리) | ✅ N/A | Low |
-| **`src/results.py`** | ⏭️ 선택사항 (기계 -1 표시 개선) | ⏭️ 미구현 | Low |
+| 파일                                      | 수정 내용                                                                                                                                                                                                                                                                                                                                                                        | 상태      | 우선순위 |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- |
+| **`src/dag_management/dag_dataframe.py`** | ✅ DAGNode.is_aging 속성 추가<br>✅ parse_aging_requirements() 함수 추가<br>✅ insert_aging_nodes_to_dag() 함수 추가<br>⚠️ **Depth 중복 문제 주석 작성** (Line 287-303)                                                                                                                                                                                                          | ⚠️ 95%    | Critical |
+| **`src/dag_management/__init__.py`**      | ✅ create_complete_dag_system() 시그니처 변경<br>✅ aging_map 처리 로직 추가                                                                                                                                                                                                                                                                                                     | ✅ 100%   | Critical |
+| **`main.py`**                             | ✅ parse_aging_requirements import<br>✅ aging_map 생성<br>✅ create_complete_dag_system()에 aging_map 전달                                                                                                                                                                                                                                                                      | ✅ 100%   | Critical |
+| **`src/dag_management/node_dict.py`**     | ✅ create_machine_dict() 딕셔너리 구조 변경<br>✅ aging_nodes_dict 파라미터 추가                                                                                                                                                                                                                                                                                                 | ✅ 100%   | Critical |
+| **`src/scheduler/scheduler.py`**          | ✅ **aging_machine 속성 추가** (별도 속성)<br>✅ **get_machine() 메서드 추가** (통합 접근자)<br>✅ allocate_resources()에 aging_machine 생성<br>✅ assign_operation() aging 감지 추가<br>✅ assign_operation() enumerate → items<br>✅ machine_earliest_start() get_machine() 사용<br>✅ create_machine_schedule_dataframe() aging_machine 포함<br>✅ **Machines는 리스트 유지** | ✅ 100%   | High     |
+| **`src/scheduler/machine.py`**            | ✅ Machine_Time_window에 allow_overlapping 플래그<br>✅ \_Input() overlapping 지원                                                                                                                                                                                                                                                                                               | ✅ 100%   | High     |
+| **`src/scheduler/scheduling_core.py`**    | ✅ AgingMachineStrategy 클래스 추가<br>✅ schedule_single_node() aging 감지<br>✅ SetupMinimizedStrategy aging 자동 필터링<br>✅ find_best_chemical() aging 자동 필터링                                                                                                                                                                                                          | ✅ 100%   | Medium   |
+| **`src/dag_management/dag_manager.py`**   | ✅ 수정 불필요 (opnode_dict 없는 노드 자동 처리)                                                                                                                                                                                                                                                                                                                                 | ✅ N/A    | Low      |
+| **`src/results.py`**                      | ⏭️ 선택사항 (기계 -1 표시 개선)                                                                                                                                                                                                                                                                                                                                                  | ⏭️ 미구현 | Low      |
 
 **수정 완료**: 7개 파일 ✅ (1개 파일은 Depth 중복 문제 미해결)
 **선택사항 미구현**: 2개 파일 ⏭️
@@ -1099,20 +1162,24 @@ dag_df = shift_depths_after_aging(
 ## 6. 구현 우선순위 (Hybrid Approach 기준)
 
 ### ✅ Critical (100% 완료)
+
 - [x] machine_dict 딕셔너리 변경 (리스트→딕셔너리)
 - [x] Scheduler.aging_machine 속성 추가 (Machines는 리스트 유지!)
 - [x] DAGNode.is_aging 속성 추가
 
 ### ✅ High (100% 완료)
+
 - [x] assign_operation() 수정 (aging 감지, enumerate→items)
 - [x] get_machine() 통합 접근자 추가
 - [x] aging 노드 생성 및 DAG 삽입
 
 ### ✅ Medium (100% 완료)
+
 - [x] overlapping 지원
 - [x] AgingMachineStrategy 구현
 
 ### ⏭️ Low (선택사항 - 미구현)
+
 - [ ] 결과 표시 개선 (기계 -1 → "AGING")
 
 ---
@@ -1120,6 +1187,7 @@ dag_df = shift_depths_after_aging(
 ## 7. 최종 요약
 
 ### 핵심 변경점 (모두 완료 ✅)
+
 - ✅ `machine_dict`: 리스트 → 딕셔너리 (필수)
 - ✅ `Scheduler.Machines`: 리스트 유지 (기존 코드 호환)
 - ✅ `Scheduler.aging_machine`: 별도 속성 추가 (새로운 접근법)
@@ -1128,6 +1196,7 @@ dag_df = shift_depths_after_aging(
 - ✅ `allow_overlapping`: Overlapping 지원
 
 ### 추가된 코드
+
 - **새 함수**: 4개
   - `parse_aging_requirements()` - aging_map 생성
   - `insert_aging_nodes_to_dag()` - DAG 수정
@@ -1139,6 +1208,7 @@ dag_df = shift_depths_after_aging(
 - **총 코드량**: ~200줄
 
 ### 현재 상태
+
 - ✅ **Phase 1-5 완료**: 모든 핵심 기능 구현 완료
 - ✅ **Dispatch Priority 문제 해결**: Aging 노드 자동 스케줄링 구현 (2025-11-10)
 - ⚠️ **1개 CRITICAL 이슈**: Depth 중복 문제 미해결
@@ -1146,6 +1216,7 @@ dag_df = shift_depths_after_aging(
 - **전체 진행률**: 97%
 
 ### 완료된 작업 (2025-11-10)
+
 1. ✅ `schedule_ready_aging_children()` 메서드 추가
 2. ✅ Aging 노드 필터링 로직 구현
 3. ✅ 자동 스케줄링 트리거 구현
@@ -1153,6 +1224,7 @@ dag_df = shift_depths_after_aging(
 5. ✅ 테스트 성공 확인
 
 ### 다음 단계
+
 1. 🔥 **URGENT**: Depth 중복 문제 해결 (`'3_proccode'` 에러)
    - Option 1: Depth Shift 방식 (권장)
    - Option 2: 소수점 Depth
