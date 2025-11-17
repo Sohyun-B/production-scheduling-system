@@ -114,15 +114,13 @@ def run_level4_scheduling():
     print("[30%] 주문 시퀀스 생성 중...")
     sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = generate_order_sequences(
         order, operation_seperated_sequence, operation_types, local_machine_limit, global_machine_limit, machine_allocate, linespeed, chemical_data)
-
-    sequence_seperated_order.to_csv("sequence_seperated_order_수율이전.csv", encoding='utf-8-sig')
-
+    
     # === 3단계: 수율 예측 ===
     print("[35%] 수율 예측 처리 중...")
     sequence_seperated_order = yield_prediction(
         yield_data, sequence_seperated_order
     )
-    sequence_seperated_order.to_csv("sequence_seperated_order_수율이후.csv", encoding='utf-8-sig')
+
     # === 4단계: DAG 생성 ===
     # NEW: aging 요구사항 파싱
     print("[38%] Aging 요구사항 파싱 중...")

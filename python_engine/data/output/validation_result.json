@@ -24,113 +24,8 @@
           "issue_type": "duplicate",
           "duplicate_count": 4,
           "values": {
-            "gitemno": "31602",
-            "proccode": "20906"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32265",
+            "gitemno": "30260",
             "proccode": "20702"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "26300",
-            "proccode": "20700"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32019",
-            "proccode": "20500"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "31600",
-            "proccode": "20906"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "31772",
-            "proccode": "23100"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32265",
-            "proccode": "20500"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "26300",
-            "proccode": "20300"
           },
           "action_taken": "keep_first"
         },
@@ -157,10 +52,10 @@
           ],
           "constraint": "uniqueness",
           "issue_type": "duplicate",
-          "duplicate_count": 4,
+          "duplicate_count": 2,
           "values": {
-            "gitemno": "30234",
-            "proccode": "20906"
+            "gitemno": "32453",
+            "proccode": "12400"
           },
           "action_taken": "keep_first"
         },
@@ -174,8 +69,68 @@
           "issue_type": "duplicate",
           "duplicate_count": 2,
           "values": {
-            "gitemno": "32470",
-            "proccode": "23311"
+            "gitemno": "27870",
+            "proccode": "20300"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "31602",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32571",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32018",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32018",
+            "proccode": "20906"
           },
           "action_taken": "keep_first"
         },
@@ -204,23 +159,8 @@
           "issue_type": "duplicate",
           "duplicate_count": 4,
           "values": {
-            "gitemno": "31739",
-            "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32018",
-            "proccode": "20500"
+            "gitemno": "32019",
+            "proccode": "20906"
           },
           "action_taken": "keep_first"
         },
@@ -235,187 +175,7 @@
           "duplicate_count": 4,
           "values": {
             "gitemno": "32019",
-            "proccode": "20906"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "32453",
-            "proccode": "12400"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32267",
             "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32363",
-            "proccode": "20706"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "25441",
-            "proccode": "20300"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "25441",
-            "proccode": "20700"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "31704",
-            "proccode": "12400"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32017",
-            "proccode": "20500"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32016",
-            "proccode": "20906"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32265",
-            "proccode": "20906"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32363",
-            "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "32413",
-            "proccode": "12400"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32018",
-            "proccode": "20906"
           },
           "action_taken": "keep_first"
         },
@@ -430,37 +190,7 @@
           "duplicate_count": 2,
           "values": {
             "gitemno": "31722",
-            "proccode": "23311"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "27870",
-            "proccode": "20700"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "31772",
-            "proccode": "20710"
+            "proccode": "12400"
           },
           "action_taken": "keep_first"
         },
@@ -474,68 +204,8 @@
           "issue_type": "duplicate",
           "duplicate_count": 4,
           "values": {
-            "gitemno": "30260",
-            "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32017",
-            "proccode": "20906"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "31739",
-            "proccode": "20702"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32267",
-            "proccode": "20702"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "27870",
-            "proccode": "20300"
+            "gitemno": "31600",
+            "proccode": "20705"
           },
           "action_taken": "keep_first"
         },
@@ -551,126 +221,6 @@
           "values": {
             "gitemno": "32041",
             "proccode": "12400"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "31739",
-            "proccode": "20500"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "31600",
-            "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "31602",
-            "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "31602",
-            "proccode": "20705"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32571",
-            "proccode": "12400"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32267",
-            "proccode": "20500"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32019",
-            "proccode": "20706"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32363",
-            "proccode": "20500"
           },
           "action_taken": "keep_first"
         },
@@ -701,6 +251,576 @@
           "values": {
             "gitemno": "25296",
             "proccode": "20700"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "31739",
+            "proccode": "20702"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "30260",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "30234",
+            "proccode": "20906"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32453",
+            "proccode": "23311"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32016",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32267",
+            "proccode": "20702"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "31602",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32016",
+            "proccode": "20906"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "31722",
+            "proccode": "23311"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "26300",
+            "proccode": "20700"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "31602",
+            "proccode": "20906"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32017",
+            "proccode": "20706"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "25441",
+            "proccode": "20700"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32470",
+            "proccode": "12400"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "31739",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32265",
+            "proccode": "20702"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32267",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "31772",
+            "proccode": "23100"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32363",
+            "proccode": "20706"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32571",
+            "proccode": "12400"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "30260",
+            "proccode": "20906"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "30260",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "31602",
+            "proccode": "20705"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "31704",
+            "proccode": "12400"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32470",
+            "proccode": "23311"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32556",
+            "proccode": "23100"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32017",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32018",
+            "proccode": "20706"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "27870",
+            "proccode": "20700"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32019",
+            "proccode": "20706"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "25296",
+            "proccode": "20300"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32571",
+            "proccode": "23316"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "31600",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32265",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32363",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32363",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32267",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "31704",
+            "proccode": "23311"
           },
           "action_taken": "keep_first"
         },
@@ -729,23 +849,8 @@
           "issue_type": "duplicate",
           "duplicate_count": 4,
           "values": {
-            "gitemno": "30260",
-            "proccode": "20702"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "25296",
-            "proccode": "20300"
+            "gitemno": "31739",
+            "proccode": "20902"
           },
           "action_taken": "keep_first"
         },
@@ -774,6 +879,36 @@
           "issue_type": "duplicate",
           "duplicate_count": 4,
           "values": {
+            "gitemno": "32267",
+            "proccode": "20906"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "30234",
+            "proccode": "20702"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
             "gitemno": "32016",
             "proccode": "20706"
           },
@@ -789,8 +924,53 @@
           "issue_type": "duplicate",
           "duplicate_count": 2,
           "values": {
-            "gitemno": "32470",
+            "gitemno": "26300",
+            "proccode": "20300"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32413",
             "proccode": "12400"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "32018",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "25441",
+            "proccode": "20300"
           },
           "action_taken": "keep_first"
         },
@@ -819,37 +999,7 @@
           "issue_type": "duplicate",
           "duplicate_count": 4,
           "values": {
-            "gitemno": "32571",
-            "proccode": "20500"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32018",
-            "proccode": "20706"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32019",
+            "gitemno": "32017",
             "proccode": "20902"
           },
           "action_taken": "keep_first"
@@ -864,23 +1014,8 @@
           "issue_type": "duplicate",
           "duplicate_count": 4,
           "values": {
-            "gitemno": "32267",
-            "proccode": "20906"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "32453",
-            "proccode": "23311"
+            "gitemno": "32019",
+            "proccode": "20500"
           },
           "action_taken": "keep_first"
         },
@@ -894,8 +1029,38 @@
           "issue_type": "duplicate",
           "duplicate_count": 4,
           "values": {
-            "gitemno": "30260",
-            "proccode": "20500"
+            "gitemno": "32017",
+            "proccode": "20906"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "31600",
+            "proccode": "20906"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 4,
+          "values": {
+            "gitemno": "31600",
+            "proccode": "20902"
           },
           "action_taken": "keep_first"
         },
@@ -922,70 +1087,10 @@
           ],
           "constraint": "uniqueness",
           "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "32556",
-            "proccode": "23100"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "31704",
-            "proccode": "23311"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
           "duplicate_count": 4,
           "values": {
-            "gitemno": "30234",
-            "proccode": "20500"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32017",
-            "proccode": "20706"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32016",
-            "proccode": "20902"
+            "gitemno": "32265",
+            "proccode": "20906"
           },
           "action_taken": "keep_first"
         },
@@ -1014,53 +1119,8 @@
           "issue_type": "duplicate",
           "duplicate_count": 4,
           "values": {
-            "gitemno": "31600",
-            "proccode": "20500"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "31602",
-            "proccode": "20500"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32018",
-            "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
             "gitemno": "30234",
-            "proccode": "20702"
+            "proccode": "20500"
           },
           "action_taken": "keep_first"
         },
@@ -1087,70 +1147,10 @@
           ],
           "constraint": "uniqueness",
           "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32571",
-            "proccode": "23316"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
           "duplicate_count": 2,
           "values": {
-            "gitemno": "31722",
-            "proccode": "12400"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "31600",
-            "proccode": "20705"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "32017",
-            "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 4,
-          "values": {
-            "gitemno": "30260",
-            "proccode": "20906"
+            "gitemno": "31772",
+            "proccode": "20710"
           },
           "action_taken": "keep_first"
         }
@@ -1174,8 +1174,83 @@
           "issue_type": "duplicate",
           "duplicate_count": 2,
           "values": {
+            "gitemno": "30234",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32016",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "31602",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
             "gitemno": "26300",
             "proccode": "20700"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "32267",
+            "proccode": "20500"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "30260",
+            "proccode": "20902"
           },
           "action_taken": "keep_first"
         },
@@ -1204,8 +1279,8 @@
           "issue_type": "duplicate",
           "duplicate_count": 2,
           "values": {
-            "gitemno": "31739",
-            "proccode": "20902"
+            "gitemno": "32363",
+            "proccode": "20500"
           },
           "action_taken": "keep_first"
         },
@@ -1220,6 +1295,21 @@
           "duplicate_count": 2,
           "values": {
             "gitemno": "32267",
+            "proccode": "20902"
+          },
+          "action_taken": "keep_first"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "uniqueness",
+          "issue_type": "duplicate",
+          "duplicate_count": 2,
+          "values": {
+            "gitemno": "31739",
             "proccode": "20902"
           },
           "action_taken": "keep_first"
@@ -1249,21 +1339,6 @@
           "issue_type": "duplicate",
           "duplicate_count": 2,
           "values": {
-            "gitemno": "30260",
-            "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
             "gitemno": "31600",
             "proccode": "20902"
           },
@@ -1279,82 +1354,7 @@
           "issue_type": "duplicate",
           "duplicate_count": 2,
           "values": {
-            "gitemno": "31602",
-            "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "32267",
-            "proccode": "20500"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "32363",
-            "proccode": "20500"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "30234",
-            "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
             "gitemno": "32265",
-            "proccode": "20902"
-          },
-          "action_taken": "keep_first"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "uniqueness",
-          "issue_type": "duplicate",
-          "duplicate_count": 2,
-          "values": {
-            "gitemno": "32016",
             "proccode": "20902"
           },
           "action_taken": "keep_first"
@@ -1378,35 +1378,7 @@
           "constraint": "existence",
           "issue_type": "missing",
           "values": {
-            "gitemno": "31602",
-            "proccode": "20906"
-          },
-          "action_taken": "none"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "existence",
-          "issue_type": "missing",
-          "values": {
-            "gitemno": "31600",
-            "proccode": "20906"
-          },
-          "action_taken": "none"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "existence",
-          "issue_type": "missing",
-          "values": {
-            "gitemno": "30234",
+            "gitemno": "32018",
             "proccode": "20906"
           },
           "action_taken": "none"
@@ -1434,6 +1406,34 @@
           "constraint": "existence",
           "issue_type": "missing",
           "values": {
+            "gitemno": "25296",
+            "proccode": "20700"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "30234",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
             "gitemno": "32016",
             "proccode": "20906"
           },
@@ -1448,7 +1448,7 @@
           "constraint": "existence",
           "issue_type": "missing",
           "values": {
-            "gitemno": "32265",
+            "gitemno": "31602",
             "proccode": "20906"
           },
           "action_taken": "none"
@@ -1462,7 +1462,21 @@
           "constraint": "existence",
           "issue_type": "missing",
           "values": {
-            "gitemno": "32018",
+            "gitemno": "32017",
+            "proccode": "20706"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "30260",
             "proccode": "20906"
           },
           "action_taken": "none"
@@ -1477,34 +1491,6 @@
           "issue_type": "missing",
           "values": {
             "gitemno": "27870",
-            "proccode": "20700"
-          },
-          "action_taken": "none"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "existence",
-          "issue_type": "missing",
-          "values": {
-            "gitemno": "32017",
-            "proccode": "20906"
-          },
-          "action_taken": "none"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "existence",
-          "issue_type": "missing",
-          "values": {
-            "gitemno": "25296",
             "proccode": "20700"
           },
           "action_taken": "none"
@@ -1547,20 +1533,6 @@
           "issue_type": "missing",
           "values": {
             "gitemno": "32017",
-            "proccode": "20706"
-          },
-          "action_taken": "none"
-        },
-        {
-          "severity": "warning",
-          "columns": [
-            "gitemno",
-            "proccode"
-          ],
-          "constraint": "existence",
-          "issue_type": "missing",
-          "values": {
-            "gitemno": "32363",
             "proccode": "20906"
           },
           "action_taken": "none"
@@ -1574,7 +1546,35 @@
           "constraint": "existence",
           "issue_type": "missing",
           "values": {
-            "gitemno": "30260",
+            "gitemno": "31600",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "32265",
+            "proccode": "20906"
+          },
+          "action_taken": "none"
+        },
+        {
+          "severity": "warning",
+          "columns": [
+            "gitemno",
+            "proccode"
+          ],
+          "constraint": "existence",
+          "issue_type": "missing",
+          "values": {
+            "gitemno": "32363",
             "proccode": "20906"
           },
           "action_taken": "none"
