@@ -142,6 +142,7 @@ class SchedulingCore:
         try:
             # 1. 선행 작업 완료 검증
             if not SchedulingCore.validate_ready_node(node):
+                print(f"[DEBUG] schedule_single_node - 노드 {node.id}: parent_node_count={node.parent_node_count} (ready 아님)")
                 return False
 
             # 2. 최초 시작 가능 시간 계산
@@ -163,6 +164,7 @@ class SchedulingCore:
                 )
 
             if not assignment_result.success:
+                print(f"[DEBUG] schedule_single_node - 노드 {node.id}: 기계 할당 실패 (strategy={type(machine_assignment_strategy).__name__})")
                 return False
 
             # 4. 노드 상태 업데이트
@@ -352,21 +354,25 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
     def execute(self, dag_manager, scheduler, start_id, window):
         """
         유사한 공정들을 묶어서 셋업 시간 최소화 스케줄링
-        
+
         Args:
             start_id: 시작 노드 ID
             window: 윈도우 내 후보 노드 ID 리스트
-            
+
         Returns:
             list: 이번에 사용된 노드 ID 리스트
         """
         node = dag_manager.nodes[start_id]
+
+        # 디버깅: loop_leader 상태 확인
+        print(f"[DEBUG] SetupMinimizedStrategy - loop_leader: {start_id}, parent_node_count: {node.parent_node_count}")
 
         # 1. 첫 번째 노드는 최적 기계 자동 선택
         strategy = OptimalMachineStrategy()
         success = SchedulingCore.schedule_single_node(node, scheduler, strategy)
 
         if not success:
+            print(f"[DEBUG] SetupMinimizedStrategy - loop_leader {start_id} 스케줄링 실패")
             return []
 
         # 할당된 기계 인덱스 가져오기
