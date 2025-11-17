@@ -45,7 +45,8 @@ class DelayProcessor:
             "OPERATION_CLASSIFICATION": "",
             "FABRIC_WIDTH": 0,
             "CHEMICAL_LIST": (),
-            "PRODUCTION_LENGTH": 0
+            "PRODUCTION_LENGTH": 0,
+            "SELECTED_CHEMICAL": None,  # 초기값
         }
         values1 = self.opnode_dict.get(item_id1, empty_dict)
         values2 = self.opnode_dict.get(item_id2, empty_dict)

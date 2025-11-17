@@ -66,7 +66,7 @@ class Scheduler:
         Args:
             machine_info: {machine_code: processing_time}
             machine_code (str): 기계 코드 (예: 'A2020')
-            node_earliest_start: 노드 최조 시작 가능 시간
+            node_earliest_start: 노드 최초 시작 가능 시간
             node_id: 노드 ID
             machine_window_flag: 빈 시간창 사용 여부
 
@@ -179,7 +179,7 @@ class Scheduler:
         ⭐ 리팩토링: machine_index → machine_code
 
         Args:
-            node_earliest_start: 노드 최조 시작 가능 시간
+            node_earliest_start: 노드 최초 시작 가능 시간
             node_id: 노드 ID
             depth: DAG 깊이
 
@@ -239,7 +239,7 @@ class Scheduler:
 
         Args:
             machine_code (str): 기계 코드 (예: 'A2020')  ← 변경!
-            node_earliest_start: 노드 최조 시작 가능 시간
+            node_earliest_start: 노드 최초 시작 가능 시간
             node_id: 노드 ID
             depth: 깊이
             machine_window_flag: 빈 시간창 사용 여부

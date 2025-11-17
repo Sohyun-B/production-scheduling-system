@@ -47,13 +47,13 @@ class SchedulingCore:
     @staticmethod  
     def calculate_start_time(node) -> float:
         """
-        최조 시작 가능 시간 계산
+        최초 시작 가능 시간 계산
         
         Args:
             node: DAGNode 인스턴스
             
         Returns:
-            float: 최조 시작 가능 시간 (부모 노드들의 최대 종료 시간)
+            float: 최초 시작 가능 시간 (부모 노드들의 최대 종료 시간)
         """
         # 어트리뷰트나 값이 존재하지 않으면 0(바로 시작 가능)
         if not hasattr(node, 'parent_node_end') or not node.parent_node_end:

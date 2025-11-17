@@ -90,7 +90,7 @@ class DAGNode:
         self.all_descendants = []            # 모든 후손 노드들 (그래프 분석용)
 
         # === 스케줄링 실행 관련 속성 (가변) ===
-        self.earliest_start = None           # 최조 시작 가능 시간
+        self.earliest_start = None           # 최초 시작 가능 시간
         self.parent_node_count = 0           # 현재 대기 중인 부모 개수
         self.processing_time = None          # 가공 소요 시간
         self.machine = None                  # 할당된 기계
