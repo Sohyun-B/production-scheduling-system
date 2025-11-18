@@ -39,7 +39,7 @@ class Scheduler:
             )
 
         # NEW: Aging 기계 생성 (별도 속성)
-        self.aging_machine = Machine_Time_window(-1, allow_overlapping=True)
+        self.aging_machine = Machine_Time_window('AGING', allow_overlapping=True)
 
         print(f"[INFO] 기계 리소스 할당 완료: {len(self.Machines)}대")
 
@@ -49,12 +49,12 @@ class Scheduler:
         ⭐ 리팩토링: machine_index → machine_code
 
         Args:
-            machine_code: 기계 코드 (str, 예: 'A2020') 또는 -1 (aging)
+            machine_code: 기계 코드 (str, 예: 'A2020') 또는 'AGING' (aging)
 
         Returns:
             Machine_Time_window 객체
         """
-        if machine_code == -1:
+        if machine_code == 'AGING':
             return self.aging_machine
         return self.Machines[machine_code]
 
@@ -193,12 +193,12 @@ class Scheduler:
             print(f"[오류] 노드 {node_id}의 machine_info 없음")
             return None, None, None
 
-        # ★ Aging 노드 감지 및 처리 ({-1: time} 구조 유지)
-        is_aging = set(machine_info.keys()) == {-1}
+        # ★ Aging 노드 감지 및 처리 ({'AGING': time} 구조 유지)
+        is_aging = set(machine_info.keys()) == {'AGING'}
         if is_aging:
-            aging_time = machine_info[-1]
+            aging_time = machine_info['AGING']
             self.aging_machine._Input(depth, node_id, node_earliest_start, aging_time)
-            return -1, node_earliest_start, aging_time
+            return 'AGING', node_earliest_start, aging_time
 
         ideal_machine_code = None  # ★ 인덱스 → 코드
         ideal_machine_processing_time = float('inf')
@@ -335,7 +335,7 @@ class Scheduler:
         """
 
         # 시작시간 미존재시, 전체 스케줄 시작 시간으로
-        machine_rest[config.columns.MACHINE_REST_START].fillna(base_date)
+        machine_rest[config.columns.MACHINE_REST_START] = machine_rest[config.columns.MACHINE_REST_START].fillna(base_date)
         # 종료시간이 없는 경우, 고려 X
         machine_rest = machine_rest[ ~ machine_rest[config.columns.MACHINE_REST_END].isna() ]
 
@@ -346,7 +346,7 @@ class Scheduler:
             machine_code = row[config.columns.MACHINE_CODE]  # ★ 코드로 변경
             start_time = row[config.columns.MACHINE_REST_START]
             end_time = row[config.columns.MACHINE_REST_END]
-            self.Machines[machine_code].force_Input(-1, "DOWNTIME 기계 사용 불가 시간", start_time, end_time)  # ★ 딕셔너리 접근   
+            self.Machines[machine_code].force_Input('AGING', "DOWNTIME 기계 사용 불가 시간", start_time, end_time)  # ★ 딕셔너리 접근   
         
 
 

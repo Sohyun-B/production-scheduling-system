@@ -16,7 +16,7 @@ from config import config
 class AssignmentResult:
     """기계 할당 결과"""
     success: bool                    # 할당 성공 여부
-    machine_index: Optional[int]     # 할당된 기계 인덱스
+    machine_code: Optional[str]     # 할당된 기계 코드
     start_time: Optional[float]      # 시작 시간
     processing_time: Optional[float] # 처리 시간
     
@@ -74,17 +74,17 @@ class SchedulingCore:
         return base_earliest_start
     
     @staticmethod
-    def update_node_state(node, machine_index: int, start_time: float, processing_time: float):
+    def update_node_state(node, machine_code: str, start_time: float, processing_time: float):
         """
         노드 스케줄링 상태 업데이트
         
         Args:
             node: DAGNode 인스턴스
-            machine_index: 할당된 기계 인덱스
+            machine_code: 할당된 기계 코드
             start_time: 시작 시간
             processing_time: 처리 시간
         """
-        node.machine = machine_index
+        node.machine = machine_code
         node.node_start = start_time
         node.processing_time = processing_time
         node.node_end = start_time + processing_time
@@ -116,7 +116,7 @@ class SchedulingCore:
         for child in node.children:
             if child.parent_node_count == 0:  # 스케줄 가능
                 machine_info = scheduler.machine_dict.get(child.id)
-                is_aging = machine_info and set(machine_info.keys()) == {-1}
+                is_aging = machine_info and set(machine_info.keys()) == {'AGING'}
 
                 if is_aging:
                     print(f"[INFO] Aging 노드 {child.id} 자동 스케줄링 (parent {node.id} 완료)")
@@ -151,7 +151,7 @@ class SchedulingCore:
 
             # NEW: 3. Aging 노드 감지 및 전략 선택
             machine_info = scheduler.machine_dict.get(node.id)
-            is_aging = machine_info and set(machine_info.keys()) == {-1}
+            is_aging = machine_info and set(machine_info.keys()) == {'AGING'}
 
             if is_aging:
                 # Aging 노드는 AgingMachineStrategy 사용
@@ -170,7 +170,7 @@ class SchedulingCore:
             # 4. 노드 상태 업데이트
             SchedulingCore.update_node_state(
                 node,
-                assignment_result.machine_index,
+                assignment_result.machine_code,
                 assignment_result.start_time,
                 assignment_result.processing_time
             )
@@ -217,19 +217,19 @@ class OptimalMachineStrategy(MachineAssignmentStrategy):
         기존 코드: scheduler.assign_operation(earliest_start, node_id, depth)
         """
         try:
-            machine_idx, start_time, processing_time = scheduler.assign_operation(
+            machine_code, start_time, processing_time = scheduler.assign_operation(
                 earliest_start, node.id, node.depth
             )
             return AssignmentResult(
-                success=True,
-                machine_index=machine_idx,
+                success= machine_code is not None,
+                machine_code=machine_code,
                 start_time=start_time,
                 processing_time=processing_time
             )
         except Exception as e:
             return AssignmentResult(
                 success=False,
-                machine_index=None,
+                machine_code=None,
                 start_time=None,
                 processing_time=None
             )
@@ -248,16 +248,16 @@ class AgingMachineStrategy(MachineAssignmentStrategy):
             earliest_start: 최초 시작 가능 시간
 
         Returns:
-            AssignmentResult: 할당 결과 (machine_index=-1)
+            AssignmentResult: 할당 결과 (machine_code='AGING')
         """
         try:
             machine_info = scheduler.machine_dict.get(node.id)
 
             # Aging 노드 검증
-            if not machine_info or set(machine_info.keys()) != {-1}:
+            if not machine_info or set(machine_info.keys()) != {'AGING'}:
                 raise ValueError(f"Node {node.id} is not an aging node")
 
-            processing_time = machine_info[-1]
+            processing_time = machine_info['AGING']
             start_time = earliest_start  # 즉시 시작
 
             # Aging 기계에 할당
@@ -270,7 +270,7 @@ class AgingMachineStrategy(MachineAssignmentStrategy):
 
             return AssignmentResult(
                 success=True,
-                machine_index=-1,
+                machine_code='AGING',
                 start_time=start_time,
                 processing_time=processing_time
             )
@@ -278,7 +278,7 @@ class AgingMachineStrategy(MachineAssignmentStrategy):
             print(f"[ERROR] AgingMachineStrategy.assign for node {node.id}: {e}")
             return AssignmentResult(
                 success=False,
-                machine_index=None,
+                machine_code=None,
                 start_time=None,
                 processing_time=None
             )
@@ -375,8 +375,8 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
             print(f"[DEBUG] SetupMinimizedStrategy - loop_leader {start_id} 스케줄링 실패")
             return []
 
-        # 할당된 기계 인덱스 가져오기
-        ideal_machine_index = node.machine
+        # 할당된 기계 코드 가져오기
+        ideal_machine_code = node.machine
 
         # 2. 첫 노드의 최적 배합액 선택
         first_node_dict = dag_manager.opnode_dict.get(start_id)
@@ -426,7 +426,7 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
         used_ids = [start_id]
         for same_chemical_id in same_chemical_queue:
             node = dag_manager.nodes[same_chemical_id]
-            strategy = ForcedMachineStrategy(ideal_machine_index, use_machine_window=False)
+            strategy = ForcedMachineStrategy(ideal_machine_code, use_machine_window=False)
             success = SchedulingCore.schedule_single_node(node, scheduler, strategy)
             if success:
                 used_ids.append(same_chemical_id)
@@ -491,7 +491,7 @@ class SetupMinimizedStrategy(HighLevelSchedulingStrategy):
                 if not SchedulingCore.validate_ready_node(node):
                     next_remaining.append(chemical_id)
                     continue
-                strategy = ForcedMachineStrategy(ideal_machine_index, use_machine_window=False)
+                strategy = ForcedMachineStrategy(ideal_machine_code, use_machine_window=False)
                 success = SchedulingCore.schedule_single_node(node, scheduler, strategy)
                 if success:
                     used_ids.append(chemical_id)
@@ -542,7 +542,7 @@ class DispatchPriorityStrategy(HighLevelSchedulingStrategy):
         aging_nodes = []
         for node_id in priority_order:
             machine_info = scheduler.machine_dict.get(node_id)
-            is_aging = machine_info and set(machine_info.keys()) == {-1}
+            is_aging = machine_info and set(machine_info.keys()) == {'AGING'}
             if is_aging:
                 aging_nodes.append(node_id)
             else:
@@ -609,7 +609,7 @@ class UserRescheduleStrategy(HighLevelSchedulingStrategy):
         사용자가 지정한 기계별 큐 순서로 강제 재스케줄링
         
         Args:
-            machine_queues: {machine_index: [node_id, ...]} 형태 딕셔너리
+            machine_queues: {machine_code: [node_id, ...]} 형태 딕셔너리
             
         Returns:
             DataFrame: 재스케줄링 결과
@@ -618,7 +618,7 @@ class UserRescheduleStrategy(HighLevelSchedulingStrategy):
         while progress:
             progress = False  # 이번 루프에서 실행이 있었는지 추적
             
-            for machine_idx, queue in machine_queues.items():
+            for machine_code, queue in machine_queues.items():
                 if not queue:  # 큐가 비었으면 스킵
                     continue
                 
@@ -626,7 +626,7 @@ class UserRescheduleStrategy(HighLevelSchedulingStrategy):
                 node = dag_manager.nodes[node_id]
                 
                 # 강제 기계 할당 전략 사용 (재스케줄링 모드)
-                strategy = ForcedMachineStrategy(machine_idx, use_machine_window=True)
+                strategy = ForcedMachineStrategy(machine_code, use_machine_window=True)
                 success = SchedulingCore.schedule_single_node(node, scheduler, strategy)
                 
                 if success:
@@ -658,24 +658,24 @@ class UserRescheduleStrategy(HighLevelSchedulingStrategy):
 class ForcedMachineStrategy(MachineAssignmentStrategy):
     """특정 기계 강제 할당 전략"""
     
-    def __init__(self, target_machine_idx: int, use_machine_window: bool = False):
+    def __init__(self, target_machine_code: int, use_machine_window: bool = False):
         """
         Args:
-            target_machine_idx: 강제 할당할 기계 인덱스
+            target_machine_code: 강제 할당할 기계 코드
             use_machine_window: machine_window_flag 사용 여부 (재스케줄링용)
         """
-        self.target_machine_idx = target_machine_idx
+        self.target_machine_code = target_machine_code
         self.use_machine_window = use_machine_window
         
     def assign(self, scheduler, node, earliest_start: float) -> AssignmentResult:
         """
         지정된 기계에 강제 할당
         
-        기존 코드: scheduler.force_assign_operation(machine_idx, earliest_start, node_id, depth, ...)
+        기존 코드: scheduler.force_assign_operation(machine_code, earliest_start, node_id, depth, ...)
         """
         try:
             flag, start_time, processing_time = scheduler.force_assign_operation(
-                self.target_machine_idx, 
+                self.target_machine_code, 
                 earliest_start, 
                 node.id, 
                 node.depth,
@@ -684,14 +684,14 @@ class ForcedMachineStrategy(MachineAssignmentStrategy):
             
             return AssignmentResult(
                 success=flag,
-                machine_index=self.target_machine_idx if flag else None,
+                machine_code=self.target_machine_code if flag else None,
                 start_time=start_time if flag else None,
                 processing_time=processing_time if flag else None
             )
         except Exception as e:
             return AssignmentResult(
                 success=False,
-                machine_index=None,
+                machine_code=None,
                 start_time=None,
                 processing_time=None
             )

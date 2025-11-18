@@ -155,8 +155,8 @@ def is_aging_node(node_id, machine_dict):
     if node_id not in machine_dict:
         return False
 
-    # machine_dict가 {-1: time}만 가지면 aging
-    return set(machine_dict[node_id].keys()) == {-1}
+    # machine_dict가 {'AGING': time}만 가지면 aging
+    return set(machine_dict[node_id].keys()) == {'AGING'}
 
 
 def parse_aging_requirements(aging_df, sequence_seperated_order):

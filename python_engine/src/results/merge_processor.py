@@ -74,7 +74,7 @@ def create_process_detail_result(final_result_df, sequence_seperated_order, sche
 
         # Aging 여부 확인
         machine_info = scheduler.machine_dict.get(node_id)
-        is_aging = machine_info and set(machine_info.keys()) == {-1}
+        is_aging = machine_info and set(machine_info.keys()) == {'AGING'}
 
         # sequence_seperated_order에서 추가 정보 가져오기
         if is_aging and '_AGING' in node_id:

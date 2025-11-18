@@ -148,7 +148,9 @@ class Machine_Time_window:
         """
         self.assigned_task.append([depth, node_id])
         self.O_start.append(start_time)
+        self.O_start.sort()
         self.O_end.append(end_time)
+        self.O_end.sort()
         self.End_time = max(self.End_time, end_time)
         
         

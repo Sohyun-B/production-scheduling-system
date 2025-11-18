@@ -66,7 +66,7 @@ def create_complete_dag_system(sequence_seperated_order, linespeed, machine_mapp
             for parent_id, info in aging_map.items()
         }
         for aging_node_id, aging_time in aging_nodes_dict.items():
-            machine_dict[aging_node_id] = {-1: int(aging_time)}
+            machine_dict[aging_node_id] = {'AGING': int(aging_time)}
 
         # 3. DAGGraphManager 재빌드 (aging 노드 포함)
         manager = DAGGraphManager(opnode_dict)

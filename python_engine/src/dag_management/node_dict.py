@@ -99,7 +99,7 @@ def create_machine_dict(sequence_seperated_order, linespeed, machine_mapper, agi
     # Aging 노드 추가
     if aging_nodes_dict:
         for aging_node_id, aging_time in aging_nodes_dict.items():
-            machine_dict[aging_node_id] = {-1: int(aging_time)}
+            machine_dict[aging_node_id] = {'AGING': int(aging_time)}
         print(f"[INFO] {len(aging_nodes_dict)}개 Aging 노드 추가")
 
     return machine_dict

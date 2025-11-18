@@ -152,6 +152,11 @@ def run_level4_scheduling():
             manager=manager,
             window_days=window_days,
         )
+        
+        # 원본 결과 저장 (임시)
+        excel_filename = "data/output/result.xlsx"
+        result.to_excel(excel_filename, index=False)
+        print(f"[저장] 원본 결과를 '{excel_filename}'에 저장 완료")
 
 
         # === 6단계: 결과 후처리 (results 모듈 사용) ===
@@ -191,10 +196,6 @@ def run_level4_scheduling():
             print(f"평균 지각일수 (지각 주문만): {lateness['avg_lateness_days']:.2f}일")
 
 
-        # 원본 결과 저장 (임시)
-        excel_filename = "data/output/result.xlsx"
-        result.to_excel(excel_filename, index=False)
-        print(f"[저장] 원본 결과를 '{excel_filename}'에 저장 완료")
         
         # 최종 엑셀 파일 저장 (results 버전 - 5개 시트)
         print("[99%] 최종 Excel 파일 저장 중...")
