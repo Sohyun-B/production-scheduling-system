@@ -185,6 +185,8 @@ class MachineInfoBuilder:
             machine_info[config.columns.WORK_START_TIME]
         )
 
+        print(machine_info.info())
+
         return machine_info
 
     def create_complete_machine_info(

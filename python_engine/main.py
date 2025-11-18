@@ -17,7 +17,6 @@ from src.validation import preprocess_production_data
 from src.order_sequencing import generate_order_sequences
 from src.yield_management import yield_prediction
 from src.dag_management import create_complete_dag_system
-from src.dag_management.dag_dataframe import parse_aging_requirements
 from src.scheduler import run_scheduler_pipeline
 from src.results import create_results
 
@@ -121,16 +120,9 @@ def run_level4_scheduling():
     )
 
     # === 4단계: DAG 생성 ===
-    # NEW: aging 요구사항 파싱
-    print("[38%] Aging 요구사항 파싱 중...")
-    aging_map = parse_aging_requirements(aging_df, sequence_seperated_order)
-    print(f"[INFO] {len(aging_map)}개의 aging 노드 생성 예정")
-
-
-
     # DAG 생성 (aging_map 전달)
     dag_df, opnode_dict, manager, machine_dict, merged_df = create_complete_dag_system(
-        sequence_seperated_order, linespeed, machine_mapper, aging_map=aging_map)
+        sequence_seperated_order, linespeed, machine_mapper, aging_df)
 
     print(f"[50%] DAG 시스템 생성 완료 - 노드: {len(dag_df)}개, 기계: {len(machine_dict)}개")
 
