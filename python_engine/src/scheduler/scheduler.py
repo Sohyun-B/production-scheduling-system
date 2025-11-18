@@ -346,7 +346,7 @@ class Scheduler:
             machine_code = row[config.columns.MACHINE_CODE]  # ★ 코드로 변경
             start_time = row[config.columns.MACHINE_REST_START]
             end_time = row[config.columns.MACHINE_REST_END]
-            self.Machines[machine_code].force_Input('AGING', "DOWNTIME 기계 사용 불가 시간", start_time, end_time)  # ★ 딕셔너리 접근   
+            self.Machines[machine_code].force_Input(-1, "DOWNTIME 기계 사용 불가 시간", start_time, end_time)  # ★ 딕셔너리 접근   
         
 
 
