@@ -6,7 +6,7 @@ from config import config
 class Scheduler:
     def __init__(self, machine_dict, delay_processor, machine_mapper):
         """
-        ⭐ 리팩토링: 코드 기반 Scheduler
+        코드 기반 Scheduler
 
         Args:
             machine_dict: {node_id: {machine_code: processing_time}}
@@ -28,7 +28,6 @@ class Scheduler:
     def allocate_resources(self):
         """
         기계 리소스 할당 (딕셔너리 기반)
-        ⭐ 리팩토링: 리스트 → 딕셔너리
         """
         # ★ 딕셔너리로 생성
         self.Machines = {}
@@ -46,7 +45,6 @@ class Scheduler:
     def get_machine(self, machine_code):
         """
         통합 기계 접근자 (코드 기반)
-        ⭐ 리팩토링: machine_index → machine_code
 
         Args:
             machine_code: 기계 코드 (str, 예: 'A2020') 또는 'AGING' (aging)
@@ -61,8 +59,6 @@ class Scheduler:
     def machine_earliest_start(self, machine_info, machine_code, node_earliest_start, node_id, machine_window_flag = False):
         """
         특정 기계의 최적 시작시간 계산 (코드 기반)
-        ⭐ 리팩토링: machine_index → machine_code
-
         Args:
             machine_info: {machine_code: processing_time}
             machine_code (str): 기계 코드 (예: 'A2020')
@@ -204,8 +200,8 @@ class Scheduler:
         ideal_machine_processing_time = float('inf')
         best_earliest_start = float('inf')
 
-        # ★ 코드 기반 순회
-        for machine_code, machine_processing_time in machine_info.items():
+        # ★ 코드 기반 순회 (결정성을 위해 정렬된 순서로)
+        for machine_code, machine_processing_time in sorted(machine_info.items()):
             if machine_processing_time != 9999:  # 9999이면 수행하지 않는 기계로 판단
                 # machine_code 전달
                 earliest_start = self.machine_earliest_start(
@@ -235,7 +231,6 @@ class Scheduler:
     def force_assign_operation(self, machine_code, node_earliest_start, node_id, depth, machine_window_flag = False):
         """
         특정 기계에 강제 할당 (코드 기반)
-        ⭐ 리팩토링: machine_idx → machine_code
 
         Args:
             machine_code (str): 기계 코드 (예: 'A2020')  ← 변경!
@@ -283,7 +278,6 @@ class Scheduler:
     def create_machine_schedule_dataframe(self):
         """
         머신별 스케줄 정보를 데이터프레임으로 변환 (작업 단위로 행 추가)
-        ⭐ 리팩토링: 딕셔너리 순회로 변경
 
         Returns:
             pandas.DataFrame: 머신 스케줄 정보가 담긴 데이터프레임
@@ -328,7 +322,6 @@ class Scheduler:
     def allocate_machine_downtime(self, machine_rest, base_date):
         """
         기계 휴식 시간을 DOWNTIME 가짜 공정으로 차단
-        ⭐ 리팩토링: machine_index → machine_code
 
         machine_rest: 기계코드, 불가능한 공정, 시작시간, 종료시간
         불가능한 공정이 비어있는 경우 모든 공정을 사용 못하는 상태로 판단

@@ -57,7 +57,6 @@ class MachineDetailedAnalyzer:
     def extract_gap_times(self, machine_code):
         """
         gap_analyzer에서 특정 기계의 대기시간/셋업시간 추출
-        ⭐ 리팩토링: machine_idx → machine_code
 
         Args:
             machine_code (str): 기계 코드 (예: 'A2020', 'C2010')
@@ -89,7 +88,6 @@ class MachineDetailedAnalyzer:
     def create_detailed_table(self):
         """
         장비별 상세 성과 테이블 생성
-        ⭐ 리팩토링: 딕셔너리 순회로 변경
 
         Returns:
             pd.DataFrame: 9개 컬럼 (기계코드, 기계명, 가동시간, 가동율, ...)

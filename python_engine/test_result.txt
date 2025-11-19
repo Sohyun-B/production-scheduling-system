@@ -1,0 +1,394 @@
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\order_sequencing\fabric_combiner.py:176: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(self._assign_fabric_quantity)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\yield_management\__init__.py:21: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  sequence_seperated_order_yield = sequence_seperated_order_yield.groupby(config.columns.GITEM, group_keys=False).apply(calculate_input_ratio)
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\yield_management\__init__.py:21: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  sequence_seperated_order_yield = sequence_seperated_order_yield.groupby(config.columns.GITEM, group_keys=False).apply(calculate_input_ratio)
+================================================================================
+비결정성 단위 테스트 시작
+================================================================================
+
+[테스트 1] 입력 데이터 로딩 결정성 검증
+--------------------------------------------------------------------------------
+order_df            : [OK] SAME (hash: 71a88b4d)
+gitem_sitem_df      : [OK] SAME (hash: a4218cb7)
+linespeed_df        : [OK] SAME (hash: 4a9034f9)
+operation_df        : [OK] SAME (hash: b0541889)
+yield_df            : [OK] SAME (hash: 2cb375f2)
+chemical_df         : [OK] SAME (hash: a1508887)
+operation_delay_df  : [OK] SAME (hash: b312af6b)
+width_change_df     : [OK] SAME (hash: c0695512)
+aging_gitem         : [OK] SAME (hash: b2169aaf)
+aging_gbn           : [OK] SAME (hash: 6935039a)
+
+[테스트 2] Validation & Preprocessing 결정성 검증
+--------------------------------------------------------------------------------
+[Validation] 데이터 변환 시작...
+6_months 기준 컬럼명: ['l11', 'l21', 'l31', 'l41', 'l51']
+[INFO] Linespeed 전처리 완료 (Long Format): 1710개 레코드
+6_months 기준 컬럼명: ['s11', 's21', 's31', 's41', 's51']
+[Validation] 데이터 변환 완료. 결과 정리 중...
+[Validation] Aging 데이터 전처리 중...
+[Validation] Aging 데이터 전처리 완료 - 165개 레코드
+[Validation] Global 기계 제약조건 전처리 중...
+[Validation] Global 기계 제약조건 전처리 완료 - 3386개 레코드
+[Validation] 전처리 완료!
+[Validation] 데이터 변환 시작...
+6_months 기준 컬럼명: ['l11', 'l21', 'l31', 'l41', 'l51']
+[INFO] Linespeed 전처리 완료 (Long Format): 1710개 레코드
+6_months 기준 컬럼명: ['s11', 's21', 's31', 's41', 's51']
+[Validation] 데이터 변환 완료. 결과 정리 중...
+[Validation] Aging 데이터 전처리 중...
+[Validation] Aging 데이터 전처리 완료 - 165개 레코드
+[Validation] Global 기계 제약조건 전처리 중...
+[Validation] Global 기계 제약조건 전처리 완료 - 3386개 레코드
+[Validation] 전처리 완료!
+order_data               : [OK] SAME (hash: c9803975)
+linespeed                : [OK] SAME (hash: 89b07a6d)
+operation_types          : [OK] SAME (hash: dbc30012)
+operation_sequence       : [OK] SAME (hash: b0541889)
+yield_data               : [OK] SAME (hash: 606b70be)
+chemical_data            : [OK] SAME (hash: 658d421d)
+operation_delay          : [OK] SAME (hash: b312af6b)
+width_change             : [OK] SAME (hash: c0695512)
+aging_data               : [OK] SAME (hash: 336460a4)
+global_machine_limit     : [OK] SAME (hash: 2a924503)
+
+[테스트 3] 주문 시퀀스 생성 결정성 검증
+--------------------------------------------------------------------------------
+[Global 제약] 2547개 제약조건 처리 중...
+[Global 제약] 2547개 조합 중 9개 행 제거, 9개 (gitem, 공정) 영향
+[Global 제약] 완료: 총 9개 행 제거
+독점 할당할 기계가 없음
+unable gitems: 0개
+[Global 제약] 2547개 제약조건 처리 중...
+[Global 제약] 2547개 조합 중 9개 행 제거, 9개 (gitem, 공정) 영향
+[Global 제약] 완료: 총 9개 행 제거
+독점 할당할 기계가 없음
+unable gitems: 0개
+sequence_seperated_order: [OK] SAME (hash: 10198519)
+linespeed              : [OK] SAME (hash: 422e102c)
+
+[테스트 4] 수율 예측 결정성 검증
+--------------------------------------------------------------------------------
+yield_predicted_sequence: [OK] SAME (hash: b88896ea)
+
+[테스트 5] DAG 생성 결정성 검증
+--------------------------------------------------------------------------------
+[INFO] parse_aging_requirements: 7개의 aging 노드 생성 예정
+[INFO] parse_aging_requirements: 7개의 aging 노드 생성 예정
+aging_map              : [OK] SAME (hash: 12400215)
+[38%] Aging 요구사항 파싱 중...
+Traceback (most recent call last):
+  File "C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\test_determinism.py", line 208, in <module>
+    dag_df1, opnode_dict1, manager1, machine_dict1, merged_df1 = create_complete_dag_system(
+                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\dag_management\__init__.py", line 47, in create_complete_dag_system
+    aging_map = parse_aging_requirements(aging_df, sequence_seperated_order)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\dag_management\dag_dataframe.py", line 183, in parse_aging_requirements
+    for _, row in aging_df.iterrows():
+                  ^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'iterrows'

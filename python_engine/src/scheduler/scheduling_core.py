@@ -324,6 +324,9 @@ def find_best_chemical(first_node_dict, window_nodes, dag_manager):
         3. 가장 많이 사용 가능한 배합액 반환
     """
     chemical_list = first_node_dict["CHEMICAL_LIST"]
+    print("chemical_list")
+    print(chemical_list)
+    print(type(chemical_list))
 
     # 배합액이 없는 경우
     if not chemical_list or chemical_list == ():
@@ -344,7 +347,12 @@ def find_best_chemical(first_node_dict, window_nodes, dag_manager):
     if not chemical_counts:
         return None
 
-    best_chemical = max(chemical_counts, key=chemical_counts.get)
+    best_chemical = max(
+                        chemical_counts, 
+                        key=lambda c: (chemical_counts[c], -chemical_list.index(c))
+                        # 1순위: 사용 횟수 (높을수록 우선)
+                        # 2순위: chemical_list 순서 (음수로 앞에 있을수록 우선)
+    )
     return best_chemical
 
 
