@@ -1,0 +1,26 @@
+실행: test_dispatch_rule_subprocess.py
+
+
+ dispatch_rule이 프로세스마다 다릅니다!
+
+  - 첫 10개는 모두 동일
+  - 10번째 인덱스부터 차이 발생
+  - Run 1: 30234_1300_4_M10_20500_W2010
+  - Run 2: 30260_1300_4_M10_20902_T02089
+
+  → 이것이 전체 스케줄링 결과가 달라지는 근본 원인입니다!
+
+  원인 위치:
+
+  src/scheduler/dispatch_rules.py:21의 set 순회:
+
+  all_ids = set(dag_df[config.columns.PROCESS_ID])
+  ...
+  for node in all_ids:  # 이 순회 순서가 비결정적!
+      if in_degree[node] == 0:
+          heapq.heappush(ready, ...)
+
+  같은 우선순위(in_degree == 0)를 가진 노드들이 heap에 삽입되는 순서가 프로세스마다 달라져서, heap에서 pop되는
+  순서가 달라집니다.
+
+  해결책: sorted(all_ids)로 수정하면 됩니다!

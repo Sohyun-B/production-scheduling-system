@@ -178,7 +178,7 @@ def run_level4_scheduling():
         print(f"PO제품수: {metrics['po_count']}개")
         print(f"총 생산시간: {metrics['makespan_hours']:.2f}시간")
         print(f"납기준수율: {metrics['ontime_delivery_rate']:.2f}%")
-        print(f"장비가동률(평균): {metrics['avg_utilization']:.2f}%")
+        print(f"납기 지각 제품 개수: {metrics['late_product_count']}개")
 
         # 지각 요약
         lateness = final_results['lateness_summary']

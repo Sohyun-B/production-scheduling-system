@@ -78,6 +78,8 @@ def create_results(
         scheduler
     )
 
+    process_detail_df.to_csv("process_detail_df.csv", encoding = 'utf-8-sig')
+
     # ===================================================================
     # 3단계: 호기_정보 생성 (MachineInfoBuilder 사용)
     # ===================================================================
@@ -91,6 +93,7 @@ def create_results(
         original_order
     )
 
+    machine_info.to_csv("machine_info.csv", encoding = 'utf-8-sig')
     print(f"[89%] 호기_정보 완료 - {len(machine_info)}행")
 
     # ===================================================================
@@ -168,7 +171,7 @@ def create_results(
     print(f"\n[성과] PO제품수: {metrics_dict['po_count']}개")
     print(f"[성과] 총 생산시간: {metrics_dict['makespan_hours']:.2f}시간")
     print(f"[성과] 납기준수율: {metrics_dict['ontime_delivery_rate']:.2f}%")
-    print(f"[성과] 장비가동률(평균): {metrics_dict['avg_utilization']:.2f}%")
+    print(f"[성과] 납기 지각 제품 개수: {metrics_dict['late_product_count']}개")
 
     # 지각 요약 출력
     lateness_summary = lateness_reporter.get_lateness_summary()
@@ -203,7 +206,7 @@ def create_results(
             'po_count': int(metrics_dict['po_count']),
             'makespan_hours': round(float(metrics_dict['makespan_hours']), 2),
             'ontime_delivery_rate': round(float(metrics_dict['ontime_delivery_rate']), 2),
-            'avg_utilization': round(float(metrics_dict['avg_utilization']), 2)
+            'late_product_count': int(metrics_dict['late_product_count'])
         },
 
         # 지각 요약

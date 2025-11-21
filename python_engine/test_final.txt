@@ -1,0 +1,40 @@
+C:\Users\kim\OneDrive\바탕 화면\생산계획\스케줄링-1112\python_engine\src\yield_management\__init__.py:21: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  sequence_seperated_order_yield = sequence_seperated_order_yield.groupby(config.columns.GITEM, group_keys=False).apply(calculate_input_ratio)
+================================================================================
+비결정성 단위 테스트 (최적화 버전)
+================================================================================
+테스트 1-5: 1회만 실행 (이미 검증됨)
+테스트 6-7: 10회 반복
+================================================================================
+
+[준비 단계] 테스트 1-5 데이터 생성 중...
+--------------------------------------------------------------------------------
+  [OK] 입력 데이터 로딩 완료
+  [OK] Validation & Preprocessing 완료
+  [OK] 주문 시퀀스 생성 완료
+  [OK] 수율 예측 완료
+  [OK] DAG 생성 완료
+
+준비 완료! 테스트 6-7 시작합니다.
+
+
+[테스트 6] Dispatch Rule 생성 결정성 검증 (10회)
+--------------------------------------------------------------------------------
+  Iteration 1/10 완료  Iteration 2/10 완료  Iteration 3/10 완료  Iteration 4/10 완료  Iteration 5/10 완료  Iteration 6/10 완료  Iteration 7/10 완료  Iteration 8/10 완료  Iteration 9/10 완료  Iteration 10/10 완료
+dispatch_rule                 : [OK] ALL SAME (unique hashes: 1/10)
+[OK] Dispatch Rule은 결정적입니다!
+
+[테스트 7] 스케줄링 실행 결정성 검증 (10회)
+--------------------------------------------------------------------------------
+  Iteration 1/10 완료  Iteration 2/10 완료  Iteration 3/10 완료  Iteration 4/10 완료  Iteration 5/10 완료  Iteration 6/10 완료  Iteration 7/10 완료  Iteration 8/10 완료  Iteration 9/10 완료  Iteration 10/10 완료
+scheduling_result             : [OK] ALL SAME (unique hashes: 1/10)
+[OK] 스케줄링 결과는 결정적입니다!
+
+================================================================================
+테스트 요약
+================================================================================
+테스트 6 (Dispatch Rule): 10회 반복 테스트
+테스트 7 (스케줄링 실행): 10회 반복 테스트
+
+비결정성이 발견되었다면 위의 차이 분석을 확인하세요!
+================================================================================

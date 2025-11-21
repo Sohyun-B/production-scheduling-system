@@ -5,7 +5,7 @@
 - PO 제품수
 - 총 생산시간 (makespan)
 - 납기준수율
-- 장비가동률 (전체평균)
+- 납기 지각 제품 개수
 """
 
 import pandas as pd
@@ -114,44 +114,56 @@ class PerformanceMetricsCalculator:
 
         return ontime_rate
 
-    def calculate_avg_utilization(self):
+    def calculate_late_product_count(self):
         """
-        장비가동률 전체평균 계산 (%)
+        납기 지각 제품 개수 계산
 
         Returns:
-            float: 평균 장비가동률 (%)
+            int: 납기를 지키지 못한 제품(주문) 개수
         """
-        makespan = self.result_cleaned['node_end'].max()
+        # result_cleaned에 PO_NO 추가 (id 기준 병합)
+        result_with_po = pd.merge(
+            self.result_cleaned[['id', 'node_end']],
+            self.sequence_seperated_order[[config.columns.PROCESS_ID, config.columns.PO_NO]],
+            left_on='id',
+            right_on=config.columns.PROCESS_ID,
+            how='left'
+        )
 
-        if makespan == 0:
-            return 0.0
+        # PO별 최종 완료시각 추출
+        po_completion = result_with_po.groupby(config.columns.PO_NO).agg({
+            'node_end': 'max'
+        }).reset_index()
 
-        # 각 기계의 가동시간 계산
-        total_operating_time = 0
-        machine_count = 0
+        # 실제 datetime으로 변환
+        po_completion['completion_datetime'] = (
+            self.base_date +
+            pd.to_timedelta(po_completion['node_end'] * config.constants.TIME_MULTIPLIER, unit='m')
+        )
 
-        # ★ 딕셔너리 순회로 변경
-        for machine_code, machine in self.scheduler.Machines.items():
-            if len(machine.assigned_task) == 0:
-                continue
+        # 원본 주문의 납기일과 병합
+        po_with_duedate = pd.merge(
+            po_completion,
+            self.original_order[[config.columns.PO_NO, config.columns.DUE_DATE]],
+            on=config.columns.PO_NO,
+            how='left'
+        )
 
-            machine_count += 1
+        # 납기일 타입 변환 (필요시)
+        if not pd.api.types.is_datetime64_any_dtype(po_with_duedate[config.columns.DUE_DATE]):
+            po_with_duedate[config.columns.DUE_DATE] = pd.to_datetime(
+                po_with_duedate[config.columns.DUE_DATE]
+            )
 
-            # 각 작업의 처리시간 합계
-            operating_time = sum([
-                end - start
-                for start, end in zip(machine.O_start, machine.O_end)
-            ])
+        # 지각 여부 판정
+        po_with_duedate['late'] = (
+            po_with_duedate['completion_datetime'] > po_with_duedate[config.columns.DUE_DATE]
+        )
 
-            total_operating_time += operating_time
+        # 지각 개수 계산
+        late_count = po_with_duedate['late'].sum()
 
-        if machine_count == 0:
-            return 0.0
-
-        # 평균 가동율 = (총 가동시간) / (기계수 × makespan) × 100
-        avg_utilization = (total_operating_time / (machine_count * makespan)) * 100
-
-        return avg_utilization
+        return int(late_count)
 
     def create_summary_table(self):
         """
@@ -164,7 +176,7 @@ class PerformanceMetricsCalculator:
         po_count = self.calculate_po_count()
         makespan_hours = self.calculate_makespan()
         ontime_rate = self.calculate_ontime_delivery_rate()
-        avg_utilization = self.calculate_avg_utilization()
+        late_product_count = self.calculate_late_product_count()
 
         # DataFrame 생성
         summary_df = pd.DataFrame({
@@ -172,19 +184,19 @@ class PerformanceMetricsCalculator:
                 'PO제품수',
                 '총 생산시간',
                 '납기준수율',
-                '장비가동률(전체평균)'
+                '납기 지각 제품 개수'
             ],
             '값': [
                 po_count,
                 round(makespan_hours, 2),
                 round(ontime_rate, 2),
-                round(avg_utilization, 2)
+                late_product_count
             ],
             '단위': [
                 '개',
                 '시간',
                 '%',
-                '%'
+                '개'
             ]
         })
 
@@ -201,5 +213,5 @@ class PerformanceMetricsCalculator:
             'po_count': self.calculate_po_count(),
             'makespan_hours': self.calculate_makespan(),
             'ontime_delivery_rate': self.calculate_ontime_delivery_rate(),
-            'avg_utilization': self.calculate_avg_utilization()
+            'late_product_count': self.calculate_late_product_count()
         }
