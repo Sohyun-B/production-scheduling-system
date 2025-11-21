@@ -37,7 +37,9 @@ class ProductionDataPreprocessor:
                               config.columns.SITEM_NAME, config.columns.SPEC, config.columns.REQUEST_AMOUNT, config.columns.DUE_DATE]].copy()
 
         # Spec 컬럼을 분해 (Thickness, Width, Length)
-        order_data[['Thickness', config.columns.WIDTH, config.columns.LENGTH]] = order_data[config.columns.SPEC].str.split("*", expand=True)
+        order_data[['Thickness', config.columns.WIDTH, config.columns.LENGTH]] = (order_data[config.columns.SPEC].str.split("*", expand=True)
+                                                                            .astype(int))
+
 
         # Fabric_Length 계산
         order_data[config.columns.FABRIC_LENGTH] = order_data[config.columns.LENGTH].astype(int) * order_data[config.columns.REQUEST_AMOUNT].astype(int)
