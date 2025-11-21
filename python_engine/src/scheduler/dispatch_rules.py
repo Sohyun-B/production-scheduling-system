@@ -18,7 +18,9 @@ def create_dispatch_rule(dag_df, sequence_seperated_order):
             children_map[parent].append(child)
             parents_map[child].append(parent)
     
-    all_ids = set(dag_df[config.columns.PROCESS_ID])
+    all_ids = sorted(dag_df[config.columns.PROCESS_ID])
+    # set 사용시 비결정적 순서 발생 가능성 있음
+    # all_ids = set(dag_df[config.columns.PROCESS_ID])
     
     # 본인 기준 parents 개수 계산: 선행해야 하는 작업수
     in_degree = {}
