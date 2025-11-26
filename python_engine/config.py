@@ -23,10 +23,11 @@ class ColumnNames:
     # Product specifications
     WIDTH: str = "width" # "너비"                      # Product width from SPEC
     FABRIC_WIDTH: str = "fabric_width" # "원단너비"           # Different: process-specific fabric width
-    LENGTH: str = "length" # "길이"                       # Single unit length from SPEC  
+    LENGTH: str = "length" # "길이"                       # Single unit length from SPEC
     FABRIC_LENGTH: str = "fabric_length" # "원단길이"          # Different: calculated total length (길이 * 의뢰량)
-    PRODUCTION_LENGTH: str = "production_length" # "생산길이"      # Different: actual production length (after yield adjustment)
-    ORIGINAL_PRODUCTION_LENGTH: str = "original_production_length" # "원본생산길이"  # Before yield adjustment
+    PRODUCTION_LENGTH: str = "production_length" # "생산길이"      # 수율과 재공품을 모두 고려한 실제 생산길이
+    PRODUCTION_LENGTH_WO_WIP: str = "production_length_wo_wip" # "재공품미고려생산길이"  # 수율만 고려하고 재공품을 고려하지 않은 생산길이
+    ORIGINAL_PRODUCTION_LENGTH: str = "original_production_length" # "원본생산길이"  # 수율과 재공품을 모두 고려하기 이전의 생산길이
     REQUEST_AMOUNT: str = "ipgmqty" # "의뢰량"
     
     # Dates and times
@@ -65,7 +66,7 @@ class ColumnNames:
     
     # Yield related
     YIELD: str = "yield" # "수율"
-    PRODUCT_RATIO: float = "product_ratio" # 수율을 고려한 각 공정의 생산 비율
+    PRODUCT_RATIO: str = "product_ratio" # 수율을 고려한 각 공정의 생산 비율
     # PREDICTED_YIELD: str = "predicted_yield" # "예측_수율"
     # TOTAL_PREDICTED_YIELD: str = "total_predicted_yield" # "전체_예측_수율"
     # YIELD_PRODUCTION_RATIO: str = "yield_production_ratio" # "수율_생산비율"
@@ -90,8 +91,8 @@ class BusinessConstants:
     BASE_MONTH: int = 5
     BASE_DAY: int = 15
     WINDOW_DAYS: int = 5
-    LINESPEED_PERIOD: str = '6_months'
-    YIELD_PERIOD: str = '6_months'
+    LINESPEED_PERIOD: str = '0' # {0:1년, 1:6개월, 2: 3개월}
+    YIELD_PERIOD: str = '0' # {0:1년, 1:6개월, 2: 3개월}
     TIME_MULTIPLIER: int = 30
     GANTT_DPI: int = 300
     FAKE_OPERATION_DEPTH: int = -1

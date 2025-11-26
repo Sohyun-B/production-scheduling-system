@@ -1,0 +1,3 @@
+﻿,pono,gitemno,proccode,procseq,comb_classification,duedate,fabric_width,original_production_length,chemical_list,product_ID,process_ID,procgbn,gitemname,procname,production_length
+0,SW1251002401,32409,24000,1,4,2025-10-31,1300,150,T01824,32409_1300_4_M10,32409_1300_4_M10_24000_T01824,,NS-Clear Matte (Haze 60%),Anti-glare coating,160
+1,SW1251002401,32409,23100,2,4,2025-10-31,1300,150,T01862,32409_1300_4_M10,32409_1300_4_M10_23100_T01862,투명,NS-Clear Matte (Haze 60%),비산점착,150

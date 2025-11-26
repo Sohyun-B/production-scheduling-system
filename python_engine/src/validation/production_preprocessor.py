@@ -56,7 +56,7 @@ class ProductionDataPreprocessor:
 
         Args:
             df: 데이터프레임
-            period: 기간 ('6_months', '1_year', '3_months')
+            period: 기간 {0:1년, 1:6개월, 2: 3개월}
             prefix: 컬럼 접두사 ('l', 's')
             period_mapping: 기간별 패턴 매핑
 
@@ -70,7 +70,7 @@ class ProductionDataPreprocessor:
         return df, selected_cols
 
     def preprocess_linespeed_data(self, linespeed_df: pd.DataFrame,
-                                 linespeed_period: str = '6_months') -> pd.DataFrame:
+                                 linespeed_period: str = '0') -> pd.DataFrame:
         """
         라인스피드 데이터 전처리 (Long Format 유지)
 
@@ -78,7 +78,7 @@ class ProductionDataPreprocessor:
 
         Args:
             linespeed_df (pd.DataFrame): 라인스피드 원본 데이터프레임
-            linespeed_period (str): 기간 설정 ('6_months', '1_year', '3_months')
+            linespeed_period (str): 기간 설정 {0:1년, 1:6개월, 2: 3개월}
 
         Returns:
             pd.DataFrame: Long Format 라인스피드 데이터
@@ -89,9 +89,9 @@ class ProductionDataPreprocessor:
 
         # 기간별 컬럼 선택
         period_mapping = {
-            '6_months': r"^l.*1$",
-            '1_year': r"^l.*0$",
-            '3_months': r"^l.*2$"
+            '0': r"^l.*0$",
+            '1': r"^l.*1$",
+            '2': r"^l.*2$"
         }
 
         linespeed, linespeed_cols = self._select_period_columns(
@@ -150,14 +150,14 @@ class ProductionDataPreprocessor:
 
         return operation_types, gitem_operation_sequence
 
-    def preprocess_yield_data(self, yield_df: pd.DataFrame, 
-                             yield_period: str = '6_months') -> pd.DataFrame:
+    def preprocess_yield_data(self, yield_df: pd.DataFrame, operation_sequence: pd.DataFrame,
+                             yield_period: str = '0') -> pd.DataFrame:
         """
         수율 데이터 전처리
 
         Args:
             yield_df (pd.DataFrame): 수율 원본 데이터프레임
-            yield_period (str): 기간 설정 ('6_months', '1_year', '3_months')
+            yield_period (str): 기간 설정  {0:1년, 1:6개월, 2: 3개월}
 
         Returns:
             pd.DataFrame: 전처리된 수율 데이터
@@ -167,9 +167,9 @@ class ProductionDataPreprocessor:
 
         # 기간별 컬럼 선택
         period_mapping = {
-            '6_months': r"^s.*1$",
-            '1_year': r"^s.*0$",
-            '3_months': r"^s.*2$"
+            '0': r"^s.*0$",
+            '1': r"^s.*1$",
+            '2': r"^s.*2$"
         }
 
         yield_data, yield_cols = self._select_period_columns(
@@ -194,6 +194,9 @@ class ProductionDataPreprocessor:
         yield_data = yield_data.drop(
             columns=yield_data.columns[yield_data.columns.str.startswith("s")]
         )
+
+        # 공정순서 정보 추가
+        yield_data = yield_data.merge(operation_sequence[[config.columns.GITEM, config.columns.OPERATION_CODE, config.columns.OPERATION_ORDER]], on = [ config.columns.GITEM, config.columns.OPERATION_CODE ], how = 'left')
 
         return yield_data
 

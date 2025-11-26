@@ -11,6 +11,9 @@ def yield_prediction(yield_data, sequence_seperated_order):
         production_length: 수율을 고려하여 변경된 해당 공정에 '투입되어야 하는' 길이. 이때 2공정의 투입길이 == 1공정의 완료길이 
         original_production_length: 수율 고려 이전 주문한 아이템의 길이
     """
+    # 버전 맞추기 위해 procseq 삭제
+    yield_data = yield_data.drop(columns = {"procseq"})
+    
     # 수율 정보 추가
     sequence_seperated_order_yield = sequence_seperated_order.merge(yield_data, on = [config.columns.GITEM, config.columns.OPERATION_CODE], how = 'left')
 

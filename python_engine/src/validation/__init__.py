@@ -23,8 +23,8 @@ def preprocess_production_data(
     aging_gitem_df: pd.DataFrame = None,
     aging_gbn_df: pd.DataFrame = None,
     global_machine_limit_df: pd.DataFrame = None,
-    linespeed_period: str = '6_months',
-    yield_period: str = '6_months',
+    linespeed_period: str = '0', # {0:1년, 1:6개월, 2: 3개월}
+    yield_period: str = '0', # {0:1년, 1:6개월, 2: 3개월}
     validate: bool = True,
     save_output: bool = False,
     output_file: str = "data/input/python_input.xlsx"
@@ -44,8 +44,8 @@ def preprocess_production_data(
         aging_gitem_df (pd.DataFrame): GITEM별 에이징 시간 시트 (선택)
         aging_gbn_df (pd.DataFrame): 제품군별 에이징 시간 시트 (선택)
         global_machine_limit_df (pd.DataFrame): 제품군별 기계 제외 조건 시트 (선택)
-        linespeed_period (str): 라인스피드 기간 설정 ('6_months', '1_year', '3_months')
-        yield_period (str): 수율 기간 설정 ('6_months', '1_year', '3_months')
+        linespeed_period (str): 라인스피드 기간 설정 {0:1년, 1:6개월, 2: 3개월}
+        yield_period (str): 수율 기간 설정  {0:1년, 1:6개월, 2: 3개월}
         validate (bool): 데이터 유효성 검사 수행 여부
         save_output (bool): 중간 결과를 python_input.xlsx로 저장할지 여부
         output_file (str): 저장할 파일 경로 (save_output=True일 때만 사용)
@@ -109,7 +109,7 @@ def preprocess_production_data(
     order_data = preprocessor.preprocess_order_data(cleaned_data['order_df'])
     linespeed = preprocessor.preprocess_linespeed_data(cleaned_data['linespeed_df'], linespeed_period)
     operation_types, operation_sequence = preprocessor.preprocess_operation_data(cleaned_data['operation_df'])
-    yield_info = preprocessor.preprocess_yield_data(cleaned_data['yield_df'], yield_period)
+    yield_info = preprocessor.preprocess_yield_data(cleaned_data['yield_df'], operation_sequence, yield_period)
     chemical_data = preprocessor.preprocess_chemical_data(cleaned_data['chemical_df'])
 
     print("[Validation] 데이터 변환 완료. 결과 정리 중...")

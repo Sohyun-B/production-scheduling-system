@@ -1,6 +1,7 @@
 # Scheduler 모듈 - 비즈니스 로직 상세 설명서
 
 ## 목차
+
 1. [Scheduler 모듈의 역할](#scheduler-모듈의-역할)
 2. [모듈 구성과 책임 분담](#모듈-구성과-책임-분담)
 3. [핵심 비즈니스 로직 상세 분석](#핵심-비즈니스-로직-상세-분석)
@@ -11,7 +12,8 @@
 ## Scheduler 모듈의 역할
 
 ### 모듈이 받는 입력
-main.py의 `run_scheduler_pipeline()` 호출 시점에 이미 다음이 준비되어 있음:
+
+main.py의 `run_scheduler_pipeline()` 호출 시점에 이미 다음이 준비되어 있음
 
 ```python
 # 입력 데이터
@@ -26,9 +28,11 @@ manager                  # DAGGraphManager (노드 객체 관리)
 ```
 
 ### 모듈이 해결하는 문제
+
 > **"언제, 어떤 작업을, 어느 기계에 할당할 것인가?"**
 
 이것은 단순한 배정 문제가 아니라, 다음을 동시에 고려하는 복잡한 최적화 문제:
+
 - **의존성**: 부모 작업 완료 전에는 자식 작업 시작 불가
 - **기계 선택**: 같은 작업도 기계마다 처리 시간이 다름
 - **셋업 최소화**: 유사 작업을 묶어서 배합액/폭 교체 횟수 감소
@@ -36,6 +40,7 @@ manager                  # DAGGraphManager (노드 객체 관리)
 - **자원 제약**: 기계는 한 번에 하나의 작업만 처리 가능
 
 ### 모듈의 출력
+
 ```python
 result_df  # 스케줄링 결과 (각 작업의 할당 기계, 시작시간, 종료시간)
 scheduler  # Scheduler 객체 (기계별 타임라인 정보 포함)
@@ -68,35 +73,44 @@ scheduler/
 **수행 작업**:
 
 #### Step 1: 디스패치 규칙 생성
+
 ```python
 dispatch_rule_ans, dag_df = create_dispatch_rule(dag_df, sequence_seperated_order)
 ```
+
 - 모든 작업에 우선순위 부여
 - 반환값: 우선순위 순서대로 정렬된 작업 ID 리스트
 
 #### Step 2: DelayProcessor 초기화
+
 ```python
 delay_processor = DelayProcessor(opnode_dict, operation_delay_df, width_change_df, machine_code_list)
 ```
+
 - 셋업 시간 계산을 담당할 객체 생성
 - 공정 교체 시간 + 원단 폭 변경 시간 계산 준비
 
 #### Step 3: Scheduler 객체 생성
+
 ```python
 scheduler = Scheduler(machine_dict, delay_processor, machine_mapper)
 scheduler.allocate_resources()
 ```
+
 - 기계 자원 관리 객체 생성
 - 각 기계를 `Machine_Time_window` 객체로 초기화
 
 #### Step 4: 기계 중단 시간 설정
+
 ```python
 scheduler.allocate_machine_downtime(machine_rest, base_date)
 ```
+
 - 점검/고장 시간을 "DOWNTIME" 가짜 작업으로 차단
 - 이후 스케줄링 시 자동으로 해당 시간 회피
 
 #### Step 5: 스케줄링 전략 실행
+
 ```python
 strategy = DispatchPriorityStrategy()
 result = strategy.execute(
@@ -107,6 +121,7 @@ result = strategy.execute(
     window_days=window_days
 )
 ```
+
 - 실제 스케줄링 알고리즘 실행
 - 반환: 스케줄링 완료된 DataFrame
 
@@ -132,6 +147,7 @@ result = strategy.execute(
 #### 알고리즘: 위상 정렬 + 우선순위 큐
 
 **Step 1: 진입차수(in-degree) 계산**
+
 ```python
 각 노드에 대해:
   depth == 1 이면 in_degree = 0 (바로 실행 가능)
@@ -139,6 +155,7 @@ result = strategy.execute(
 ```
 
 **Step 2: 초기 ready 큐 생성**
+
 ```python
 in_degree == 0인 모든 노드를:
   (납기일, -원단폭, 노드ID) 형태로 heap에 추가
@@ -147,6 +164,7 @@ in_degree == 0인 모든 노드를:
 ```
 
 **Step 3: 위상 정렬 실행**
+
 ```python
 while ready 큐가 비지 않음:
     현재 = heap에서 pop() → 우선순위 가장 높은 작업
@@ -164,14 +182,17 @@ while ready 큐가 비지 않음:
 #### 비즈니스 의미
 
 **왜 위상 정렬인가?**
+
 - 부모 작업이 자식보다 먼저 나오도록 보장
 - DAG 구조 위반 방지 (코팅이 염색보다 먼저 스케줄되는 오류 차단)
 
 **왜 납기일 우선인가?**
+
 - 고객 만족도 직결
 - 지각 패널티 최소화
 
 **왜 원단 폭을 2순위로?**
+
 - 같은 날짜 작업끼리는 폭 교체 횟수 최소화가 효율적
 - 넓은 폭부터 처리 → 기계 조정 시간 감소
 
@@ -184,6 +205,7 @@ while ready 큐가 비지 않음:
 **비즈니스 문제**: "두 작업을 연속 처리할 때 얼마나 준비 시간이 필요한가?"
 
 #### 초기화
+
 ```python
 def __init__(self, opnode_dict, operation_delay_df, width_change_df, machine_code_list):
     # 공정 교체 시간 딕셔너리 생성
@@ -202,6 +224,7 @@ def __init__(self, opnode_dict, operation_delay_df, width_change_df, machine_cod
 #### 핵심 메서드: `delay_calc_whole_process()`
 
 **입력**:
+
 - `prev_id`: 이전 작업 ID
 - `next_id`: 다음 작업 ID
 - `machine_code`: 기계 코드
@@ -218,6 +241,9 @@ next_width = opnode_dict[next_id]["FABRIC_WIDTH"]
 # 2. 공정 교체 시간 조회
 operation_delay = operation_delay_dict.get((prev_operation, next_operation), 0)
 
+
+
+
 # 3. 원단 폭 변경 시간 조회
 width_delay = width_change_dict[machine_code].get((prev_width, next_width), 0)
 
@@ -226,6 +252,7 @@ delay = max(operation_delay, width_delay)
 ```
 
 **왜 max()인가?**
+
 - 공정이 바뀌면 기계를 완전히 재설정하므로 원단 폭도 초기화됨
 - 공정 교체 시간 > 폭 변경 시간이면 폭 변경은 공정 교체에 포함됨
 - 공정은 같은데 폭만 바뀌면 폭 변경 시간만 적용
@@ -233,6 +260,7 @@ delay = max(operation_delay, width_delay)
 #### 예시
 
 **경우 1: 공정 변경 + 폭 변경**
+
 ```
 이전: 염색 1524mm
 다음: 코팅 1016mm
@@ -245,6 +273,7 @@ delay = max(45, 12) = 45분
 ```
 
 **경우 2: 같은 공정, 폭만 변경**
+
 ```
 이전: 염색 1524mm
 다음: 염색 1016mm
@@ -278,6 +307,7 @@ def __init__(self, machine_dict, delay_processor, machine_mapper):
 ```
 
 **allocate_resources()**:
+
 ```python
 # 일반 기계들 생성
 for machine_code in machine_mapper.get_all_codes():
@@ -288,6 +318,7 @@ self.aging_machine = Machine_Time_window(-1, allow_overlapping=True)
 ```
 
 **비즈니스 의미**:
+
 - 일반 기계: 동시에 1개 작업만 처리 (물리적 제약)
 - 에이징 기계: 동시에 여러 작업 가능 (대기 시간이므로 물리적 공간 불필요)
 
@@ -316,6 +347,7 @@ self.Machines["M1"].force_Input(-1, "DOWNTIME", 456, 464)
 ```
 
 **결과**:
+
 - 이후 assign_operation() 호출 시 DOWNTIME 구간은 자동으로 회피됨
 - 기계는 "이미 작업이 할당된 시간"으로 인식
 
@@ -366,6 +398,7 @@ self.Machines[ideal_machine]._Input(depth, node_id, start, processing_time)
 **목표**: "이 기계에서 이 작업을 가장 빨리 시작할 수 있는 시점은?"
 
 **고려사항**:
+
 1. 작업의 최조 시작 가능 시간 (부모 작업 완료 시간)
 2. 기계의 현재 종료 시간
 3. 셋업 시간 (이전 작업과의 공정/폭 차이)
@@ -438,6 +471,7 @@ return machine_earliest, machine_code, processing_time, ...
 **비즈니스 의미**:
 
 **빈 시간창 활용의 가치**:
+
 ```
 기계 타임라인:
 0────100───150──────300───500
@@ -458,18 +492,22 @@ return machine_earliest, machine_code, processing_time, ...
 **force_assign_operation(machine_code, node_earliest_start, node_id, depth, machine_window_flag)**
 
 **언제 사용하는가?**
+
 - 셋업 최소화 전략에서 리더와 같은 기계에 그룹 작업 할당
 - 사용자가 수동으로 기계를 지정한 경우
 
 **차이점**:
+
 - `assign_operation()`: 모든 기계 비교 후 최적 선택
 - `force_assign_operation()`: 지정된 기계만 사용
 
 **machine_window_flag**:
+
 - `False`: 빈 시간창 활용 시도 (기본값)
 - `True`: 기계 맨 뒤에만 추가 (재스케줄링 시)
 
 **로직**:
+
 ```python
 # 지정 기계에서 수행 가능한지 확인
 processing_time = machine_dict[node_id].get(machine_code, 9999)
@@ -498,13 +536,16 @@ return True, earliest_start, processing_time
 **클래스 역할**: 노드 스케줄링의 원자적 연산 제공 (static methods)
 
 ##### validate_ready_node()
+
 ```python
 def validate_ready_node(node) -> bool:
     return node.parent_node_count == 0
 ```
+
 **의미**: "선행 작업이 모두 완료되었는가?"
 
 ##### calculate_start_time()
+
 ```python
 def calculate_start_time(node) -> float:
     if not node.parent_node_end:
@@ -516,9 +557,11 @@ def calculate_start_time(node) -> float:
 
     return max(valid_times)
 ```
+
 **의미**: "부모 작업들 중 가장 늦게 끝나는 시점이 내 최조 시작 시점"
 
 ##### update_node_state()
+
 ```python
 def update_node_state(node, machine_index, start_time, processing_time):
     node.machine = machine_index
@@ -526,18 +569,22 @@ def update_node_state(node, machine_index, start_time, processing_time):
     node.processing_time = processing_time
     node.node_end = start_time + processing_time
 ```
+
 **의미**: "작업 할당 결과를 노드에 기록"
 
 ##### update_dependencies()
+
 ```python
 def update_dependencies(node):
     for child in node.children:
         child.parent_node_count -= 1  # 선행 작업 1개 완료
         child.parent_node_end.append(node.node_end)  # 종료 시간 전달
 ```
+
 **의미**: "내가 끝났으니 자식 작업들에게 알림"
 
 ##### schedule_ready_aging_children()
+
 ```python
 def schedule_ready_aging_children(node, scheduler):
     for child in node.children:
@@ -551,6 +598,7 @@ def schedule_ready_aging_children(node, scheduler):
                     child, scheduler, AgingMachineStrategy()
                 )
 ```
+
 **의미**: "내 작업이 끝나면서 자식 중 에이징 노드가 준비되었다면 즉시 처리"
 
 ##### schedule_single_node() - 가장 중요한 메서드
@@ -600,6 +648,7 @@ def schedule_single_node(node, scheduler, machine_assignment_strategy) -> bool:
 ```
 
 **이 메서드의 비즈니스 가치**:
+
 - **일관성**: 모든 노드 스케줄링이 동일한 6단계 프로세스를 거침
 - **안전성**: 의존성 검증 → 할당 → 상태 업데이트 → 전파 순서 보장
 - **확장성**: 전략 패턴으로 다양한 할당 방식 지원
@@ -609,6 +658,7 @@ def schedule_single_node(node, scheduler, machine_assignment_strategy) -> bool:
 #### 5.2 기계 할당 전략 (MachineAssignmentStrategy)
 
 **전략 패턴 적용 이유**:
+
 - 같은 노드라도 상황에 따라 다른 할당 방식 필요
 - 코드 중복 없이 다양한 전략 구현
 
@@ -635,6 +685,7 @@ def assign(self, scheduler, node, earliest_start) -> AssignmentResult:
 ##### ForcedMachineStrategy - 특정 기계 강제 할당
 
 **언제**:
+
 - 같은 배합액 그룹 작업 (리더와 같은 기계 사용)
 - 사용자 재스케줄링
 
@@ -773,10 +824,12 @@ window_days = 5일 설정 시:
 **execute() 메서드 상세**:
 
 **입력**:
+
 - `start_id`: 윈도우의 첫 번째 작업 (리더)
 - `window`: 윈도우 내 나머지 작업 ID 리스트
 
 **출력**:
+
 - `used_ids`: 이번에 스케줄링된 작업 ID 리스트
 
 **알고리즘 단계**:
@@ -998,14 +1051,17 @@ vs. 단순 우선순위만 따를 경우:
 **비즈니스 가치**:
 
 1. **배합액 교체 최소화**
+
    - 한 번 교체에 30-60분 소요
    - 같은 배합액 그룹화로 교체 횟수 크게 감소
 
 2. **원단 폭 교체 최소화**
+
    - 넓은 폭 → 좁은 폭 순서로 처리
    - 기계 조정 시간 단축 (좁→넓보다 넓→좁이 빠름)
 
 3. **기계 전환 최소화**
+
    - 같은 기계에 그룹 작업 모두 할당
    - 기계 간 이동 없이 연속 처리
 
@@ -1022,6 +1078,7 @@ vs. 단순 우선순위만 따를 경우:
 **입력**: `machine_queues = {기계코드: [작업ID 리스트]}`
 
 **로직**:
+
 ```python
 def execute(self, dag_manager, scheduler, machine_queues):
     progress = True
@@ -1052,6 +1109,7 @@ def execute(self, dag_manager, scheduler, machine_queues):
 ```
 
 **use_machine_window=True의 의미**:
+
 - 기계 맨 뒤에만 추가
 - 빈 시간창 삽입 시도 안 함
 - 사용자가 지정한 순서 그대로 유지
@@ -1065,6 +1123,7 @@ def execute(self, dag_manager, scheduler, machine_queues):
 **역할**: 개별 기계의 작업 타임라인 관리
 
 **주요 속성**:
+
 ```python
 self.Machine_code = machine_code      # 기계 코드 (예: "M1")
 self.assigned_task = []               # [(depth, node_id), ...]
@@ -1076,7 +1135,8 @@ self.allow_overlapping = False        # 작업 중첩 허용 여부 (aging만 Tr
 
 **핵심 메서드**:
 
-##### _Input() - 작업 할당
+##### \_Input() - 작업 할당
+
 ```python
 def _Input(self, depth, operation, start_time, processing_time):
     end_time = start_time + processing_time
@@ -1098,6 +1158,7 @@ def _Input(self, depth, operation, start_time, processing_time):
 ```
 
 ##### Empty_time_window() - 빈 시간창 계산
+
 ```python
 def Empty_time_window(self):
     """
@@ -1124,6 +1185,7 @@ def Empty_time_window(self):
 ```
 
 **비즈니스 의미**:
+
 ```
 기계 타임라인:
 0────100───150──────300───500
@@ -1189,6 +1251,7 @@ Empty_time_window() 반환:
 ### 의사결정 트리
 
 #### 레벨 1: 어떤 작업부터 처리할 것인가?
+
 ```
 create_dispatch_rule()
 ├─ 납기일 빠른 순
@@ -1197,6 +1260,7 @@ create_dispatch_rule()
 ```
 
 #### 레벨 2: 윈도우를 어떻게 구성할 것인가?
+
 ```
 DispatchPriorityStrategy
 ├─ 첫 작업의 납기일 ± window_days
@@ -1204,6 +1268,7 @@ DispatchPriorityStrategy
 ```
 
 #### 레벨 3: 윈도우 내에서 어떤 순서로 처리할 것인가?
+
 ```
 SetupMinimizedStrategy
 ├─ 리더 작업 먼저
@@ -1215,6 +1280,7 @@ SetupMinimizedStrategy
 ```
 
 #### 레벨 4: 어떤 기계에 할당할 것인가?
+
 ```
 OptimalMachineStrategy (리더)
 ├─ 수행 가능한 모든 기계 비교
@@ -1226,6 +1292,7 @@ ForcedMachineStrategy (그룹)
 ```
 
 #### 레벨 5: 언제 시작할 것인가?
+
 ```
 machine_earliest_start()
 ├─ 작업 준비 시간 (부모 완료)
@@ -1242,6 +1309,7 @@ machine_earliest_start()
 ### 복잡도 분석
 
 **전체 스케줄링**:
+
 - N: 작업 수
 - M: 기계 수
 - W: 윈도우 크기
@@ -1272,6 +1340,7 @@ assign_operation (작업당):
 ### 실용적 성능
 
 **일반적 케이스**:
+
 - N = 500 작업
 - M = 20 기계
 - W = 50 (윈도우 크기)
@@ -1280,6 +1349,7 @@ assign_operation (작업당):
 → 예상 시간: 수초 ~ 수십초
 
 **최악 케이스**:
+
 - N = 5000 작업
 - M = 100 기계
 - W = 500
@@ -1287,6 +1357,7 @@ assign_operation (작업당):
 → 예상 시간: 수분
 
 **성능 최적화 요소**:
+
 1. 윈도우 크기 제한으로 전역 탐색 회피
 2. 딕셔너리 기반 O(1) 조회
 3. 빈 시간창은 첫 번째 적합한 곳 사용 (완전 탐색 안 함)
@@ -1298,19 +1369,23 @@ assign_operation (작업당):
 ### 강점
 
 **1. 현실적 제약 반영**
+
 - 공정 순서, 셋업 시간, 기계 중단, 에이징 등 실제 생산 환경 고려
 - 9999 값, DOWNTIME 작업 등 우아한 제약 표현
 
 **2. 계층적 최적화**
+
 - 윈도우 레벨: 납기 준수
 - 그룹 레벨: 셋업 최소화
 - 작업 레벨: 기계 완료 시간 최소화
 
 **3. 확장 가능한 설계**
+
 - 전략 패턴으로 새로운 할당 방식 추가 용이
 - static method로 재사용 가능한 연산 제공
 
 **4. 동적 대응**
+
 - 의존성 해소 시 즉시 작업 추가
 - 에이징 자동 스케줄링
 - 빈 시간창 활용
@@ -1318,36 +1393,44 @@ assign_operation (작업당):
 ### 한계
 
 **1. 로컬 최적해**
+
 - 윈도우 내에서만 최적화
 - 윈도우 경계에서 비효율 발생 가능
 
 **2. 탐욕적 결정**
+
 - 리더 선택이 전체 결과에 큰 영향
 - 다른 리더 선택 시 더 나은 결과 가능성
 
 **3. 결정론적**
+
 - 같은 입력에 같은 출력
 - 확률적 방법(유전 알고리즘 등) 대비 다양성 부족
 
 **4. 불확실성 미고려**
+
 - 실제 처리 시간 변동성 무시
 - 돌발 상황 대응 어려움
 
 ### 개선 방향
 
 **1. 메타휴리스틱 결합**
+
 - 현재 알고리즘으로 초기해 생성
 - 유전 알고리즘/시뮬레이티드 어닐링으로 개선
 
 **2. 룩어헤드 (Look-ahead)**
+
 - 윈도우 경계 너머 작업 미리 고려
 - 더 나은 배합액 선택 가능
 
 **3. 동적 윈도우 크기**
+
 - 작업 밀집도에 따라 윈도우 크기 조정
 - 유연한 납기-효율 균형
 
 **4. 불확실성 반영**
+
 - 처리 시간에 안전 마진 추가
 - 로버스트 스케줄링 기법 적용
 
@@ -1358,6 +1441,7 @@ assign_operation (작업당):
 scheduler 모듈은 **계층적 그룹화 + 탐욕적 로컬 최적화**를 핵심으로 하는 실용적 스케줄링 시스템입니다.
 
 **핵심 의사결정**:
+
 1. **우선순위 정렬**: 납기 → 원단 폭 순
 2. **윈도우 구성**: 납기 유사 작업 묶음
 3. **셋업 최소화**: 같은 배합액 그룹화 + 폭 정렬
@@ -1365,6 +1449,7 @@ scheduler 모듈은 **계층적 그룹화 + 탐욕적 로컬 최적화**를 핵�
 5. **시간 할당**: 빈 시간창 활용
 
 **비즈니스 가치**:
+
 - 납기 준수율 향상 (윈도우 기반 처리)
 - 생산 효율 개선 (셋업 시간 최소화)
 - 현실 반영 (제약조건 정확한 모델링)
