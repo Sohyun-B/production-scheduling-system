@@ -48,3 +48,6 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Data output folder
+python_engine/data/output/
+

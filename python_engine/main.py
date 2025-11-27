@@ -47,6 +47,9 @@ def run_level4_scheduling():
         aging_gbn = pd.read_excel(input_file, sheet_name="tb_agingtime_gbn")
         global_machine_limit_raw = pd.read_excel("data/input/tb_commomconstraint.xlsx")
 
+        # 재공품
+        work_in_progress = pd.read_excel("data/input/재공품.xlsx", dtype={config.columns.GITEM: str})
+
         print("Excel 파일 로딩 완료!")
 
     except FileNotFoundError as e:
@@ -108,22 +111,21 @@ def run_level4_scheduling():
     machine_mapper = MachineMapper(machine_master_info_df)
     print(f"[INFO] MachineMapper 초기화 완료: {machine_mapper}")
 
-    operation_seperated_sequence.to_csv("수율이전 operation_seperated_sequence.csv", encoding = 'utf-8-sig')
-    operation_types.to_csv("operation_types.csv", encoding = 'utf-8-sig')
 
     # === 2단계: 주문 시퀀스 생성 (Order Sequencing) ===
     print("[30%] 주문 시퀀스 생성 중...")
     sequence_seperated_order, linespeed, unable_gitems, unable_order, unable_details = generate_order_sequences(
         order, operation_seperated_sequence, operation_types, local_machine_limit, global_machine_limit, machine_allocate, linespeed, chemical_data)
     
-    sequence_seperated_order.to_csv("수율이전_sequence_seperated_order.csv", encoding = 'utf-8-sig')
-    # === 3단계: 수율 예측 ===
-    print("[35%] 수율 예측 처리 중...")
-    sequence_seperated_order = yield_prediction(
-        yield_data, sequence_seperated_order
+    # === 3단계: 수율 예측 및 재공품 적용 ===
+    print("[35%] 수율 예측 및 재공품 처리 중...")
+    sequence_seperated_order, wip_usage_log, unused_wip= yield_prediction(
+        yield_data, sequence_seperated_order, work_in_progress
     )
-
-    sequence_seperated_order.to_csv("수율이후_sequence_seperated_order.csv", encoding = 'utf-8-sig')
+    # 재공품 사용 이력 저장
+    if not wip_usage_log.empty:
+        wip_usage_log.to_excel("재공품_사용_이력.xlsx", index=False)
+        print(f"[INFO] 재공품 사용 이력 저장 완료: 재공품_사용_이력.xlsx ({len(wip_usage_log)}건)")
 
     # === 4단계: DAG 생성 ===
     # DAG 생성 (aging_map 전달)

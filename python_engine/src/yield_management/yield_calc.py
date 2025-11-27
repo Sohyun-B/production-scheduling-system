@@ -1,6 +1,101 @@
 import pandas as pd
 from config import config
 
+def yield_prediction(yield_data, sequence_seperated_order, work_in_progress=None):
+    """
+    수율 데이터를 기반으로 각 공정의 투입 비율을 계산하고,
+    재공품을 고려하여 실제 생산해야 할 길이를 조정합니다.
+
+    Args:
+        yield_data: 수율 데이터 (gitemno, proccode, procseq, yield)
+        sequence_seperated_order: 주문 데이터 (process_ID, gitemno, proccode, product_length, duedate)
+        work_in_progress: 재공품 데이터 (gitemno, completed_proccode, completed_procseq, length), optional
+
+    Returns:
+        dict: {
+            'adjusted_orders': 재공품 적용 후 조정된 주문 DataFrame (3개의 길이 컬럼 포함):
+                - production_length: 수율과 재공품을 모두 고려한 실제 생산길이
+                - production_length_wo_wip: 수율만 고려하고 재공품을 고려하지 않은 생산길이
+                - original_production_length: 수율과 재공품을 모두 고려하기 이전의 생산길이
+            'wip_usage_log': 재공품 사용 이력 DataFrame,
+            'unused_wip': 미사용 재공품 DataFrame
+        }
+    """
+    # 1. yield_data 정렬 및 product_ratio 계산
+    yield_data_sorted = yield_data.sort_values(
+        [config.columns.GITEM, config.columns.OPERATION_ORDER]
+    ).reset_index(drop=True)
+
+    # pandas FutureWarning 방지를 위해 warning 무시
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=FutureWarning)
+        yield_data_with_ratio = yield_data_sorted.groupby(
+            config.columns.GITEM,
+            group_keys=False
+        ).apply(calculate_input_ratio).reset_index(drop=True)
+
+    # 2. sequence_seperated_order에 product_ratio 병합
+    # 기존 product_ratio 컬럼이 있다면 제거
+    sequence_order_clean = sequence_seperated_order.copy()
+    if config.columns.PRODUCT_RATIO in sequence_order_clean.columns:
+        sequence_order_clean = sequence_order_clean.drop(columns=[config.columns.PRODUCT_RATIO])
+
+    orders_with_ratio = sequence_order_clean.merge(
+        yield_data_with_ratio[[
+            config.columns.GITEM,
+            config.columns.OPERATION_CODE,
+            config.columns.PRODUCT_RATIO
+        ]],
+        on=[config.columns.GITEM, config.columns.OPERATION_CODE],
+        how='left'
+    )
+
+    # 3. 길이 컬럼 계산
+    # 3-1. original_production_length: 원본 생산길이 (수율, 재공품 미고려)
+    orders_with_ratio[config.columns.ORIGINAL_PRODUCTION_LENGTH] = \
+        orders_with_ratio[config.columns.PRODUCTION_LENGTH]
+
+    # 3-2. production_length_wo_wip: 수율만 고려한 생산길이 (재공품 미고려)
+    orders_with_ratio[config.columns.PRODUCTION_LENGTH_WO_WIP] = \
+        orders_with_ratio[config.columns.ORIGINAL_PRODUCTION_LENGTH] * \
+        orders_with_ratio[config.columns.PRODUCT_RATIO]
+
+    # 결과 길이를 10의 자리에서 반올림
+    orders_with_ratio[config.columns.PRODUCTION_LENGTH_WO_WIP] = \
+        orders_with_ratio[config.columns.PRODUCTION_LENGTH_WO_WIP].round(-1).astype(int)
+
+    # 3-3. production_length: 처음에는 production_length_wo_wip와 동일, 재공품 적용 후 변경됨
+    orders_with_ratio[config.columns.PRODUCTION_LENGTH] = \
+        orders_with_ratio[config.columns.PRODUCTION_LENGTH_WO_WIP]
+
+    # product_ratio 컬럼 제거
+    orders_adjusted = orders_with_ratio.drop(columns=[config.columns.PRODUCT_RATIO])
+
+    # 4. 재공품 처리
+    if work_in_progress is not None and not work_in_progress.empty:
+        # 재공품을 모든 공정으로 확장
+        expanded_wip, unused_wip = expand_wip_to_all_processes(
+            work_in_progress,
+            yield_data_with_ratio
+        )
+
+        # 재공품을 주문에 적용
+        if not expanded_wip.empty:
+            adjusted_orders, wip_usage_log = apply_wip_to_orders(
+                orders_adjusted,
+                expanded_wip
+            )
+        else:
+            adjusted_orders = orders_adjusted
+            wip_usage_log = pd.DataFrame()
+    else:
+        adjusted_orders = orders_adjusted
+        wip_usage_log = pd.DataFrame()
+        unused_wip = pd.DataFrame()
+
+    return adjusted_orders, wip_usage_log, unused_wip
+
 
 def calculate_input_ratio(group):
     """
@@ -230,101 +325,3 @@ def apply_wip_to_orders(sequence_seperated_order, expanded_wip):
     return adjusted_orders, wip_usage_log
 
 
-def yield_prediction(yield_data, sequence_seperated_order, work_in_progress=None):
-    """
-    수율 데이터를 기반으로 각 공정의 투입 비율을 계산하고,
-    재공품을 고려하여 실제 생산해야 할 길이를 조정합니다.
-
-    Args:
-        yield_data: 수율 데이터 (gitemno, proccode, procseq, yield)
-        sequence_seperated_order: 주문 데이터 (process_ID, gitemno, proccode, product_length, duedate)
-        work_in_progress: 재공품 데이터 (gitemno, completed_proccode, completed_procseq, length), optional
-
-    Returns:
-        dict: {
-            'adjusted_orders': 재공품 적용 후 조정된 주문 DataFrame (3개의 길이 컬럼 포함):
-                - production_length: 수율과 재공품을 모두 고려한 실제 생산길이
-                - production_length_wo_wip: 수율만 고려하고 재공품을 고려하지 않은 생산길이
-                - original_production_length: 수율과 재공품을 모두 고려하기 이전의 생산길이
-            'wip_usage_log': 재공품 사용 이력 DataFrame,
-            'unused_wip': 미사용 재공품 DataFrame
-        }
-    """
-    # 1. yield_data 정렬 및 product_ratio 계산
-    yield_data_sorted = yield_data.sort_values(
-        [config.columns.GITEM, config.columns.OPERATION_ORDER]
-    ).reset_index(drop=True)
-
-    # pandas FutureWarning 방지를 위해 warning 무시
-    import warnings
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', category=FutureWarning)
-        yield_data_with_ratio = yield_data_sorted.groupby(
-            config.columns.GITEM,
-            group_keys=False
-        ).apply(calculate_input_ratio).reset_index(drop=True)
-
-    # 2. sequence_seperated_order에 product_ratio 병합
-    # 기존 product_ratio 컬럼이 있다면 제거
-    sequence_order_clean = sequence_seperated_order.copy()
-    if config.columns.PRODUCT_RATIO in sequence_order_clean.columns:
-        sequence_order_clean = sequence_order_clean.drop(columns=[config.columns.PRODUCT_RATIO])
-
-    orders_with_ratio = sequence_order_clean.merge(
-        yield_data_with_ratio[[
-            config.columns.GITEM,
-            config.columns.OPERATION_CODE,
-            config.columns.PRODUCT_RATIO
-        ]],
-        on=[config.columns.GITEM, config.columns.OPERATION_CODE],
-        how='left'
-    )
-
-    # 3. 길이 컬럼 계산
-    # 3-1. original_production_length: 원본 생산길이 (수율, 재공품 미고려)
-    orders_with_ratio[config.columns.ORIGINAL_PRODUCTION_LENGTH] = \
-        orders_with_ratio[config.columns.PRODUCTION_LENGTH]
-
-    # 3-2. production_length_wo_wip: 수율만 고려한 생산길이 (재공품 미고려)
-    orders_with_ratio[config.columns.PRODUCTION_LENGTH_WO_WIP] = \
-        orders_with_ratio[config.columns.ORIGINAL_PRODUCTION_LENGTH] * \
-        orders_with_ratio[config.columns.PRODUCT_RATIO]
-
-    # 결과 길이를 10의 자리에서 반올림
-    orders_with_ratio[config.columns.PRODUCTION_LENGTH_WO_WIP] = \
-        orders_with_ratio[config.columns.PRODUCTION_LENGTH_WO_WIP].round(-1).astype(int)
-
-    # 3-3. production_length: 처음에는 production_length_wo_wip와 동일, 재공품 적용 후 변경됨
-    orders_with_ratio[config.columns.PRODUCTION_LENGTH] = \
-        orders_with_ratio[config.columns.PRODUCTION_LENGTH_WO_WIP]
-
-    # product_ratio 컬럼 제거
-    orders_adjusted = orders_with_ratio.drop(columns=[config.columns.PRODUCT_RATIO])
-
-    # 4. 재공품 처리
-    if work_in_progress is not None and not work_in_progress.empty:
-        # 재공품을 모든 공정으로 확장
-        expanded_wip, unused_wip = expand_wip_to_all_processes(
-            work_in_progress,
-            yield_data_with_ratio
-        )
-
-        # 재공품을 주문에 적용
-        if not expanded_wip.empty:
-            adjusted_orders, wip_usage_log = apply_wip_to_orders(
-                orders_adjusted,
-                expanded_wip
-            )
-        else:
-            adjusted_orders = orders_adjusted
-            wip_usage_log = pd.DataFrame()
-    else:
-        adjusted_orders = orders_adjusted
-        wip_usage_log = pd.DataFrame()
-        unused_wip = pd.DataFrame()
-
-    return {
-        'adjusted_orders': adjusted_orders,
-        'wip_usage_log': wip_usage_log,
-        'unused_wip': unused_wip
-    }
